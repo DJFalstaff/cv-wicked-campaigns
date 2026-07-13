@@ -1,0 +1,62 @@
+<div class="chase-gm-panel" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.5rem;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0.5rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px;">
+        <span style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Round {{round}}</span>
+        <span style="font-size: 0.75rem; color: #a89a82;">Table: {{tableLabel}}</span>
+    </div>
+
+    <ul class="chase-turn-list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+        {{#each combatants}}
+        <li data-combatant-id="{{this.id}}" draggable="true" class="{{#if this.inDanger}}chase-danger{{/if}}" style="display: flex; flex-direction: column; gap: 0.35rem; padding: 0.5rem 0.6rem; background: {{#if this.isCurrentTurn}}rgba(201, 160, 84, 0.12){{else}}rgba(0, 0, 0, 0.15){{/if}}; border: 1px solid {{#if this.isCurrentTurn}}rgba(201, 160, 84, 0.5){{else}}rgba(201, 160, 84, 0.15){{/if}}; border-radius: 4px; cursor: grab;">
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-grip-vertical" style="color: #6b6250;"></i>
+                <img src="{{this.img}}" style="width: 24px; height: 24px; border-radius: 3px; object-fit: cover;" />
+                <span style="flex: 1; font-size: 0.88rem; color: #fff; font-weight: {{#if this.isCurrentTurn}}bold{{else}}normal{{/if}};">
+                    {{this.name}}{{#if this.isQuarry}} <span style="color: #e08a75; font-size: 0.72rem; text-transform: uppercase;">(quarry)</span>{{/if}}
+                </span>
+                <span style="font-family: monospace; font-size: 0.8rem; color: #a89a82;">init {{this.initiative}}</span>
+            </div>
+
+            {{#unless this.isQuarry}}
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.72rem; color: #a89a82; text-transform: uppercase; width: 3rem;">Gap</span>
+                <button type="button" data-action="adjustGap" data-delta="-5" style="width: 22px; height: 22px; background: rgba(0,0,0,0.2); border: 1px solid rgba(201,160,84,0.2); border-radius: 3px; color: #c9a054; cursor: pointer;">-</button>
+                <span style="font-family: monospace; font-size: 0.85rem; color: {{#if this.overThreshold}}#e08a75{{else}}#fff{{/if}}; min-width: 3.5rem; text-align: center;">{{this.gap}} ft</span>
+                <button type="button" data-action="adjustGap" data-delta="5" style="width: 22px; height: 22px; background: rgba(0,0,0,0.2); border: 1px solid rgba(201,160,84,0.2); border-radius: 3px; color: #c9a054; cursor: pointer;">+</button>
+            </div>
+            {{/unless}}
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.72rem; color: #a89a82; text-transform: uppercase; width: 3rem;">Dash</span>
+                <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                    <div style="height: 100%; width: {{this.dashesUsed}}0%; max-width: 100%; background: {{#if this.overThreshold}}#a34a3a{{else}}#c9a054{{/if}};"></div>
+                </div>
+                <span style="font-family: monospace; font-size: 0.75rem; color: #a89a82; white-space: nowrap;">{{this.dashesUsed}}/{{this.dashThreshold}}</span>
+                <label style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; color: #c9a054; text-transform: uppercase; white-space: nowrap;">
+                    <input type="checkbox" data-action="toggleDash" {{#if this.dashedThisRound}}checked{{/if}}>
+                    Dashing
+                </label>
+            </div>
+        </li>
+        {{/each}}
+    </ul>
+
+    <div style="display: flex; gap: 0.5rem;">
+        <button type="button" data-action="previousTurn" style="flex: 1; padding: 6px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+            <i class="fa-solid fa-backward-step"></i> Prev Turn
+        </button>
+        <button type="button" data-action="nextTurn" style="flex: 1; padding: 6px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+            Next Turn <i class="fa-solid fa-forward-step"></i>
+        </button>
+    </div>
+
+    <button type="button" data-action="rollComplication" style="width: 100%; font-weight: bold; padding: 6px 12px; font-size: 0.9rem; cursor: pointer; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.3); border-radius: 4px; color: #c9a054;">
+        <i class="fa-solid fa-dice-d20"></i> Roll Complication
+    </button>
+
+    <button type="button" data-action="endChase" style="width: 100%; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; background: rgba(163, 74, 58, 0.12); border: 1px solid rgba(163, 74, 58, 0.35); border-radius: 4px; color: #e08a75;">
+        <i class="fa-solid fa-flag-checkered"></i> End Chase
+    </button>
+
+</div>

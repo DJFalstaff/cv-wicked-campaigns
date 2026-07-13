@@ -1,0 +1,42 @@
+<form class="chase-setup-form" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.5rem;" onsubmit="event.preventDefault();">
+    {{#unless hasParticipants}}
+    <p style="color: #d5a5a5; font-size: 0.85rem;">
+        No tokens found. Select the tokens that should be part of the chase on the canvas, then reopen this dialog.
+    </p>
+    {{/unless}}
+
+    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Complication Table</label>
+        <select name="tableUuid" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0, 0, 0, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;">
+            <option value="">None</option>
+            {{#each tables}}
+            <option value="{{this.uuid}}">{{this.label}}</option>
+            {{/each}}
+        </select>
+        {{#unless hasTables}}
+        <span style="font-size: 0.75rem; color: #a89a82;">No complication tables registered yet.</span>
+        {{/unless}}
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+        <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Participants</label>
+        <div style="display: flex; flex-direction: column; gap: 0.3rem; max-height: 260px; overflow-y: auto;">
+            {{#each participants}}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.3rem 0.5rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.15); border-radius: 4px;">
+                <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #fff;">
+                    <input type="checkbox" name="include" value="{{this.id}}" checked>
+                    {{this.name}}
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #c9a054; text-transform: uppercase; white-space: nowrap;">
+                    <input type="radio" name="quarry" value="{{this.id}}" {{#if this.isFirst}}checked{{/if}}>
+                    Quarry
+                </label>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <button type="button" class="qbw-btn qbw-primary" data-action="start" style="width: 100%; font-weight: bold; padding: 6px 12px; font-size: 0.9rem; cursor: pointer; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.3); border-radius: 4px; color: #c9a054;">
+        <i class="fa-solid fa-person-running"></i> Start Chase
+    </button>
+</form>

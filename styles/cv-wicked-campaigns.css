@@ -1044,3 +1044,19 @@
 .wicked-character-sheet .window-content::before {
     opacity: 0.9;
 }
+
+/* Chase Tracker - reuses the In Peril widget's pulse animation (defined above) for "the gap is
+   about to close," rather than inventing a second urgency treatment. */
+.chase-turn-list li.chase-danger {
+    animation: wicked-peril-pulse 2.2s ease-in-out infinite;
+    border-color: rgba(190, 70, 70, 0.5) !important;
+}
+
+.chase-gm-panel button:hover,
+.chase-player-hud button:hover {
+    filter: brightness(1.2);
+}
+
+.chase-gm-panel .chase-turn-list li[draggable="true"]:active {
+    cursor: grabbing;
+}

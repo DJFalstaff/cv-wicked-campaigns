@@ -33,6 +33,134 @@ const HEIGHT_BANDS = [
   { band: "Average", min: 66, max: 72 },
   { band: "Tall",    min: 73, max: 79 },
 ];
+// ---- Chase Tracker: bundled complication tables ---------------------------
+// Ten 1d12 tables (6 real complications on 1-6, "no complication" on 7-12,
+// matching the density of the DMG's own Urban/Wilderness Chase Complications
+// tables) covering terrain/travel modes those two don't. Seeded once into the
+// wicked-roll-tables compendium - see seedChaseComplicationTables().
+const CHASE_COMPLICATION_TABLE_DEFS = [
+  {
+    name: "Rooftop Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save dex dc=10]] saving throw to leap a gap between buildings. On a failed save, you fall short and take [[/damage 2d6 type=bludgeoning]] damage, landing on the floor below." },
+      { range: [2, 2], text: "Make a [[/save dex dc=10]] saving throw as loose or broken roof tiles shift underfoot. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [3, 3], text: "Make a [[/save dex dc=10]] or [[/save int dc=10]] saving throw (your choice) to navigate a maze of laundry lines and drying sheets. On a failed save, they count as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [4, 4], text: "Make a [[/save con dc=10]] saving throw as a chimney vents a blast of hot steam or smoke. On a failed save, you have the &Reference[Blinded] condition until the end of your turn." },
+      { range: [5, 5], text: "Make a [[/save dex dc=15]] saving throw as a skylight or weak section of roofing gives way beneath you. On a failed save, you take [[/damage 2d4 type=slashing]] damage and have the &Reference[Prone] condition." },
+      { range: [6, 6], text: "Make a [[/save dex dc=10]] saving throw to keep your footing as a flock of startled birds bursts into your path. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Sewer & Tunnel Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save str dc=10]] saving throw to squeeze quickly through a narrow stretch of tunnel. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [2, 2], text: "Make a [[/save dex dc=10]] saving throw as the floor drops away into deeper water. On a failed save, you fall 10 feet into filthy water and take [[/damage 1d4 type=bludgeoning]] damage." },
+      { range: [3, 3], text: "Make a [[/save con dc=10]] saving throw against the foul, stagnant air. On a failed save, you have the &Reference[Poisoned] condition until the end of your next turn." },
+      { range: [4, 4], text: "Make a [[/save dex dc=10]] saving throw as a rusted grate or rotten walkway collapses underfoot. On a failed save, you have the &Reference[Prone] condition and take [[/damage 1d4 type=bludgeoning]] damage." },
+      { range: [5, 5], text: "Make a [[/save dex dc=10]] saving throw to avoid a swarm of rats scurrying across your path. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [6, 6], text: "Make a [[/save dex dc=10]] saving throw to keep hold of your light source as dripping water or a gust of foul wind threatens to snuff it out. On a failed save, you have the &Reference[Blinded] condition until you spend an action relighting it." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Shipboard Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save dex dc=10]] saving throw to keep your footing as a sudden swell rocks the ship. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [2, 2], text: "Make a [[/save dex dc=10]] or [[/save str dc=10]] saving throw (your choice) to navigate coiled rigging tangled underfoot. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [3, 3], text: "Make a [[/save dex dc=10]] saving throw as cargo crates shift and slide across the deck. On a failed save, you take [[/damage 1d6 type=bludgeoning]] damage and they count as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [4, 4], text: "Make a [[/save con dc=10]] saving throw as sea spray blinds you when a wave crashes over the rail. On a failed save, you have the &Reference[Blinded] condition until the end of your turn." },
+      { range: [5, 5], text: "Make a [[/save dex dc=10]] saving throw on a deck slick with spilled oil or fish guts. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [6, 6], text: "Make a [[/save dex dc=15]] saving throw to scramble across a swaying plank or rope bridge between vessels. On a failed save, you fall into the water below." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Underwater Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save str dc=10]] saving throw to hold your course against a strong current. On a failed save, you are pushed 10 feet off course, which counts as 10 feet of &Reference[Difficult Terrain] to correct." },
+      { range: [2, 2], text: "Make a [[/save str dc=10]] or [[/save dex dc=10]] saving throw (your choice) as a tangle of seaweed or kelp wraps around a limb. On a failed save, you have the &Reference[Restrained] condition until you or an ally spends an action freeing you." },
+      { range: [3, 3], text: "Make a [[/save con dc=10]] saving throw as silt and sand cloud the water around you. On a failed save, you have the &Reference[Blinded] condition until the end of your turn." },
+      { range: [4, 4], text: "Make a [[/save dex dc=10]] saving throw to avoid a school of startled fish or eels darting through the area. On a failed save, they count as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [5, 5], text: "Make a [[/save dex dc=15]] saving throw to avoid brushing against stinging coral or a jellyfish. On a failed save, you take [[/damage 1d6 type=poison]] damage." },
+      { range: [6, 6], text: "Make a [[/save con dc=10]] saving throw as your air runs short from the exertion (if you lack a way to breathe underwater). On a failed save, you gain 1 level of Exhaustion." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Aerial Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save str dc=10]] saving throw to hold steady against a sudden gust. On a failed save, you are pushed 10 feet off your intended path." },
+      { range: [2, 2], text: "Make a [[/save wis dc=10]] saving throw (Perception) to keep the quarry in sight through a bank of thick cloud. On a failed save, you have the &Reference[Blinded] condition until the end of your turn." },
+      { range: [3, 3], text: "Make a [[/save dex dc=10]] saving throw to hold steady through a turbulent air pocket. On a failed save, you drop 10 feet and must spend 10 feet of movement regaining altitude." },
+      { range: [4, 4], text: "Make a [[/save dex dc=10]] saving throw to avoid a flock of birds or flying vermin scattering into your path. On a failed save, they count as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [5, 5], text: "Make a [[/save dex dc=15]] saving throw as lightning flickers through nearby storm clouds. On a failed save, you take [[/damage 2d6 type=lightning]] damage." },
+      { range: [6, 6], text: "Make a [[/save con dc=10]] saving throw against the thin air at altitude. On a failed save, you have the &Reference[Poisoned] condition until the end of your next turn." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Desert Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save str dc=10]] saving throw as your feet sink into loose, shifting sand. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [2, 2], text: "Make a [[/save con dc=10]] saving throw as a sudden gust kicks up blinding dust and grit. On a failed save, you have the &Reference[Blinded] condition until the end of your turn." },
+      { range: [3, 3], text: "Make a [[/save con dc=10]] saving throw against the scorching heat. On a failed save, you have disadvantage on the next ability check you make before the chase ends." },
+      { range: [4, 4], text: "Make a [[/save dex dc=10]] saving throw as a buried ruin or rock formation catches your foot. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [5, 5], text: "Make a [[/save dex dc=15]] saving throw as a sinkhole opens beneath you. On a failed save, you fall 10 feet and take [[/damage 1d6 type=bludgeoning]] damage." },
+      { range: [6, 6], text: "Make a [[/save con dc=10]] saving throw against the sun glare off pale stone or sand. On a failed save, you have disadvantage on Wisdom (Perception) checks until the end of your next turn." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Arctic & Ice Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save dex dc=10]] saving throw as the ground turns to slick ice underfoot. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [2, 2], text: "Make a [[/save str dc=10]] saving throw as deep snowdrifts swallow your steps. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [3, 3], text: "Make a [[/save con dc=10]] saving throw as a sudden whiteout squall reduces visibility to nothing. On a failed save, you have the &Reference[Blinded] condition until the end of your turn." },
+      { range: [4, 4], text: "Make a [[/save dex dc=15]] saving throw as thin ice gives way beneath you. On a failed save, you fall through into frigid water and take [[/damage 1d6 type=cold]] damage." },
+      { range: [5, 5], text: "Make a [[/save con dc=10]] saving throw against the biting wind sapping your grip and footing. On a failed save, you have disadvantage on the next ability check you make before the chase ends." },
+      { range: [6, 6], text: "Make a [[/save dex dc=10]] saving throw as an icicle or overhang breaks loose above you. On a failed save, you take [[/damage 1d6 type=bludgeoning]] damage." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Swamp & Marsh Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save str dc=10]] saving throw as thick mud grabs at your legs. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [2, 2], text: "Make a [[/save dex dc=10]] saving throw as a hidden root or vine snags your foot. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [3, 3], text: "Make a [[/save str dc=10]] or [[/save dex dc=10]] saving throw (your choice) to keep moving at speed through murky, chest-deep water. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [4, 4], text: "Make a [[/save con dc=10]] saving throw as a cloud of biting insects descends on you. On a failed save, you have disadvantage on the next ability check you make before the chase ends." },
+      { range: [5, 5], text: "Make a [[/save con dc=15]] saving throw as you disturb a patch of poisonous marsh gas. On a failed save, you take [[/damage 1d6 type=poison]] damage." },
+      { range: [6, 6], text: "Make a [[/save dex dc=10]] saving throw as rotten, waterlogged planks give way underfoot. On a failed save, you have the &Reference[Prone] condition and take [[/damage 1d4 type=bludgeoning]] damage." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Mounted Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save dex dc=10]] saving throw to keep your seat as your mount startles at a sudden noise or movement. On a failed save, you have the &Reference[Prone] condition, thrown from the saddle." },
+      { range: [2, 2], text: "Make a [[/save dex dc=10]] saving throw as loose gravel or uneven ground unsettles your mount's footing. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [3, 3], text: "Make a [[/save dex dc=10]] saving throw to steer clear as another rider or beast cuts across your path. On a failed save, you collide and take [[/damage 1d4 type=bludgeoning]] damage." },
+      { range: [4, 4], text: "Make a [[/save dex dc=10]] saving throw as low-hanging branches whip at you while you ride. On a failed save, you take [[/damage 1d4 type=slashing]] damage." },
+      { range: [5, 5], text: "Make a [[/save wis dc=15]] (Animal Handling) or [[/save dex dc=15]] saving throw (your choice) to keep control as your mount balks at a hazard and rears. On a failed save, you have the &Reference[Prone] condition and your mount doesn't move this round." },
+      { range: [6, 6], text: "Make a [[/save dex dc=10]] saving throw as loose tack or a slipping saddle throws off your balance. On a failed save, you have disadvantage on the next ability check you make before the chase ends." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+  {
+    name: "Festival Crowd Chase Complications",
+    results: [
+      { range: [1, 1], text: "Make a [[/save str dc=10]], [[/save dex dc=10]], or [[/save cha dc=10]] saving throw (your choice) to get past a parade float or performer troupe blocking the way. On a failed save, it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [2, 2], text: "Make a [[/save dex dc=10]] saving throw as a merchant's stall of wares spills into your path. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [3, 3], text: "Make a [[/save dex dc=10]] saving throw as a street performer's act startles you mid-stride. On a failed save, you have the &Reference[Prone] condition." },
+      { range: [4, 4], text: "Make a [[/save dex dc=10]] saving throw to shrug free without slowing as a pickpocket or overeager reveler grabs at you. On a failed save, the crowd counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [5, 5], text: "Make a [[/save str dc=15]] or [[/save cha dc=15]] saving throw (your choice) to force through a tight crush of revelers packed shoulder to shoulder. On a failed save, you take [[/damage 1d4 type=bludgeoning]] damage and it counts as 10 feet of &Reference[Difficult Terrain] for you." },
+      { range: [6, 6], text: "Make a [[/save con dc=10]] saving throw as confetti, smoke, or fireworks briefly blind you. On a failed save, you have the &Reference[Blinded] condition until the end of your turn." },
+      { range: [7, 12], text: "There is no complication." },
+    ],
+  },
+];
+
 const AGE_STAGES = [
   { stage: "Young Adult", min: 18, max: 25 },
   { stage: "Adult",       min: 26, max: 39 },
@@ -4088,6 +4216,36 @@ Hooks.once('init', async function() {
       default: false
     });
 
+    // Gates the chase keybinding and all Combat lifecycle hooks below - checked live inside each
+    // handler (not by conditionally registering the hooks), so toggling takes effect immediately.
+    game.settings.register("cv-wicked-campaigns", "chaseTrackerEnabled", {
+      name: "Chase Tracker",
+      hint: "Enables the Chase Tracker: turns a Combat into a chase with a GM control panel (turn order, gap tracking, dash/exhaustion, complications) and an auto-opening player HUD.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    // Curated {uuid, label} list of RollTables the chase setup dialog offers as complication
+    // tables. Deliberately not flags on the tables themselves - the DMG's own tables live in a
+    // locked, third-party compendium we shouldn't write into.
+    game.settings.register("cv-wicked-campaigns", "chaseComplicationTables", {
+      scope: "world",
+      config: false,
+      type: Array,
+      default: []
+    });
+
+    // One-time seed guard for the 10 bundled complication tables + auto-registering the DMG's
+    // Urban/Wilderness tables, same shape as appliedDefaultCCTheme above.
+    game.settings.register("cv-wicked-campaigns", "chaseTablesSeeded", {
+      scope: "world",
+      config: false,
+      type: Boolean,
+      default: false
+    });
+
     DocumentSheetConfig.registerSheet(JournalEntry, "cv-wicked-campaigns", PartySheet, {
       types: ["base"],
       label: "CV_WICKED_CAMPAIGNS.PartySheetLabel"
@@ -4168,6 +4326,20 @@ Hooks.once('init', async function() {
         onDown: () => {
             if (!game.user.isGM) return;
             updateFatePool(-1, "Quick Subtract (Hot Key)");
+        },
+        restricted: true
+    });
+
+    // Keybinding to open Chase Setup (GM only)
+    game.keybindings.register("cv-wicked-campaigns", "openChaseSetup", {
+        name: "Open Chase Setup",
+        hint: "Open the Chase Tracker setup dialog to start a new chase (GM only).",
+        editable: [{ key: "KeyC", modifiers: ["SHIFT"] }],
+        onDown: () => {
+            if (!game.user.isGM || !game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled")) return;
+            const activeChase = game.combats.find((c) => c.getFlag("cv-wicked-campaigns", "isChase"));
+            if (activeChase) ChaseGMPanel.open(activeChase);
+            else new ChaseSetupDialog().render(true);
         },
         restricted: true
     });
@@ -4361,6 +4533,53 @@ Hooks.on("dnd5e.prepareSheetContext", (sheet, partId, context, options) => {
     }
 });
 
+function isChaseCombat(combat) {
+  return combat?.getFlag("cv-wicked-campaigns", "isChase") === true;
+}
+
+// One-time seed: creates the 10 bundled complication tables in wicked-roll-tables, then registers
+// them (plus the DMG's own Urban/Wilderness tables, if that module is active) into the
+// chaseComplicationTables setting. Never writes into the DMG's own (locked) compendium - just
+// records its tables' UUIDs alongside ours.
+async function seedChaseComplicationTables() {
+  const pack = game.packs.get("cv-wicked-campaigns.wicked-roll-tables");
+  if (!pack) {
+    console.warn("Wicked Campaigns | wicked-roll-tables compendium not found, skipping Chase Tracker table seed.");
+    return;
+  }
+
+  const registry = foundry.utils.deepClone(game.settings.get("cv-wicked-campaigns", "chaseComplicationTables") || []);
+
+  for (const def of CHASE_COMPLICATION_TABLE_DEFS) {
+    const created = await RollTable.create({
+      name: def.name,
+      img: "icons/svg/d20-grey.svg",
+      formula: "1d12",
+      replacement: true,
+      displayRoll: true,
+      // TableResult's text content field is "description", not "text" (confirmed against the
+      // DMG's own Urban/Wilderness Chase Complications data).
+      results: def.results.map((r) => ({ type: "text", description: r.text, range: r.range, weight: 1 })),
+    }, { pack: pack.collection });
+    registry.push({ uuid: created.uuid, label: def.name });
+  }
+
+  if (game.modules.get("dnd-dungeon-masters-guide")?.active) {
+    const dmgTables = [
+      { id: "dmgUrbanChaseCom", label: "Urban Chase Complications" },
+      { id: "dmgWildernessCha", label: "Wilderness Chase Complications" },
+    ];
+    for (const { id, label } of dmgTables) {
+      const uuid = `Compendium.dnd-dungeon-masters-guide.tables.RollTable.${id}`;
+      const doc = await fromUuid(uuid).catch(() => null);
+      if (doc) registry.push({ uuid, label });
+    }
+  }
+
+  await game.settings.set("cv-wicked-campaigns", "chaseComplicationTables", registry);
+  console.log(`Wicked Campaigns | Seeded ${CHASE_COMPLICATION_TABLE_DEFS.length} Chase Complication tables.`);
+}
+
 Hooks.once('ready', async function() {
     console.log('Wicked Campaigns | Ready');
     if (game.user.isGM) {
@@ -4399,6 +4618,29 @@ Hooks.once('ready', async function() {
                 await game.settings.set("cv-wicked-campaigns", "appliedDefaultIncludedCompendium", true);
             }
         }
+
+        if (!game.settings.get("cv-wicked-campaigns", "chaseTablesSeeded")) {
+            try {
+                await seedChaseComplicationTables();
+            } catch (err) {
+                console.error("Wicked Campaigns | Failed to seed Chase Complication tables.", err);
+            } finally {
+                await game.settings.set("cv-wicked-campaigns", "chaseTablesSeeded", true);
+            }
+        }
+
+        // Reopen the GM chase panel across a reload/reconnect if a chase is still active.
+        if (game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled")) {
+            const activeChase = game.combats.find(isChaseCombat);
+            if (activeChase) ChaseGMPanel.open(activeChase);
+        }
+    } else if (game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled")) {
+        // Non-GM reconnect: reopen the player HUD if a chase is active and this user owns a
+        // combatant in it - mirrors the createCombat auto-open below, just for page reloads.
+        const activeChase = game.combats.find(isChaseCombat);
+        if (activeChase && activeChase.combatants.some((c) => c.actor?.isOwner)) {
+            ChasePlayerHUD.open(activeChase);
+        }
     }
 
     // Registered for every client, not just the GM - the whole point is that players receive the
@@ -4411,6 +4653,434 @@ Hooks.once('ready', async function() {
             }
         });
     }
+});
+
+// ---- Chase Tracker: core logic --------------------------------------------
+// DMG rule: a participant can Dash 3 + Con mod times (min 1) across the whole chase before
+// needing a Con save; the DC rises by 1 for every dash past that threshold.
+function chaseDashThreshold(conMod) {
+    return Math.max(1, 3 + (conMod ?? 0));
+}
+
+function getChaseCandidateTokens() {
+    if (canvas.tokens?.controlled?.length) return canvas.tokens.controlled;
+    return canvas.tokens?.placeables ?? [];
+}
+
+async function startChase({ tokenIds, quarryTokenId, tableUuid }) {
+    const tokens = tokenIds.map((id) => canvas.tokens.get(id)).filter(Boolean);
+    if (!tokens.length) {
+        ui.notifications.warn("Select at least one token to start a chase.");
+        return null;
+    }
+
+    const combat = await Combat.create({ scene: canvas.scene?.id ?? null });
+    await combat.setFlag("cv-wicked-campaigns", "isChase", true);
+    await combat.setFlag("cv-wicked-campaigns", "complicationTableUuid", tableUuid ?? null);
+
+    const combatantData = tokens.map((token) => {
+        const actor = token.actor;
+        const conMod = actor ? Math.floor(((actor.system?.abilities?.con?.value ?? 10) - 10) / 2) : 0;
+        const isQuarry = token.id === quarryTokenId;
+        return {
+            tokenId: token.id,
+            sceneId: token.scene?.id,
+            actorId: actor?.id,
+            flags: {
+                "cv-wicked-campaigns": {
+                    chaseRole: isQuarry ? "quarry" : "pursuer",
+                    speed: actor?.system?.attributes?.movement?.walk ?? 30,
+                    conMod,
+                    dashesUsed: 0,
+                    dashedThisRound: false,
+                    gap: isQuarry ? 0 : 30,
+                },
+            },
+        };
+    });
+
+    const created = await combat.createEmbeddedDocuments("Combatant", combatantData);
+    const quarryCombatant = created.find((c) => c.getFlag("cv-wicked-campaigns", "chaseRole") === "quarry");
+    await combat.setFlag("cv-wicked-campaigns", "quarryId", quarryCombatant?.id ?? null);
+
+    await combat.rollAll();
+    await combat.startCombat();
+
+    ChaseGMPanel.open(combat);
+    return combat;
+}
+
+// Rolls the failing save on the GM's own client rather than round-tripping to the owning
+// player's client over the socket - simpler for a first pass, at the cost of the GM (not the
+// player) seeing/clicking the roll dialog. dnd5e's own addRollExhaustion already folds the
+// actor's current exhaustion penalty into the roll, so this stays correct as exhaustion stacks.
+async function promptChaseExhaustionSave(combatant, dcBonus) {
+    const actor = combatant.actor;
+    if (!actor) return;
+    const dc = 10 + dcBonus;
+    const rolls = await actor.rollSavingThrow({ ability: "con", target: dc }, {}, {});
+    const failed = !rolls?.[0]?.isSuccess;
+    if (failed) {
+        const current = actor.system?.attributes?.exhaustion ?? 0;
+        await actor.update({ "system.attributes.exhaustion": current + 1 });
+        ui.notifications.warn(`${actor.name} failed their DC ${dc} Constitution save and gained a level of Exhaustion from overexertion.`);
+    }
+}
+
+// Fired whenever a chase's round advances (see the updateCombat hook below). Movement this round
+// is speed x2 for anyone who dashed, x1 otherwise; the gap closes/opens by the difference between
+// each pursuer's movement and the quarry's. GM-side only - see promptChaseExhaustionSave's note on
+// why saves are rolled on the GM's client.
+async function resolveChaseRound(combat) {
+    if (!game.user.isGM || !isChaseCombat(combat)) return;
+
+    const quarryId = combat.getFlag("cv-wicked-campaigns", "quarryId");
+    const quarry = combat.combatants.get(quarryId);
+    if (!quarry) return;
+
+    const quarryFlags = quarry.flags?.["cv-wicked-campaigns"] ?? {};
+    const quarryMoved = (quarryFlags.speed ?? 30) * (quarryFlags.dashedThisRound ? 2 : 1);
+
+    const updates = [];
+    const summaryLines = [];
+
+    for (const pursuer of combat.combatants) {
+        const flags = pursuer.flags?.["cv-wicked-campaigns"] ?? {};
+        if (flags.chaseRole !== "pursuer") continue;
+
+        const pursuerMoved = (flags.speed ?? 30) * (flags.dashedThisRound ? 2 : 1);
+        const newGap = Math.max(0, (flags.gap ?? 0) - (pursuerMoved - quarryMoved));
+        const newDashesUsed = (flags.dashesUsed ?? 0) + (flags.dashedThisRound ? 1 : 0);
+
+        updates.push({
+            _id: pursuer.id,
+            "flags.cv-wicked-campaigns.gap": newGap,
+            "flags.cv-wicked-campaigns.dashesUsed": newDashesUsed,
+            "flags.cv-wicked-campaigns.dashedThisRound": false,
+        });
+        summaryLines.push(`<li>${pursuer.name}: gap ${flags.gap ?? 0} ft &rarr; ${newGap} ft</li>`);
+
+        const threshold = chaseDashThreshold(flags.conMod);
+        if (flags.dashedThisRound && newDashesUsed > threshold) {
+            await promptChaseExhaustionSave(pursuer, newDashesUsed - threshold);
+        }
+    }
+
+    const quarryThreshold = chaseDashThreshold(quarryFlags.conMod);
+    const quarryNewDashesUsed = (quarryFlags.dashesUsed ?? 0) + (quarryFlags.dashedThisRound ? 1 : 0);
+    updates.push({
+        _id: quarry.id,
+        "flags.cv-wicked-campaigns.dashesUsed": quarryNewDashesUsed,
+        "flags.cv-wicked-campaigns.dashedThisRound": false,
+    });
+    if (quarryFlags.dashedThisRound && quarryNewDashesUsed > quarryThreshold) {
+        await promptChaseExhaustionSave(quarry, quarryNewDashesUsed - quarryThreshold);
+    }
+
+    if (updates.length) await combat.updateEmbeddedDocuments("Combatant", updates);
+
+    if (summaryLines.length) {
+        await ChatMessage.create({
+            content: `<div class="dnd5e chat-card wicked-trait-card" style="font-family:'Signika',sans-serif;background:#1c1c1c;border:1px solid rgba(201,160,84,0.25);border-radius:6px;padding:0.75rem 1rem;"><h3 style="font-family:'Cinzel',Georgia,serif;color:#c9a054;margin:0 0 0.5rem 0;font-size:1.1rem;text-transform:uppercase;letter-spacing:0.05em;"><i class="fa-solid fa-person-running"></i> Round ${combat.round} Resolved</h3><ul style="margin:0;padding-left:1.2rem;color:#d5d5d5;font-size:0.85rem;">${summaryLines.join("")}</ul></div>`,
+            speaker: { alias: "Chase" },
+        });
+    }
+}
+
+class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    static DEFAULT_OPTIONS = {
+        id: "chase-setup-dialog",
+        classes: ["wicked-campaigns", "chase-setup-dialog"],
+        window: { title: "Start a Chase", icon: "fa-solid fa-person-running" },
+        position: { width: 380, height: "auto" },
+        actions: {
+            start: ChaseSetupDialog.#onStart,
+        },
+    };
+
+    static PARTS = {
+        main: { template: "modules/cv-wicked-campaigns/templates/chase-setup.hbs" },
+    };
+
+    async _prepareContext(options) {
+        const tokens = getChaseCandidateTokens().filter((t) => t.actor);
+        const registry = game.settings.get("cv-wicked-campaigns", "chaseComplicationTables") || [];
+        return {
+            participants: tokens.map((t, i) => ({ id: t.id, name: t.actor.name, isFirst: i === 0 })),
+            tables: registry,
+            hasParticipants: tokens.length > 0,
+            hasTables: registry.length > 0,
+        };
+    }
+
+    static async #onStart(event, target) {
+        const form = target.closest("form");
+        const tokenIds = Array.from(form.querySelectorAll('input[name="include"]:checked')).map((el) => el.value);
+        const quarryTokenId = form.querySelector('input[name="quarry"]:checked')?.value ?? null;
+        const tableUuid = form.querySelector('select[name="tableUuid"]')?.value || null;
+
+        if (!quarryTokenId) {
+            ui.notifications.warn("Mark one participant as the quarry.");
+            return;
+        }
+
+        const combat = await startChase({ tokenIds, quarryTokenId, tableUuid });
+        if (combat) this.close();
+    }
+}
+
+class ChaseGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    constructor(combat, options = {}) {
+        super(options);
+        this.combat = combat;
+        this.order = combat.turns.map((c) => c.id);
+    }
+
+    static DEFAULT_OPTIONS = {
+        id: "chase-gm-panel",
+        classes: ["wicked-campaigns", "chase-gm-panel-dialog"],
+        window: { title: "Chase Tracker", icon: "fa-solid fa-person-running" },
+        position: { width: 440, height: "auto" },
+        actions: {
+            nextTurn: ChaseGMPanel.#onNextTurn,
+            previousTurn: ChaseGMPanel.#onPreviousTurn,
+            toggleDash: ChaseGMPanel.#onToggleDash,
+            adjustGap: ChaseGMPanel.#onAdjustGap,
+            rollComplication: ChaseGMPanel.#onRollComplication,
+            endChase: ChaseGMPanel.#onEndChase,
+        },
+    };
+
+    static PARTS = {
+        main: { template: "modules/cv-wicked-campaigns/templates/chase-gm-panel.hbs" },
+    };
+
+    async _prepareContext(options) {
+        this.order = this.order.filter((id) => this.combat.combatants.has(id));
+        for (const c of this.combat.turns) if (!this.order.includes(c.id)) this.order.push(c.id);
+
+        const quarryId = this.combat.getFlag("cv-wicked-campaigns", "quarryId");
+        const combatants = this.order.map((id) => this.combat.combatants.get(id)).filter(Boolean).map((c) => {
+            const flags = c.flags?.["cv-wicked-campaigns"] ?? {};
+            const threshold = chaseDashThreshold(flags.conMod);
+            return {
+                id: c.id,
+                name: c.name,
+                img: c.img,
+                initiative: c.initiative,
+                isCurrentTurn: c.id === this.combat.combatant?.id,
+                isQuarry: c.id === quarryId,
+                gap: flags.gap ?? 0,
+                dashesUsed: flags.dashesUsed ?? 0,
+                dashThreshold: threshold,
+                dashedThisRound: !!flags.dashedThisRound,
+                overThreshold: (flags.dashesUsed ?? 0) >= threshold,
+                inDanger: c.id !== quarryId && (flags.gap ?? 0) <= 10,
+            };
+        });
+
+        const tableUuid = this.combat.getFlag("cv-wicked-campaigns", "complicationTableUuid");
+        const registry = game.settings.get("cv-wicked-campaigns", "chaseComplicationTables") || [];
+
+        return {
+            round: this.combat.round,
+            combatants,
+            tableLabel: registry.find((t) => t.uuid === tableUuid)?.label ?? "None linked",
+        };
+    }
+
+    async _onRender(context, options) {
+        await super._onRender(context, options);
+        let dragId = null;
+        this.element.querySelectorAll(".chase-turn-list li[data-combatant-id]").forEach((li) => {
+            li.addEventListener("dragstart", (event) => {
+                dragId = li.dataset.combatantId;
+                event.dataTransfer.effectAllowed = "move";
+            });
+            li.addEventListener("dragover", (event) => event.preventDefault());
+            li.addEventListener("drop", async (event) => {
+                event.preventDefault();
+                const targetId = li.dataset.combatantId;
+                if (!dragId || dragId === targetId) return;
+                const from = this.order.indexOf(dragId);
+                const to = this.order.indexOf(targetId);
+                if (from === -1 || to === -1) return;
+                this.order.splice(from, 1);
+                this.order.splice(to, 0, dragId);
+                await this._applyOrder();
+            });
+        });
+    }
+
+    async _applyOrder() {
+        const count = this.order.length;
+        const updates = this.order.map((id, index) => ({ _id: id, initiative: count - index }));
+        await this.combat.updateEmbeddedDocuments("Combatant", updates);
+        this.render(true);
+    }
+
+    static async #onNextTurn() {
+        await this.combat.nextTurn();
+    }
+
+    static async #onPreviousTurn() {
+        await this.combat.previousTurn();
+    }
+
+    static async #onToggleDash(event, target) {
+        const id = target.closest("[data-combatant-id]")?.dataset.combatantId;
+        const combatant = this.combat.combatants.get(id);
+        if (combatant) await combatant.setFlag("cv-wicked-campaigns", "dashedThisRound", target.checked);
+    }
+
+    static async #onAdjustGap(event, target) {
+        const id = target.closest("[data-combatant-id]")?.dataset.combatantId;
+        const combatant = this.combat.combatants.get(id);
+        if (!combatant) return;
+        const delta = Number(target.dataset.delta) || 0;
+        const current = combatant.getFlag("cv-wicked-campaigns", "gap") ?? 0;
+        await combatant.setFlag("cv-wicked-campaigns", "gap", Math.max(0, current + delta));
+    }
+
+    static async #onRollComplication() {
+        const uuid = this.combat.getFlag("cv-wicked-campaigns", "complicationTableUuid");
+        const table = uuid ? await fromUuid(uuid).catch(() => null) : null;
+        if (!table) {
+            ui.notifications.warn("No complication table linked to this chase.");
+            return;
+        }
+        const draw = await table.draw();
+        const description = draw?.results?.[0]?.description ?? "";
+        await this.combat.setFlag("cv-wicked-campaigns", "lastComplicationText", description);
+    }
+
+    static async #onEndChase() {
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: "End Chase" },
+            content: "<p>End this chase? This deletes the chase's Combat encounter.</p>",
+            rejectClose: false,
+        }).catch(() => false);
+        if (!confirmed) return;
+        await this.combat.delete();
+    }
+
+    static open(combat) {
+        const existing = foundry.applications.instances.get("chase-gm-panel");
+        if (existing) {
+            existing.combat = combat;
+            existing.order = combat.turns.map((c) => c.id);
+            existing.render(true);
+            return existing;
+        }
+        const app = new ChaseGMPanel(combat);
+        app.render(true);
+        return app;
+    }
+
+    static closeIfOpen() {
+        foundry.applications.instances.get("chase-gm-panel")?.close();
+    }
+}
+
+class ChasePlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    constructor(combat, options = {}) {
+        super(options);
+        this.combat = combat;
+    }
+
+    static DEFAULT_OPTIONS = {
+        id: "chase-player-hud",
+        classes: ["wicked-campaigns", "chase-player-hud-dialog"],
+        window: { title: "Chase!", icon: "fa-solid fa-person-running" },
+        position: { width: 300, height: "auto" },
+        actions: {
+            rollInitiative: ChasePlayerHUD.#onRollInitiative,
+        },
+    };
+
+    static PARTS = {
+        main: { template: "modules/cv-wicked-campaigns/templates/chase-player-hud.hbs" },
+    };
+
+    async _prepareContext(options) {
+        const ownCombatant = this.combat.combatants.find((c) => c.actor?.isOwner);
+        const flags = ownCombatant?.flags?.["cv-wicked-campaigns"] ?? {};
+        const threshold = chaseDashThreshold(flags.conMod);
+
+        return {
+            round: this.combat.round,
+            turns: this.combat.turns.map((c) => {
+                const cFlags = c.flags?.["cv-wicked-campaigns"] ?? {};
+                const isOwn = c.actor?.isOwner;
+                return {
+                    id: c.id,
+                    name: (isOwn || game.user.isGM) ? c.name : (cFlags.chaseRole === "quarry" ? "The Quarry" : "Pursuer"),
+                    isCurrentTurn: c.id === this.combat.combatant?.id,
+                };
+            }),
+            hasOwnCombatant: !!ownCombatant,
+            needsInitiative: !!ownCombatant && (ownCombatant.initiative === null || ownCombatant.initiative === undefined),
+            gap: flags.gap ?? null,
+            isQuarry: flags.chaseRole === "quarry",
+            dashesUsed: flags.dashesUsed ?? 0,
+            dashThreshold: threshold,
+            lastComplication: this.combat.getFlag("cv-wicked-campaigns", "lastComplicationText") || null,
+        };
+    }
+
+    static async #onRollInitiative() {
+        const ownCombatant = this.combat.combatants.find((c) => c.actor?.isOwner);
+        if (ownCombatant) await this.combat.rollInitiative([ownCombatant.id]);
+    }
+
+    static open(combat) {
+        const existing = foundry.applications.instances.get("chase-player-hud");
+        if (existing) {
+            existing.combat = combat;
+            existing.render(true);
+            return existing;
+        }
+        const app = new ChasePlayerHUD(combat);
+        app.render(true);
+        return app;
+    }
+
+    static closeIfOpen() {
+        foundry.applications.instances.get("chase-player-hud")?.close();
+    }
+}
+
+function refreshOpenChaseApps(combat) {
+    const gmPanel = foundry.applications.instances.get("chase-gm-panel");
+    if (gmPanel?.combat?.id === combat.id) gmPanel.render();
+    const playerHud = foundry.applications.instances.get("chase-player-hud");
+    if (playerHud?.combat?.id === combat.id) playerHud.render();
+}
+
+Hooks.on("createCombat", (combat) => {
+    if (!game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled") || !isChaseCombat(combat)) return;
+    if (game.user.isGM) {
+        ChaseGMPanel.open(combat);
+    } else if (combat.combatants.some((c) => c.actor?.isOwner)) {
+        ChasePlayerHUD.open(combat);
+    }
+});
+
+Hooks.on("updateCombat", (combat, changes) => {
+    if (!isChaseCombat(combat)) return;
+    if ("round" in changes) resolveChaseRound(combat);
+    refreshOpenChaseApps(combat);
+});
+
+Hooks.on("updateCombatant", (combatant) => {
+    if (!isChaseCombat(combatant.parent)) return;
+    refreshOpenChaseApps(combatant.parent);
+});
+
+Hooks.on("deleteCombat", (combat) => {
+    if (!isChaseCombat(combat)) return;
+    ChaseGMPanel.closeIfOpen();
+    ChasePlayerHUD.closeIfOpen();
 });
 
 // Neither dnd5e's own body.dnd5e-theme-light/-dark class NOR the underlying "dnd5e.theme"/core

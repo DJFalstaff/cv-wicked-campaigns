@@ -1155,3 +1155,14 @@
 .cc-video-controls i:hover {
     filter: brightness(1.3);
 }
+
+/* Every custom dialog (Fate Pool Manager, Table Config, Chase Setup, ...) styles its <select>
+   elements with a translucent dark background + white text - but that translucent background
+   doesn't carry into the native <option> popup list (browser/OS-rendered, not ours to style via
+   the select's own background), so without this it falls back to the browser default: a plain
+   white popup, with our inherited white text now invisible on it. Options need their own solid
+   background to render correctly. */
+.wicked-campaigns select option {
+    background-color: #1c1c1c;
+    color: #fff;
+}

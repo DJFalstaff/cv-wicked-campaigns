@@ -825,6 +825,132 @@ function isCampaignCodexActive() {
   return game.modules.get(CC_MODULE_ID)?.active === true;
 }
 
+// ---- Campaign Codex Integration: Video Player Widget ----------------------
+// Registered against Campaign Codex's own widgetManager (exposed at
+// game.modules.get("campaign-codex").api) so it shows up in every sheet's widget
+// tray alongside their built-in widgets - see registerVideoPlayerWidget() in the
+// ready hook. Playback is independent per viewer (no cross-client sync) and never
+// autoplays, matching how a plain <video>/YouTube embed behaves by default.
+function extractYouTubeId(url) {
+  const match = String(url || "").match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+function buildVideoPlayerWidgetClass(CampaignCodexWidgetBase) {
+  return class VideoPlayerWidget extends CampaignCodexWidgetBase {
+    async _prepareContext() {
+      const data = (await this.getData()) || {};
+      const sourceType = data.sourceType === "youtube" ? "youtube" : "local";
+      const src = String(data.src || "").trim();
+      const youtubeId = sourceType === "youtube" ? extractYouTubeId(src) : null;
+      return {
+        sourceType,
+        src,
+        youtubeId,
+        hasVideo: sourceType === "youtube" ? !!youtubeId : !!src,
+      };
+    }
+
+    async render() {
+      const data = await this._prepareContext();
+      let bodyHtml;
+
+      if (!data.hasVideo) {
+        bodyHtml = this.isGM
+          ? `<div class="cc-video-empty">
+              <i class="fa-solid fa-clapperboard"></i>
+              <span>No video set</span>
+              <div class="cc-video-choose-actions">
+                <button type="button" data-action="choose-local"><i class="fa-solid fa-folder-open"></i> Local File</button>
+                <button type="button" data-action="choose-youtube"><i class="fa-brands fa-youtube"></i> YouTube Link</button>
+              </div>
+            </div>`
+          : `<div class="cc-video-empty"><span>No video available.</span></div>`;
+      } else if (data.sourceType === "youtube") {
+        bodyHtml = `<div class="cc-video-embed-wrap">
+            <iframe src="https://www.youtube-nocookie.com/embed/${data.youtubeId}" title="YouTube video" frameborder="0"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>`;
+      } else {
+        bodyHtml = `<video controls src="${foundry.utils.escapeHTML(data.src)}"></video>`;
+      }
+
+      const gmControls = this.isGM && data.hasVideo
+        ? `<div class="cc-video-controls">
+            <i class="fa-solid fa-pen" data-action="change-video" title="Change Video"></i>
+            <i class="fa-solid fa-trash" data-action="remove-video" title="Remove Video"></i>
+          </div>`
+        : "";
+
+      return `<div class="cc-widget-video-player" id="widget-${this.widgetId}">${gmControls}${bodyHtml}</div>`;
+    }
+
+    async activateListeners(htmlElement) {
+      if (!this.isGM) return;
+      htmlElement.querySelector('[data-action="choose-local"]')?.addEventListener("click", () => this._chooseLocalFile(htmlElement));
+      htmlElement.querySelector('[data-action="choose-youtube"]')?.addEventListener("click", () => this._chooseYoutubeLink(htmlElement));
+      htmlElement.querySelector('[data-action="change-video"]')?.addEventListener("click", () => this._changeVideo(htmlElement));
+      htmlElement.querySelector('[data-action="remove-video"]')?.addEventListener("click", () => this._removeVideo(htmlElement));
+    }
+
+    _chooseLocalFile(htmlElement) {
+      new FilePicker({
+        type: "video",
+        callback: async (path) => {
+          if (!path) return;
+          await this.saveData({ sourceType: "local", src: path });
+          await this._refreshWidget(htmlElement);
+        },
+      }).browse();
+    }
+
+    async _chooseYoutubeLink(htmlElement) {
+      const url = await foundry.applications.api.DialogV2.prompt({
+        window: { title: "YouTube Video Link" },
+        content: `<div class="form-group"><label>YouTube URL</label><input type="text" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." autofocus></div>`,
+        ok: {
+          icon: "fas fa-check",
+          label: "Save",
+          callback: (event, button) => button.form.elements.youtubeUrl.value.trim(),
+        },
+        rejectClose: false,
+      }).catch(() => null);
+      if (!url) return;
+
+      const youtubeId = extractYouTubeId(url);
+      if (!youtubeId) {
+        ui.notifications.warn("That doesn't look like a valid YouTube link.");
+        return;
+      }
+
+      await this.saveData({ sourceType: "youtube", src: url });
+      await this._refreshWidget(htmlElement);
+    }
+
+    async _changeVideo(htmlElement) {
+      await this.saveData({ sourceType: "local", src: "" });
+      await this._refreshWidget(htmlElement);
+    }
+
+    async _removeVideo(htmlElement) {
+      const confirmed = await this.confirmationDialog("Remove this video?");
+      if (!confirmed) return;
+      await this.removeData();
+      await this._refreshWidget(htmlElement);
+    }
+  };
+}
+
+function registerVideoPlayerWidget() {
+  const ccApi = game.modules.get(CC_MODULE_ID)?.api;
+  if (!ccApi?.widgetManager || !ccApi?.CampaignCodexWidget) {
+    console.warn("Wicked Campaigns | Campaign Codex's widget API wasn't found - skipping Video Player widget registration.");
+    return;
+  }
+  const VideoPlayerWidget = buildVideoPlayerWidgetClass(ccApi.CampaignCodexWidget);
+  ccApi.widgetManager.registerWidget("Video Player", VideoPlayerWidget);
+}
+
 // Wicked Campaigns' house look for Campaign Codex. Applied once per world on
 // first ready (see the "appliedDefaultCCTheme" setting below) so a GM gets a
 // styled Campaign Codex out of the box, without permanently overriding a
@@ -4633,6 +4759,14 @@ async function seedChaseComplicationTables() {
 
 Hooks.once('ready', async function() {
     console.log('Wicked Campaigns | Ready');
+
+    // Every client needs the widget class available to render it, not just the GM -
+    // registered unconditionally here (gated only on Campaign Codex being active),
+    // separate from the GM-only setup work below.
+    if (isCampaignCodexActive()) {
+        registerVideoPlayerWidget();
+    }
+
     if (game.user.isGM) {
         try {
             await ensureWickedCampaignsFolders();

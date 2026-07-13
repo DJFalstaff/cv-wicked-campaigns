@@ -1060,3 +1060,98 @@
 .chase-gm-panel .chase-turn-list li[draggable="true"]:active {
     cursor: grabbing;
 }
+
+/* Campaign Codex Video Player widget - uses their --cc-* theme variables (with fallbacks, in
+   case Campaign Codex's theming is disabled) so it reads as part of the same widget family,
+   without touching any of their own CSS files. */
+.cc-widget-video-player {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--cc-card-bg, #1c1c1c);
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+}
+
+.cc-widget-video-player video {
+    width: 100%;
+    display: block;
+    background: #000;
+}
+
+.cc-video-embed-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 */
+}
+
+.cc-video-embed-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.cc-video-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 2.5rem 1rem;
+    color: var(--cc-text-muted, #888);
+    font-style: italic;
+}
+
+.cc-video-empty i.fa-clapperboard {
+    font-size: 2rem;
+    color: var(--cc-accent, #b9a987);
+    opacity: 0.6;
+}
+
+.cc-video-choose-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.cc-video-choose-actions button {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    font-style: normal;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-accent, #b9a987);
+    border-radius: 4px;
+    color: var(--cc-accent, #b9a987);
+    cursor: pointer;
+}
+
+.cc-video-choose-actions button:hover {
+    filter: brightness(1.2);
+}
+
+.cc-video-controls {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    z-index: 2;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 4px;
+}
+
+.cc-video-controls i {
+    color: var(--cc-accent, #b9a987);
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.cc-video-controls i:hover {
+    filter: brightness(1.3);
+}

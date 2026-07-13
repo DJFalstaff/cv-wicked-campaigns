@@ -4869,7 +4869,41 @@ function getChaseCandidateTokens() {
     return canvas.tokens?.placeables ?? [];
 }
 
-async function startChase({ tokenIds, quarryTokenId, tableUuid }) {
+// A dnd5e "group" actor (system.type.value === "encounter" for a monster group) has no combat
+// stats of its own - it's a container of member actors, not a creature. A fleeing group moves at
+// its slowest member's pace, so that's the default effective speed if it's chosen as the quarry.
+function getGroupEffectiveSpeed(groupActor) {
+    const members = (groupActor?.system?.members ?? []).map((m) => m.actor).filter(Boolean);
+    const speeds = members.map((a) => a.system?.attributes?.movement?.walk).filter((s) => typeof s === "number" && s > 0);
+    return speeds.length ? Math.min(...speeds) : 30;
+}
+
+// Convenience for "the quarry was a group actor and just got caught" - scatters each member's
+// token around wherever the group's own token ended up, so the GM can drop straight into a normal
+// encounter instead of manually placing every member by hand.
+async function deployGroupMembersNearToken(groupActor, originTokenDoc) {
+    const members = (groupActor?.system?.members ?? []).map((m) => m.actor).filter(Boolean);
+    const scene = originTokenDoc?.parent;
+    if (!members.length || !scene) return 0;
+
+    const gridSize = scene.grid?.size ?? 100;
+    const originX = originTokenDoc.x ?? 0;
+    const originY = originTokenDoc.y ?? 0;
+
+    const tokenData = [];
+    for (let i = 0; i < members.length; i++) {
+        const angle = (i / members.length) * Math.PI * 2;
+        const offsetX = Math.round(Math.cos(angle) * gridSize * 1.5);
+        const offsetY = Math.round(Math.sin(angle) * gridSize * 1.5);
+        const doc = await members[i].getTokenDocument({ x: originX + offsetX, y: originY + offsetY });
+        tokenData.push(doc.toObject());
+    }
+
+    await scene.createEmbeddedDocuments("Token", tokenData);
+    return tokenData.length;
+}
+
+async function startChase({ tokenIds, quarryTokenId, tableUuid, quarrySpeedOverride }) {
     const tokens = tokenIds.map((id) => canvas.tokens.get(id)).filter(Boolean);
     if (!tokens.length) {
         ui.notifications.warn("Select at least one token to start a chase.");
@@ -4893,6 +4927,12 @@ async function startChase({ tokenIds, quarryTokenId, tableUuid }) {
         const actor = token.actor;
         const conMod = actor ? Math.floor(((actor.system?.abilities?.con?.value ?? 10) - 10) / 2) : 0;
         const isQuarry = token.id === quarryTokenId;
+
+        let speed = actor?.system?.attributes?.movement?.walk ?? 30;
+        if (isQuarry && actor?.type === "group") {
+            speed = Number.isFinite(quarrySpeedOverride) ? quarrySpeedOverride : getGroupEffectiveSpeed(actor);
+        }
+
         return {
             tokenId: token.id,
             sceneId: token.scene?.id,
@@ -4900,7 +4940,7 @@ async function startChase({ tokenIds, quarryTokenId, tableUuid }) {
             flags: {
                 "cv-wicked-campaigns": {
                     chaseRole: isQuarry ? "quarry" : "pursuer",
-                    speed: actor?.system?.attributes?.movement?.walk ?? 30,
+                    speed,
                     conMod,
                     dashesUsed: 0,
                     dashedThisRound: false,
@@ -5034,12 +5074,17 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
             : 0;
 
         return {
-            participants: tokens.map((t, i) => ({
-                id: t.id,
-                name: t.actor.name,
-                included: preset ? presetActorUuids.has(t.actor.uuid) : true,
-                isQuarry: preset ? t.actor.uuid === quarryActorUuid : i === 0,
-            })),
+            participants: tokens.map((t, i) => {
+                const isGroup = t.actor.type === "group";
+                return {
+                    id: t.id,
+                    name: t.actor.name,
+                    included: preset ? presetActorUuids.has(t.actor.uuid) : true,
+                    isQuarry: preset ? t.actor.uuid === quarryActorUuid : i === 0,
+                    isGroup,
+                    suggestedSpeed: isGroup ? getGroupEffectiveSpeed(t.actor) : null,
+                };
+            }),
             tables: registry.map((t) => ({ ...t, isSelected: preset ? t.uuid === preset.tableUuid : false })),
             presets: presets.map((p) => ({ id: p.id, name: p.name, isLoaded: p.id === this.loadedPresetId })),
             hasParticipants: tokens.length > 0,
@@ -5051,21 +5096,26 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
     }
 
     _readFormSelections(form) {
+        const quarryTokenId = form.querySelector('input[name="quarry"]:checked')?.value ?? null;
+        const groupSpeedInput = quarryTokenId ? form.querySelector(`input[name="groupSpeed-${quarryTokenId}"]`) : null;
+        const quarrySpeedOverride = groupSpeedInput ? Number(groupSpeedInput.value) : undefined;
+
         return {
             tokenIds: Array.from(form.querySelectorAll('input[name="include"]:checked')).map((el) => el.value),
-            quarryTokenId: form.querySelector('input[name="quarry"]:checked')?.value ?? null,
+            quarryTokenId,
             tableUuid: form.querySelector('select[name="tableUuid"]')?.value || null,
+            quarrySpeedOverride: Number.isFinite(quarrySpeedOverride) ? quarrySpeedOverride : undefined,
         };
     }
 
     static async #onStart(event, target) {
-        const { tokenIds, quarryTokenId, tableUuid } = this._readFormSelections(target.closest("form"));
+        const { tokenIds, quarryTokenId, tableUuid, quarrySpeedOverride } = this._readFormSelections(target.closest("form"));
         if (!quarryTokenId) {
             ui.notifications.warn("Mark one participant as the quarry.");
             return;
         }
 
-        const combat = await startChase({ tokenIds, quarryTokenId, tableUuid });
+        const combat = await startChase({ tokenIds, quarryTokenId, tableUuid, quarrySpeedOverride });
         if (combat) this.close();
     }
 
@@ -5266,6 +5316,23 @@ class ChaseGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
             rejectClose: false,
         }).catch(() => false);
         if (!confirmed) return;
+
+        const quarryId = this.combat.getFlag("cv-wicked-campaigns", "quarryId");
+        const quarryCombatant = this.combat.combatants.get(quarryId);
+        const quarryActor = quarryCombatant?.actor;
+
+        if (quarryActor?.type === "group") {
+            const deploy = await foundry.applications.api.DialogV2.confirm({
+                window: { title: "Deploy Group Members" },
+                content: "<p>The quarry was a group actor. Place its member tokens on the scene to continue straight into an encounter?</p>",
+                rejectClose: false,
+            }).catch(() => false);
+            if (deploy) {
+                const count = await deployGroupMembersNearToken(quarryActor, quarryCombatant.token);
+                if (count) ui.notifications.info(`Deployed ${count} member token${count === 1 ? "" : "s"} from "${quarryActor.name}".`);
+            }
+        }
+
         await this.combat.delete();
     }
 

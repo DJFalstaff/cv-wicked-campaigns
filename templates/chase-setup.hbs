@@ -45,7 +45,14 @@
                 <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #fff;">
                     <input type="checkbox" name="include" value="{{this.id}}" {{#if this.included}}checked{{/if}}>
                     {{this.name}}
+                    {{#if this.isGroup}}<span style="font-size: 0.7rem; color: #a89a82; text-transform: uppercase;">(group)</span>{{/if}}
                 </label>
+                {{#if this.isGroup}}
+                <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: #a89a82; white-space: nowrap;" title="Effective speed used if this group is chosen as quarry - defaults to its slowest member">
+                    Speed if quarry
+                    <input type="number" name="groupSpeed-{{this.id}}" value="{{this.suggestedSpeed}}" min="0" step="5" style="width: 56px; font-size: 0.8rem; padding: 2px 4px; background: rgba(0, 0, 0, 0.2); color: #fff; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 3px;">
+                </label>
+                {{/if}}
                 <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #c9a054; text-transform: uppercase; white-space: nowrap;">
                     <input type="radio" name="quarry" value="{{this.id}}" {{#if this.isQuarry}}checked{{/if}}>
                     Quarry

@@ -4216,6 +4216,44 @@ Hooks.once('init', async function() {
       default: false
     });
 
+    // Same "checked live inside each handler" pattern as chaseTrackerEnabled/inameTheeIntegration
+    // for the module's other big features, so a GM can turn any of them off without a reload.
+    game.settings.register("cv-wicked-campaigns", "fatePoolEnabled", {
+      name: "Fate Pool",
+      hint: "Enables the Fate Pool and In Peril widgets, the Fate Pool Manager keybinding/hotkeys, and the Spend Fate Point button on character sheets.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    game.settings.register("cv-wicked-campaigns", "lifepathWizardEnabled", {
+      name: "Lifepath Wizard",
+      hint: "Enables the Lifepath Wizard button on character sheets for generating a full backstory.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    game.settings.register("cv-wicked-campaigns", "sessionZeroEnabled", {
+      name: "Session Zero Card Game",
+      hint: "Enables the Start/End Session Zero Game and Reset Deck buttons on Complete Card Management's deck HUD. Requires Complete Card Management to be installed and active.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    game.settings.register("cv-wicked-campaigns", "cardImageViewerEnabled", {
+      name: "Card Image Viewer",
+      hint: "Replaces Foundry's native image popout (actor portraits, item art, journal images, etc) everywhere with our zoomable viewer. Requires lib-wrapper to be installed and active.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
     // Gates the chase keybinding and all Combat lifecycle hooks below - checked live inside each
     // handler (not by conditionally registering the hooks), so toggling takes effect immediately.
     game.settings.register("cv-wicked-campaigns", "chaseTrackerEnabled", {
@@ -4307,7 +4345,7 @@ Hooks.once('init', async function() {
         hint: "Open the Fate Pool manager dialog (GM only).",
         editable: [{ key: "KeyB", modifiers: ["SHIFT"] }],
         onDown: () => {
-            if (!game.user.isGM) return;
+            if (!game.user.isGM || !game.settings.get("cv-wicked-campaigns", "fatePoolEnabled")) return;
             const openWindow = foundry.applications.instances.get("fate-pool-manager");
             if (openWindow) openWindow.close();
             else new FatePoolManager().render(true);
@@ -4321,7 +4359,7 @@ Hooks.once('init', async function() {
         hint: "Instantly add 1 point to the Fate Pool (GM only).",
         editable: [{ key: "KeyB" }],
         onDown: () => {
-            if (!game.user.isGM) return;
+            if (!game.user.isGM || !game.settings.get("cv-wicked-campaigns", "fatePoolEnabled")) return;
             updateFatePool(1, "Quick Add (Hot Key)");
         },
         restricted: true
@@ -4333,7 +4371,7 @@ Hooks.once('init', async function() {
         hint: "Instantly subtract 1 point from the Fate Pool (GM only).",
         editable: [{ key: "KeyB", modifiers: ["ALT"] }],
         onDown: () => {
-            if (!game.user.isGM) return;
+            if (!game.user.isGM || !game.settings.get("cv-wicked-campaigns", "fatePoolEnabled")) return;
             updateFatePool(-1, "Quick Subtract (Hot Key)");
         },
         restricted: true
@@ -4365,6 +4403,7 @@ Hooks.once('init', async function() {
                 actions: {
                     ...super.DEFAULT_OPTIONS.actions,
                     "open-lifepath-wizard": function(event, target) {
+                        if (!game.settings.get("cv-wicked-campaigns", "lifepathWizardEnabled")) return;
                         LifepathWizard.launch(this.actor);
                     },
                     "open-backstory-sheet": async function(event, target) {
@@ -4396,6 +4435,7 @@ Hooks.once('init', async function() {
                         ui.notifications.info("Personality Traits initialized with balanced starting values!");
                     },
                     "spend-fate-point": async function(event, target) {
+                        if (!game.settings.get("cv-wicked-campaigns", "fatePoolEnabled")) return;
                         const current = getFatePoolSync();
                         if (current <= 0 && !game.user.isGM) {
                             ui.notifications.warn("The Fate Pool is empty!");
@@ -4521,6 +4561,7 @@ Hooks.on("dnd5e.prepareSheetContext", (sheet, partId, context, options) => {
         const backstory = findBackstoryForActorSync(sheet.actor);
         context.lifepathHtml = backstory?.getFlag(CC_MODULE_ID, "data")?.description || "";
         context.backstoryUuid = backstory?.uuid || "";
+        context.lifepathWizardEnabled = game.settings.get("cv-wicked-campaigns", "lifepathWizardEnabled");
     } else if (partId === "wicked-traits") {
         context.useTraitPairs = sheet.actor.getFlag("cv-wicked-campaigns", "useTraitPairs") ?? false;
         const savedPairs = sheet.actor.getFlag("cv-wicked-campaigns", "traitPairs") || {};
@@ -4539,6 +4580,7 @@ Hooks.on("dnd5e.prepareSheetContext", (sheet, partId, context, options) => {
     } else if (partId === "wicked-widgets") {
         context.fatePool = getFatePoolSync();
         context.inPeril = getInPerilSync();
+        context.fatePoolEnabled = game.settings.get("cv-wicked-campaigns", "fatePoolEnabled");
     }
 });
 
@@ -6309,6 +6351,7 @@ Hooks.once("init", () => {
     function (wrapped, ...args) {
       const src = this.options?.src;
       if (!src || IMAGE_VIEWER_UNSUPPORTED_EXT.test(src)) return wrapped(...args);
+      if (!game.settings.get("cv-wicked-campaigns", "cardImageViewerEnabled")) return wrapped(...args);
       CardImageViewerApp.open(src, this.options?.window?.title ?? this.title);
       return this;
     },
@@ -6526,7 +6569,7 @@ function onRenderCardHud(hud, html) {
 
   const card = hud.card;
 
-  if (card instanceof Cards && card.type === "deck") {
+  if (card instanceof Cards && card.type === "deck" && game.settings.get("cv-wicked-campaigns", "sessionZeroEnabled")) {
     const active = findActiveSessionZeroForDeck(card);
     const button = document.createElement("button");
     button.type = "button";

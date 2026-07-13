@@ -3,11 +3,11 @@
         <h2>{{ localize "CV_WICKED_CAMPAIGNS.BackgroundTitle" }}</h2>
 
         <div class="wicked-campaigns-actions" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            {{#if @root.editable}}
+            {{#if @root.editable}}{{#if lifepathWizardEnabled}}
             <button type="button" class="qbw-btn qbw-primary" data-action="open-lifepath-wizard">
                 <i class="fa-solid fa-scroll"></i> {{#if lifepathHtml}}Re-Roll with Lifepath Wizard{{else}}Open Lifepath Wizard{{/if}}
             </button>
-            {{/if}}
+            {{/if}}{{/if}}
             {{#if backstoryUuid}}
             <button type="button" class="qbw-btn" data-action="open-backstory-sheet">
                 <i class="fa-solid fa-book-skull"></i> Open Backstory Sheet
@@ -23,7 +23,7 @@
             {{#if lifepathHtml}}
                 {{{lifepathHtml}}}
             {{else}}
-                <p class="qbw-empty-note" style="font-style: italic; color: var(--wicked-gold-dim, #9a7d2e);">No lifepath backstory generated yet.{{#if @root.editable}} Click the button above to start the Lifepath Wizard.{{/if}}</p>
+                <p class="qbw-empty-note" style="font-style: italic; color: var(--wicked-gold-dim, #9a7d2e);">No lifepath backstory generated yet.{{#if @root.editable}}{{#if lifepathWizardEnabled}} Click the button above to start the Lifepath Wizard.{{/if}}{{/if}}</p>
             {{/if}}
         </div>
     </div>

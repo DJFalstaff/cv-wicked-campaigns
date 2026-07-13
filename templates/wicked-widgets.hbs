@@ -2,6 +2,7 @@
     <div class="wicked-campaigns-tab-content" style="padding: 1rem;">
         <div class="wicked-widgets-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; align-items: start;">
 
+            {{#if fatePoolEnabled}}
             <!-- In Peril Status Widget -->
             <div class="wicked-widget-card peril-widget {{#if inPeril}}is-peril{{else}}is-safe{{/if}}">
                 <h3 class="peril-title">
@@ -39,6 +40,7 @@
                     </button>
                 </div>
             </div>
+            {{/if}}
 
             <!-- Progress Clocks Card -->
             <div class="wicked-widget-card clocks-widget">

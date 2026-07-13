@@ -5140,8 +5140,12 @@ class ChaseGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
     static DEFAULT_OPTIONS = {
         id: "chase-gm-panel",
         classes: ["wicked-campaigns", "chase-gm-panel-dialog"],
-        window: { title: "Chase Tracker", icon: "fa-solid fa-person-running" },
-        position: { width: 440, height: "auto" },
+        window: { title: "Chase Tracker", icon: "fa-solid fa-person-running", resizable: true },
+        // A fixed height (rather than "auto") is what gives the turn list somewhere bounded to
+        // scroll within - with "auto" the window just grows past the viewport and clips whatever
+        // doesn't fit, with no way to reach it. Matches the fixed-height pattern already used by
+        // SessionZeroSheet/LifepathTableConfigApp.
+        position: { width: 440, height: 640 },
         actions: {
             nextTurn: ChaseGMPanel.#onNextTurn,
             previousTurn: ChaseGMPanel.#onPreviousTurn,
@@ -5153,7 +5157,7 @@ class ChaseGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
     };
 
     static PARTS = {
-        main: { template: "modules/cv-wicked-campaigns/templates/chase-gm-panel.hbs" },
+        main: { template: "modules/cv-wicked-campaigns/templates/chase-gm-panel.hbs", scrollable: [".chase-turn-list"] },
     };
 
     async _prepareContext(options) {
@@ -5292,15 +5296,15 @@ class ChasePlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
     static DEFAULT_OPTIONS = {
         id: "chase-player-hud",
         classes: ["wicked-campaigns", "chase-player-hud-dialog"],
-        window: { title: "Chase!", icon: "fa-solid fa-person-running" },
-        position: { width: 300, height: "auto" },
+        window: { title: "Chase!", icon: "fa-solid fa-person-running", resizable: true },
+        position: { width: 300, height: 420 },
         actions: {
             rollInitiative: ChasePlayerHUD.#onRollInitiative,
         },
     };
 
     static PARTS = {
-        main: { template: "modules/cv-wicked-campaigns/templates/chase-player-hud.hbs" },
+        main: { template: "modules/cv-wicked-campaigns/templates/chase-player-hud.hbs", scrollable: [".chase-hud-turn-list"] },
     };
 
     async _prepareContext(options) {

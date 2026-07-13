@@ -1166,3 +1166,24 @@
     background-color: #1c1c1c;
     color: #fff;
 }
+
+/* Chase GM panel / player HUD: with a large roster the turn list needs to scroll within the
+   window's fixed height instead of the window growing past the viewport and clipping the
+   buttons below it. flex:1 + min-height:0 is the standard flex/overflow fix - without min-height:0
+   a flex child won't shrink below its content's natural size, which silently defeats overflow-y. */
+.chase-gm-panel-dialog .window-content,
+.chase-player-hud-dialog .window-content {
+    height: 100%;
+}
+
+.chase-gm-panel,
+.chase-player-hud {
+    height: 100%;
+}
+
+.chase-gm-panel .chase-turn-list,
+.chase-player-hud .chase-hud-turn-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}

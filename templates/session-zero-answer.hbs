@@ -1,0 +1,22 @@
+<form class="session-zero-answer-content" autocomplete="off" style="display: flex; gap: 1rem; padding: 0.75rem;">
+    <div style="flex: 0 0 160px;">
+        <img src="{{cardImage}}" style="width: 100%; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 6px; border: 1px solid rgba(201, 160, 84, 0.3);">
+        <div style="display: flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.8rem; color: #b5b5b5;">
+            {{#if playerImg}}<img src="{{playerImg}}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">{{/if}}
+            <span>{{playerName}}</span>
+        </div>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 0.6rem; min-width: 0;">
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" value="{{cardName}}" autofocus>
+        </div>
+        <prose-mirror name="answerHtml" value="" style="flex: 1;"></prose-mirror>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" data-action="cancel" class="qbw-btn">Cancel</button>
+            <button type="button" data-action="submit" class="qbw-btn qbw-primary">
+                <i class="fa-solid fa-check"></i> Record
+            </button>
+        </div>
+    </div>
+</form>

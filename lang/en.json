@@ -1,0 +1,18 @@
+{
+  "CV_WICKED_CAMPAIGNS.Title": "Wicked Campaigns",
+  "CV_WICKED_CAMPAIGNS.Description": "A campaign management and helper module for Foundry VTT V14.",
+  "CV_WICKED_CAMPAIGNS.BackgroundTitle": "Wicked Background",
+  "CV_WICKED_CAMPAIGNS.WidgetsTitle": "Wicked Widgets",
+  "CV_WICKED_CAMPAIGNS.PersonalityTraits": "Personality Traits",
+  "CV_WICKED_CAMPAIGNS.SheetLabel": "Wicked Character Sheet",
+  "CV_WICKED_CAMPAIGNS.PartySheetLabel": "Wicked Campaigns: Party",
+  "CV_WICKED_CAMPAIGNS.BackstorySheetLabel": "Wicked Campaigns: Backstory",
+  "CV_WICKED_CAMPAIGNS.SessionZeroSheetLabel": "Wicked Campaigns: Session Zero Summary",
+  "CV_WICKED_CAMPAIGNS.Keybindings.ToggleTokenCardLayer.Name": "Toggle Token / Card Layer",
+  "CV_WICKED_CAMPAIGNS.Keybindings.ToggleTokenCardLayer.Hint": "Switches between the Token Controls layer and the Card layer added by Complete Card Management. From any other layer, jumps to Token Controls first.",
+
+  "CAMPAIGN_CODEX.names.backstory": "Backstory",
+  "CAMPAIGN_CODEX.names.party": "Party",
+  "CAMPAIGN_CODEX.names.session-zero-summary": "Session Zero Summary"
+}
+

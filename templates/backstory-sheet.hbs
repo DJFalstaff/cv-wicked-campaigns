@@ -1,0 +1,53 @@
+<form class="backstory-sheet-content" autocomplete="off" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem; height: 100%;">
+    {{#if editable}}
+    <div style="display: flex; justify-content: flex-end; gap: 0.4rem;">
+        {{#if showHelperButton}}
+        <button type="button" class="qbw-btn" data-action="iname-thee-helper"
+                data-tooltip="Ask iName Thee to enhance and fix logic clashes throughout this backstory" style="padding: 4px 10px; font-size: 0.8rem;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> iName Thee Helper
+        </button>
+        {{/if}}
+        {{#if hasPendingSuggestions}}
+        <button type="button" class="qbw-btn" data-action="review-friend-suggestions"
+                data-tooltip="Review iName Thee's suggested changes" style="padding: 4px 10px; font-size: 0.8rem; position: relative;">
+            <i class="fa-solid fa-clipboard-check"></i> Review Suggestions
+            <span style="position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: #c9a054; border: 1px solid #1b1b1b;"></span>
+        </button>
+        {{/if}}
+        <button type="button" class="qbw-btn" data-action="rename" data-tooltip="Rename this backstory" style="padding: 4px 10px; font-size: 0.8rem;">
+            <i class="fa-solid fa-pen"></i> Rename
+        </button>
+    </div>
+    {{/if}}
+
+    {{#if linkedNpc}}
+    <div class="backstory-actor-banner" data-action="openNpc" data-uuid="{{linkedNpc.uuid}}" data-tooltip="Open {{linkedNpc.name}}'s Campaign Codex entry"
+         style="display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(201, 160, 84, 0.2); cursor: pointer;">
+        <img src="{{linkedNpc.img}}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 1px solid rgba(201, 160, 84, 0.3);">
+        <div style="font-family: 'Cinzel', Georgia, serif; color: #c9a054; font-size: 1.1rem; font-weight: bold;">
+            {{linkedNpc.name}} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem; opacity: 0.6;"></i>
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if (and isGM editable relatedPeople.length)}}
+    <details class="backstory-related-people">
+        <summary>
+            <i class="fa-solid fa-chevron-right disclosure-caret"></i>
+            <i class="fa-solid fa-people-group"></i> Generate NPCs ({{relatedPeople.length}})
+        </summary>
+        <div class="backstory-related-people-chips">
+            {{#each relatedPeople}}
+            <button type="button" class="wicked-related-person-chip" data-action="send-to-iname-thee"
+                    data-iname-role="{{this.role}}" data-iname-name="{{this.name}}" data-iname-concept="{{this.concept}}"
+                    data-tooltip="Generate a full {{this.label}} NPC sheet for {{this.name}} with iName Thee">
+                <i class="fa-solid {{this.icon}}"></i> {{this.name}}
+            </button>
+            {{/each}}
+        </div>
+    </details>
+    {{/if}}
+
+    <prose-mirror name="flags.campaign-codex.data.description" value="{{description}}"
+                  document-uuid="{{document.uuid}}" style="flex: 1;" {{#unless editable}}disabled{{/unless}}></prose-mirror>
+</form>

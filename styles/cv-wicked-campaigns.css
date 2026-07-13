@@ -1,0 +1,1046 @@
+/* Wicked Campaigns CSS Stylesheet */
+
+/* Color roles used throughout this file and inline in wicked-traits.hbs/wicked-widgets.hbs -
+   every var() below falls back to the original dark-mode value it replaced, so anything using
+   these outside the actor sheet (BackstorySheet, PartySheet, Session Zero, etc. - none of which
+   are affected by dnd5e's per-sheet theme toggle) is completely unchanged. Only the light-theme
+   override block near the end of this file actually redefines them, and only within
+   .wicked-character-sheet, so those other always-dark windows never see it either. */
+
+.wicked-campaigns-tab-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.wicked-campaigns-tab-content h2 {
+    border-bottom: 1px solid var(--wicked-gold, #c9a054);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--wicked-gold, #c9a054);
+}
+
+.wicked-campaigns-tab-content p {
+    line-height: 1.5;
+}
+
+.wicked-campaigns-lifepath-result {
+    margin-top: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(201, 160, 84, 0.3);
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+    color: var(--wicked-text, #e3e3e3);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.wicked-campaigns-lifepath-result h1 {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.6rem;
+    color: var(--wicked-gold, #c9a054);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--wicked-gold, #c9a054);
+    padding-bottom: 0.5rem;
+    text-align: center;
+}
+
+.wicked-campaigns-lifepath-result h2 {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.2rem;
+    color: var(--wicked-gold, #c9a054);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px dashed rgba(201, 160, 84, 0.3);
+    padding-bottom: 0.25rem;
+}
+
+.wicked-campaigns-lifepath-result h3 {
+    font-size: 1.05rem;
+    color: var(--wicked-gold-dim, #9a7d2e);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.wicked-campaigns-lifepath-result p {
+    margin-bottom: 0.75rem;
+}
+
+.wicked-campaigns-lifepath-result p strong {
+    color: var(--wicked-gold, #c9a054);
+}
+
+.wicked-campaigns-lifepath-result ul {
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.wicked-campaigns-lifepath-result li {
+    margin-bottom: 0.35rem;
+}
+
+.wicked-campaigns-lifepath-result em {
+    color: var(--wicked-text-muted, #a59c83);
+}
+
+.wicked-campaigns-lifepath-editor {
+    display: flex;
+    flex-direction: column;
+    min-height: 550px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--color-border, #444);
+    border-radius: 6px;
+    padding: 0.5rem;
+}
+
+.wicked-campaigns-lifepath-editor prose-mirror {
+    height: 100%;
+    min-height: 550px;
+    flex: 1 1 auto;
+}
+
+/* Sibling Dossier Cards */
+.wicked-sibling-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.wicked-sibling-card {
+    background: var(--wicked-card-wash, rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(201, 160, 84, 0.2);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.wicked-sibling-card.is-dead {
+    border-color: rgba(190, 70, 70, 0.2);
+    background: rgba(190, 70, 70, 0.02);
+    opacity: 0.85;
+}
+
+.wicked-sibling-card .sibling-name {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: var(--wicked-gold, #c9a054);
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.15);
+    padding-bottom: 0.15rem;
+}
+
+.wicked-sibling-card .sibling-details {
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.wicked-sibling-card .sibling-details p {
+    margin: 0.25rem 0;
+}
+
+.wicked-sibling-card .sibling-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.35rem;
+}
+
+.wicked-sibling-card .sibling-ordinal {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--wicked-text, #e3e3e3);
+    margin-right: 0.25rem;
+}
+
+.wicked-sibling-card .sibling-tag-pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+    background: rgba(201, 160, 84, 0.15);
+    color: var(--wicked-gold, #c9a054);
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.wicked-sibling-card .sibling-tag-pill.dead {
+    background: rgba(190, 70, 70, 0.18);
+    color: var(--wicked-red, #f0c2c2);
+    border: 1px solid rgba(190, 70, 70, 0.3);
+}
+
+.wicked-sibling-card .sibling-tag-pill.fraternal,
+.wicked-sibling-card .sibling-tag-pill.identical {
+    background: rgba(90, 150, 210, 0.18);
+    color: var(--wicked-blue, #bcd8f2);
+    border: 1px solid rgba(90, 150, 210, 0.3);
+}
+
+.wicked-sibling-card .sibling-tag-pill.half {
+    background: rgba(160, 110, 200, 0.18);
+    color: var(--wicked-purple, #dcc2f0);
+    border: 1px solid rgba(160, 110, 200, 0.3);
+}
+
+/* Parent Dossier Cards */
+.wicked-parent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.wicked-parent-card {
+    background: var(--wicked-card-wash, rgba(255, 255, 255, 0.02));
+    border: 3px double rgba(201, 160, 84, 0.4); /* Elegant double border */
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.wicked-parent-card .parent-role {
+    font-size: 0.72rem;
+    color: var(--wicked-gold-dim, #9a7d2e);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+}
+
+.wicked-parent-card .parent-name {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: bold;
+    color: var(--wicked-gold, #c9a054);
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.15);
+    padding-bottom: 0.15rem;
+}
+
+.wicked-parent-card .parent-details {
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.wicked-parent-card .parent-details p {
+    margin: 0.25rem 0;
+}
+
+/* Sibling Status Special Cards */
+.wicked-only-child-card {
+    background: rgba(201, 160, 84, 0.03);
+    border: 1px solid rgba(201, 160, 84, 0.35);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1.25rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.wicked-only-child-card .card-title {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: var(--wicked-gold, #c9a054);
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.15);
+    padding-bottom: 0.25rem;
+}
+
+.wicked-only-child-card .card-title i {
+    margin-right: 0.5rem;
+}
+
+.wicked-only-child-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--wicked-text, #e3e3e3);
+}
+
+.wicked-uncertain-siblings-card {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px dashed var(--color-border, #555);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1.25rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wicked-uncertain-siblings-card .card-title {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: var(--wicked-text-muted, #a59c83);
+    margin-bottom: 0.5rem;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.25rem;
+}
+
+.wicked-uncertain-siblings-card .card-title i {
+    margin-right: 0.5rem;
+    color: var(--wicked-gold-dim, #9a7d2e);
+}
+
+.wicked-uncertain-siblings-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--wicked-text-muted, #a59c83);
+}
+
+/* Core Family Cards */
+.wicked-family-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.wicked-family-card {
+    background: var(--wicked-card-wash, rgba(255, 255, 255, 0.02));
+    border: 1px solid var(--color-border, #444);
+    border-top: 3px solid var(--wicked-gold, #c9a054);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.wicked-family-card .card-label {
+    font-size: 0.72rem;
+    color: var(--wicked-gold-dim, #9a7d2e);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.wicked-family-card .card-value {
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--wicked-text, #e3e3e3);
+}
+
+/* Friend & Enemy Dossier Cards */
+.wicked-fe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.wicked-fe-card {
+    background: var(--wicked-card-wash, rgba(255, 255, 255, 0.02));
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.wicked-fe-card.is-friend {
+    border: 1px solid rgba(120, 180, 120, 0.3);
+}
+
+.wicked-fe-card.is-enemy {
+    border: 1px solid rgba(190, 70, 70, 0.3);
+}
+
+.wicked-fe-card .fe-name {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.15);
+    padding-bottom: 0.15rem;
+}
+
+.wicked-fe-card.is-friend .fe-name {
+    color: var(--wicked-green, #a3d8a3);
+}
+
+.wicked-fe-card.is-enemy .fe-name {
+    color: var(--wicked-red, #f0c2c2);
+}
+
+.wicked-fe-card .fe-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.35rem;
+}
+
+.wicked-fe-card .fe-type {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--wicked-text, #e3e3e3);
+    margin-right: 0.25rem;
+}
+
+.wicked-fe-card .fe-tag-pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.wicked-fe-card.is-friend .fe-tag-pill {
+    background: rgba(120, 180, 120, 0.15);
+    color: var(--wicked-green, #a3d8a3);
+    border: 1px solid rgba(120, 180, 120, 0.25);
+}
+
+.wicked-fe-card.is-enemy .fe-tag-pill {
+    background: rgba(190, 70, 70, 0.15);
+    color: var(--wicked-red, #f0c2c2);
+    border: 1px solid rgba(190, 70, 70, 0.25);
+}
+
+.wicked-fe-card .fe-details {
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.wicked-fe-card .fe-details p {
+    margin: 0.25rem 0;
+}
+
+/* Romance Partner Dossier Cards */
+.wicked-partner-card {
+    background: rgba(160, 110, 200, 0.02);
+    border: 1px solid rgba(160, 110, 200, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    margin: 1rem 0;
+}
+
+.wicked-partner-card .partner-role {
+    font-size: 0.72rem;
+    color: var(--wicked-purple, #dcc2f0);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.wicked-partner-card .partner-name {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: bold;
+    color: var(--wicked-purple, #dcc2f0);
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(160, 110, 200, 0.15);
+    padding-bottom: 0.15rem;
+}
+
+.wicked-partner-card .partner-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.35rem;
+}
+
+.wicked-partner-card .partner-tag-pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+    background: rgba(160, 110, 200, 0.15);
+    color: var(--wicked-purple, #dcc2f0);
+    border: 1px solid rgba(160, 110, 200, 0.25);
+}
+
+.wicked-partner-card .partner-details {
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.wicked-partner-card .partner-details p {
+    margin: 0.25rem 0;
+}
+
+/* Faith / Deity Dossier Card */
+.wicked-faith-card {
+    background: rgba(201, 160, 84, 0.03);
+    border: 1px solid rgba(201, 160, 84, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    margin: 1rem 0;
+}
+
+.wicked-faith-card .faith-role {
+    font-size: 0.72rem;
+    color: var(--wicked-amber, #e5c07b);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.wicked-faith-card .faith-name {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: bold;
+    color: var(--wicked-amber, #e5c07b);
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.2);
+    padding-bottom: 0.15rem;
+}
+
+.wicked-faith-card .faith-details {
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.wicked-faith-card .faith-details p {
+    margin: 0.25rem 0;
+}
+
+/* iName Thee helper button - inline within a card's role/name label, only rendered when the
+   iName Thee module is active. */
+.wicked-iname-thee-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    margin-left: 0.35em;
+    padding: 0;
+    vertical-align: middle;
+    background: rgba(201, 160, 84, 0.08);
+    border: 1px solid rgba(201, 160, 84, 0.35);
+    border-radius: 4px;
+    color: var(--wicked-gold-dim, #9a7d2e);
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wicked-iname-thee-btn:hover {
+    background: rgba(201, 160, 84, 0.2);
+    color: var(--wicked-gold, #c9a054);
+}
+
+/* BackstorySheet's own "Send to iName Thee" toolbar - same trigger as .wicked-iname-thee-btn,
+   but a labeled chip since it sits on its own row instead of inline within a card's title. */
+.wicked-related-person-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.25rem 0.6rem;
+    background: rgba(201, 160, 84, 0.08);
+    border: 1px solid rgba(201, 160, 84, 0.35);
+    border-radius: 999px;
+    color: var(--wicked-gold-dim, #9a7d2e);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wicked-related-person-chip:hover {
+    background: rgba(201, 160, 84, 0.2);
+    color: var(--wicked-gold, #c9a054);
+}
+
+/* Collapsible wrapper around the chip row above - a fully fleshed-out backstory can easily have a
+   dozen+ related people (parents, siblings, friends, enemies, a lover), which as a permanently
+   open wrapped row pushed the actual backstory text down several lines before you could even see
+   it. Collapsed by default so BackstorySheet opens straight to the text; native <details> rather
+   than a hand-rolled toggle since the open/closed behavior it needs for free is exactly this. */
+.backstory-related-people {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.2);
+}
+
+.backstory-related-people summary {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: "Cinzel", Georgia, serif;
+    color: var(--wicked-gold, #c9a054);
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+    user-select: none;
+}
+
+.backstory-related-people summary::-webkit-details-marker {
+    display: none;
+}
+
+.backstory-related-people summary .disclosure-caret {
+    font-size: 0.7rem;
+    transition: transform 0.15s ease;
+}
+
+.backstory-related-people[open] summary .disclosure-caret {
+    transform: rotate(90deg);
+}
+
+/* display:none until [open] rather than just "display:flex" unconditionally - a closed <details>
+   normally hides its non-summary children via a low-specificity UA rule, and an explicit display
+   rule here would win that specificity fight and force the chips to stay laid out (and take up
+   real height) even while the panel reads as collapsed. */
+.backstory-related-people-chips {
+    display: none;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.backstory-related-people[open] .backstory-related-people-chips {
+    display: flex;
+}
+
+/* Life Event Cards */
+.wicked-event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.wicked-event-card {
+    background: var(--wicked-card-wash, rgba(255, 255, 255, 0.02));
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.wicked-event-card.is-lucky {
+    border: 1px solid rgba(120, 180, 120, 0.3);
+    background: rgba(120, 180, 120, 0.02);
+}
+
+.wicked-event-card.is-unlucky {
+    border: 1px solid rgba(190, 70, 70, 0.3);
+}
+
+.wicked-event-card .event-title {
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.15);
+    padding-bottom: 0.15rem;
+}
+
+.wicked-event-card.is-lucky .event-title {
+    color: var(--wicked-green, #a3d8a3);
+}
+
+.wicked-event-card.is-unlucky .event-title {
+    color: var(--wicked-red, #f0c2c2);
+}
+
+.wicked-event-card .event-header {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.35rem;
+}
+
+.wicked-event-card .event-tag-pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.wicked-event-card.is-lucky .event-tag-pill {
+    background: rgba(120, 180, 120, 0.15);
+    color: var(--wicked-green, #a3d8a3);
+    border: 1px solid rgba(120, 180, 120, 0.25);
+}
+
+.wicked-event-card.is-unlucky .event-tag-pill {
+    background: rgba(190, 70, 70, 0.15);
+    color: var(--wicked-red, #f0c2c2);
+    border: 1px solid rgba(190, 70, 70, 0.25);
+}
+
+.wicked-event-card .event-text {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--wicked-text, #e3e3e3);
+}
+
+/* Table Config Form - deliberately minimal. LifepathTableConfigApp is a standard ApplicationV2
+   form (classes: ["wicked-campaigns", "standard-form"]) using plain fieldset/legend/form-group/
+   form-fields markup, so Foundry's own default form styling (and theming - light/dark, whichever
+   the user has picked) already handles color, spacing, and select/button chrome for free. This
+   only adds the one thing Foundry's defaults don't know about: which region should scroll.
+   .config-body needs both flex:1 (so it actually claims the leftover height between the hint text
+   above and the footer below, instead of growing to fit all its content) and min-height:0 (a flex
+   child won't shrink below its content's natural size otherwise, which silently defeats
+   overflow-y - the classic flex/overflow gotcha). Without these two, the footer's Save button and
+   any fieldsets past the window's visible height become completely unreachable. */
+.wicked-lifepath-table-config-form {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.wicked-lifepath-table-config-form .config-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+/* The old design repeated each row's table reference twice (once inline in the label as "(Table
+   X)", again on its own "Default: Lifepath · ... (X)" line below) - genuinely the same fact stated
+   two different ways, which is what made the list read as wordy/messy. The default table name is
+   still one hover away via the label's tooltip; only the short code stays visible, de-emphasized
+   so the label itself reads as the primary text. */
+.wicked-lifepath-table-config-form .table-code {
+    font-size: 0.8em;
+    opacity: 0.6;
+}
+
+/* Trait Slider & Button Styling */
+.wicked-trait-row .roll-trait-btn {
+    transition: all 0.2s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+.wicked-trait-row .roll-trait-btn:hover {
+    background: rgba(201, 160, 84, 0.1) !important;
+    text-shadow: 0 0 5px rgba(201, 160, 84, 0.5);
+}
+
+.wicked-trait-slider {
+    transition: opacity 0.2s ease;
+}
+.wicked-trait-slider:hover {
+    opacity: 0.9;
+}
+
+/* Chat Card Styling */
+.wicked-trait-card .wicked-trait-result {
+    margin-top: 0.5rem;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.wicked-trait-card .wicked-trait-result.critical {
+    background: #c9a054;
+    color: #1c1813 !important;
+    border: 1px solid #9a7d2e;
+}
+
+.wicked-trait-card .wicked-trait-result.success {
+    background: #2e7d32;
+    color: #ffffff !important;
+    border: 1px solid #1b5e20;
+}
+
+.wicked-trait-card .wicked-trait-result.failure {
+    background: #c62828;
+    color: #ffffff !important;
+    border: 1px solid #b71c1c;
+}
+
+.wicked-trait-card .wicked-trait-result.fumble {
+    background: #880e4f;
+    color: #ffffff !important;
+    border: 1px solid #4a0007;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+}
+
+/* Trait Roll Box Styling */
+.wicked-trait-roll-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    justify-content: center;
+}
+
+.theme-light .wicked-trait-roll-box,
+[data-theme="light"] .wicked-trait-roll-box {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.wicked-trait-roll-box .roll-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    font-family: 'Signika', sans-serif;
+    line-height: 1;
+    color: #e3e3e3;
+}
+.theme-light .wicked-trait-roll-box .roll-value,
+[data-theme="light"] .wicked-trait-roll-box .roll-value {
+    color: #1c1813;
+}
+
+.wicked-trait-divider {
+    width: 1px;
+    height: 1.5rem;
+    background: rgba(255, 255, 255, 0.15);
+}
+.theme-light .wicked-trait-divider,
+[data-theme="light"] .wicked-trait-divider {
+    background: rgba(0, 0, 0, 0.15);
+}
+.wicked-traits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 580px;
+    margin: 0 auto;
+}
+
+/* @Say Pronunciation Links */
+.wicked-say-link {
+    color: var(--wicked-gold, #c9a054);
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(201, 160, 84, 0.4);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: text-shadow 0.2s ease;
+}
+
+.wicked-say-link:hover {
+    text-shadow: 0 0 5px rgba(201, 160, 84, 0.5);
+}
+
+.wicked-say-link i {
+    margin-right: 0.2rem;
+}
+
+/* Inside a Campaign Codex sheet, dnd5e's --dnd5e-color-gold doesn't track
+   Campaign Codex's own theme colors, so the link can end up nearly the same
+   tone as the card background. Pull from Campaign Codex's own theme variables
+   instead, blended toward its body text color so it stays legible whatever
+   accent/background combination the active Campaign Codex theme uses. */
+.campaign-codex .wicked-say-link {
+    color: color-mix(in srgb, var(--cc-accent, #c9a054) 65%, var(--cc-main-text, #c9a054) 35%);
+    border-bottom-color: color-mix(in srgb, var(--cc-accent, #c9a054) 40%, transparent);
+}
+
+.campaign-codex .wicked-say-link:hover {
+    text-shadow: 0 0 5px color-mix(in srgb, var(--cc-accent, #c9a054) 50%, transparent);
+}
+
+/* Shared shell for every dashboard-style card on the Wicked Traits/Widgets tabs (Fate Pool,
+   Progress Clocks, Reputation, the traits card, and the In Peril widget below) - previously each
+   one duplicated these same properties as inline styles in wicked-traits.hbs/wicked-widgets.hbs,
+   which meant the light-theme override further down would've had to repeat itself per template
+   instead of living in one place. */
+.wicked-widget-card {
+    background: var(--wicked-panel-wash, rgba(0, 0, 0, 0.15));
+    border-radius: 6px;
+    border: 1px solid var(--wicked-gold-border, rgba(201, 160, 84, 0.15));
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* In Peril Widget */
+@keyframes wicked-peril-pulse {
+    0%, 100% { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 0 0 0 rgba(190, 70, 70, 0.35); }
+    50% { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), 0 0 14px 3px rgba(190, 70, 70, 0.35); }
+}
+
+.wicked-widget-card.peril-widget.is-peril {
+    background: rgba(190, 70, 70, 0.05);
+    border: 1px solid rgba(190, 70, 70, 0.35);
+    animation: wicked-peril-pulse 2.2s ease-in-out infinite;
+}
+
+.peril-widget .peril-title {
+    font-family: "Cinzel", Georgia, serif;
+    border-bottom: 1px solid rgba(201, 160, 84, 0.2);
+    padding-bottom: 0.5rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--wicked-gold, #c9a054);
+}
+
+.peril-widget.is-peril .peril-title {
+    color: var(--wicked-red, #f0c2c2);
+}
+
+.peril-widget .peril-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.5rem 0;
+}
+
+.peril-widget .peril-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(201, 160, 84, 0.1);
+    border: 2px solid rgba(201, 160, 84, 0.4);
+    font-size: 1.8rem;
+    color: var(--wicked-gold, #c9a054);
+}
+
+.peril-widget.is-peril .peril-icon-circle {
+    background: rgba(190, 70, 70, 0.15);
+    border-color: rgba(190, 70, 70, 0.45);
+    color: var(--wicked-red, #f0c2c2);
+}
+
+.peril-widget .peril-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(201, 160, 84, 0.15);
+    color: var(--wicked-gold, #c9a054);
+    border: 1px solid rgba(201, 160, 84, 0.3);
+}
+
+.peril-widget.is-peril .peril-badge {
+    background: rgba(190, 70, 70, 0.18);
+    color: var(--wicked-red, #f0c2c2);
+    border: 1px solid rgba(190, 70, 70, 0.35);
+}
+
+.peril-widget .peril-text {
+    font-size: 0.85rem;
+    color: var(--wicked-text-muted, #b5b5b5);
+    text-align: center;
+    max-width: 260px;
+    font-family: "Signika", sans-serif;
+    line-height: 1.5;
+}
+
+/* GM Toggle Switch */
+.wicked-switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.wicked-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.wicked-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(201, 160, 84, 0.3);
+    border-radius: 22px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.wicked-switch-slider::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    top: 2px;
+    background: #c9a054;
+    border-radius: 50%;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.wicked-switch input:checked + .wicked-switch-slider {
+    background: rgba(190, 70, 70, 0.25);
+    border-color: rgba(190, 70, 70, 0.45);
+}
+
+.wicked-switch input:checked + .wicked-switch-slider::before {
+    transform: translateX(20px);
+    background: #f0c2c2;
+}
+
+/* Light-mode palette for the Wicked Traits/Background/Widgets actor sheet tabs. Every color above
+   is a var(--wicked-x, <dark value>) with the dark value as fallback, so this is the ONLY place
+   that needs to change for light mode, and it's scoped to .wicked-character-sheet so our other,
+   always-dark standalone windows (BackstorySheet, PartySheet, Session Zero, the Lifepath Wizard,
+   table config, etc.) are completely unaffected. Pastel/near-white values that read fine on a dark
+   backdrop (green/red/purple/blue accent text, #e3e3e3 body text, #b5b5b5 hints) get swapped for
+   deeper, more saturated equivalents here since they'd otherwise have poor or no contrast against
+   a light page.
+   .wicked-theme-light is applied by handleActorSheetRender (see computeEffectiveDnd5eTheme in the
+   main script) rather than relying on dnd5e's own body.dnd5e-theme-light/-dark class - that class
+   is derived from the same underlying "dnd5e.theme" setting but can get stuck showing dark after a
+   fresh page load even when the setting itself correctly reads "light" (a dnd5e timing quirk, not
+   something fixable from our CSS alone), so we compute and apply the effective theme ourselves. */
+.wicked-character-sheet.wicked-theme-light {
+    --wicked-gold: #8a6d1f;
+    --wicked-gold-dim: #6b5518;
+    --wicked-gold-border: rgba(138, 109, 31, 0.35);
+    --wicked-text: #2a2520;
+    --wicked-text-muted: #5c5348;
+    --wicked-text-faint: #75695c;
+    --wicked-green: #2f6b2f;
+    --wicked-red: #8a2f2f;
+    --wicked-purple: #6a3f96;
+    --wicked-blue: #2f5f8a;
+    --wicked-amber: #8a6a1f;
+    --wicked-bright-gold: #a8790a;
+    --wicked-card-wash: rgba(0, 0, 0, 0.035);
+    --wicked-panel-wash: rgba(0, 0, 0, 0.05);
+}
+
+/* dnd5e's own banner rule (.window-content::before, see dnd5e.css) paints its stock character
+   banner at opacity: 0.5. That's fine for the source .webp, which has enough tonal range to read
+   clearly even diluted - but our replacement is a flat, already very dark color (--wicked-banner
+   default #130b1d, or Campaign Codex's sidebar color), and blending it at 50% against the sheet's
+   own near-black backdrop crushes what little saturation it has left, reading as flat grey instead
+   of purple. Bumping opacity back up here (our CSS is unlayered, so it wins over dnd5e's @layer
+   system rule regardless of specificity) lets the actual color come through; the existing
+   mask-image fade-to-transparent still handles the top-to-bottom falloff. */
+.wicked-character-sheet .window-content::before {
+    opacity: 0.9;
+}

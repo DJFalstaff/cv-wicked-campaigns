@@ -1,0 +1,108 @@
+<div class="party-sheet-content" style="padding: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; padding: 0.5rem 0.75rem; border-radius: 4px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.15);">
+        {{#if isActiveParty}}
+        <span style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-star"></i> Active Party
+        </span>
+        {{else}}
+        <span style="font-size: 0.8rem; color: #b5b5b5;">This party is not currently active.</span>
+        {{#if isGM}}
+        <button type="button" class="qbw-btn qbw-primary" data-action="makeActive" style="font-size: 0.8rem; padding: 4px 10px;">
+            <i class="fa-solid fa-star"></i> Make Active
+        </button>
+        {{/if}}
+        {{/if}}
+        {{#if editable}}
+        <button type="button" class="qbw-btn" data-action="rename" data-tooltip="Rename this party" style="padding: 4px 10px; font-size: 0.8rem;">
+            <i class="fa-solid fa-pen"></i> Rename
+        </button>
+        {{/if}}
+    </div>
+
+    <div class="wicked-widgets-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; align-items: start;">
+
+        <!-- In Peril Status Widget -->
+        <div class="wicked-widget-card peril-widget {{#if inPeril}}is-peril{{else}}is-safe{{/if}}">
+            <h3 class="peril-title">
+                <i class="fa-solid {{#if inPeril}}fa-skull-crossbones{{else}}fa-dove{{/if}}"></i> The Party's Standing
+            </h3>
+            <div class="peril-body">
+                <div class="peril-icon-circle">
+                    <i class="fa-solid {{#if inPeril}}fa-skull-crossbones{{else}}fa-dove{{/if}}"></i>
+                </div>
+                <div class="peril-badge">{{#if inPeril}}In Peril{{else}}Safe{{/if}}</div>
+                <div class="peril-text">
+                    {{#if inPeril}}The stakes are high and death is on the line!{{else}}For now, fortune favors you. The road ahead is steady.{{/if}}
+                </div>
+                {{#if isGM}}
+                <label class="wicked-switch" style="margin-top: 0.75rem;">
+                    <input type="checkbox" data-action="toggleInPeril" {{#if inPeril}}checked{{/if}}>
+                    <span class="wicked-switch-slider"></span>
+                </label>
+                {{/if}}
+            </div>
+        </div>
+
+        <!-- Fate Pool Card Widget -->
+        <div class="wicked-widget-card fate-pool-widget" style="background: rgba(0, 0, 0, 0.15); border-radius: 6px; border: 1px solid rgba(201, 160, 84, 0.15); padding: 1.25rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);">
+            <h3 style="font-family: 'Cinzel', Georgia, serif; color: #c9a054; border-bottom: 1px solid rgba(201, 160, 84, 0.2); padding-bottom: 0.5rem; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                <i class="fa-solid fa-yin-yang"></i> The Fate Pool
+            </h3>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 0.5rem 0;">
+                <div style="font-size: 3.5rem; font-weight: 800; font-family: 'Signika', sans-serif; color: #ffd875; line-height: 1; text-shadow: 0 0 8px rgba(201, 160, 84, 0.4);">
+                    {{fatePool}}
+                </div>
+                <div style="font-size: 0.85rem; color: #b5b5b5; text-align: center; max-width: 250px; font-family: 'Signika', sans-serif;">
+                    A shared pool of destiny and misfortune for the party.
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="qbw-btn qbw-primary" data-action="spendFate"
+                            style="font-weight: bold; padding: 8px 16px; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; border-radius: 4px; border: none; font-family: 'Signika', sans-serif;">
+                        <i class="fa-solid fa-fire"></i> Spend Fate Point (-1)
+                    </button>
+                    {{#if isGM}}
+                    <button type="button" class="qbw-btn" data-action="subFate" data-tooltip="GM: subtract a point"
+                            style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <button type="button" class="qbw-btn" data-action="addFate" data-tooltip="GM: add a point"
+                            style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="party-roster-section" style="margin-top: 1.25rem;">
+        <h3 style="font-family: 'Cinzel', Georgia, serif; color: #c9a054; border-bottom: 1px solid rgba(201, 160, 84, 0.2); padding-bottom: 0.5rem; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            <i class="fa-solid fa-users"></i> Roster
+        </h3>
+        <div class="party-roster" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; min-height: 110px; padding: 0.75rem; border: 1px dashed rgba(201, 160, 84, 0.25); border-radius: 6px;">
+            {{#each members}}
+            <div class="party-member-card" data-uuid="{{this.uuid}}"
+                 style="position: relative; text-align: center; cursor: pointer; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.15); border-radius: 6px; padding: 0.6rem;">
+                <img src="{{this.img}}" data-action="openMember" data-uuid="{{this.uuid}}"
+                     style="width: 64px; height: 64px; object-fit: cover; border-radius: 50%; border: 1px solid rgba(201, 160, 84, 0.3);">
+                <div data-action="openMember" data-uuid="{{this.uuid}}"
+                     style="font-size: 0.85rem; margin-top: 0.4rem; font-weight: 600; color: #fff; font-family: 'Signika', sans-serif;">
+                    {{this.name}}
+                </div>
+                {{#if ../editable}}
+                <button type="button" data-action="removeMember" data-uuid="{{this.uuid}}" data-tooltip="Remove from party"
+                        style="position: absolute; top: 2px; right: 4px; background: none; border: none; color: #f0c2c2; cursor: pointer; font-size: 0.9rem;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                {{/if}}
+            </div>
+            {{else}}
+            <div class="qbw-empty-note" style="grid-column: 1/-1; text-align: center; padding: 1.5rem 1rem; color: #b5b5b5; font-style: italic; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <i class="fa-regular fa-address-book" style="font-size: 1.75rem; color: rgba(201, 160, 84, 0.4);"></i>
+                <span>No party members yet. Saving a backstory from the Lifepath Wizard adds it here automatically, or drag a Backstory codex entry into this box.</span>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+</div>

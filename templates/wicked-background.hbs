@@ -1,0 +1,30 @@
+<section class="tab {{ tab.cssClass }}" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
+    <div class="wicked-campaigns-tab-content">
+        <h2>{{ localize "CV_WICKED_CAMPAIGNS.BackgroundTitle" }}</h2>
+
+        <div class="wicked-campaigns-actions" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            {{#if @root.editable}}
+            <button type="button" class="qbw-btn qbw-primary" data-action="open-lifepath-wizard">
+                <i class="fa-solid fa-scroll"></i> {{#if lifepathHtml}}Re-Roll with Lifepath Wizard{{else}}Open Lifepath Wizard{{/if}}
+            </button>
+            {{/if}}
+            {{#if backstoryUuid}}
+            <button type="button" class="qbw-btn" data-action="open-backstory-sheet">
+                <i class="fa-solid fa-book-skull"></i> Open Backstory Sheet
+            </button>
+            {{/if}}
+            <button type="button" class="qbw-btn" data-action="export-background-pdf"
+                    data-tooltip="Export this character's sheet stats and background as a PDF">
+                <i class="fa-solid fa-file-pdf"></i> Export PDF
+            </button>
+        </div>
+
+        <div class="wicked-campaigns-lifepath-result">
+            {{#if lifepathHtml}}
+                {{{lifepathHtml}}}
+            {{else}}
+                <p class="qbw-empty-note" style="font-style: italic; color: var(--wicked-gold-dim, #9a7d2e);">No lifepath backstory generated yet.{{#if @root.editable}} Click the button above to start the Lifepath Wizard.{{/if}}</p>
+            {{/if}}
+        </div>
+    </div>
+</section>

@@ -1,0 +1,47 @@
+<section class="tab {{ tab.cssClass }}" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
+    <div class="wicked-campaigns-tab-content" style="padding: 0.25rem 0.75rem;">
+        <div class="wicked-widget-card traits-widget" style="max-width: 580px; margin: 0 auto;">
+            <h3 style="font-family: 'Cinzel', Georgia, serif; color: var(--wicked-gold, #c9a054); border-bottom: 1px solid rgba(201, 160, 84, 0.2); padding-bottom: 0.25rem; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                <i class="fa-solid fa-yin-yang"></i> Personality Traits
+            </h3>
+
+            {{#if useTraitPairs}}
+                <div class="wicked-traits-list" style="display: flex; flex-direction: column; gap: 2px;">
+                    {{#each traitPairs}}
+                        <div class="wicked-trait-row" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 2px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
+
+                            <!-- Left Trait Roll Button -->
+                            <button type="button" class="qbw-btn roll-trait-btn" style="flex: 2.2; text-align: right; background: none; border: none; color: var(--wicked-text, #e3e3e3); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 0.2rem; padding: 2px 0;" data-action="roll-trait" data-name="{{leftName}}" data-value="{{leftValue}}" data-pair-index="{{index}}" data-side="left">
+                                <span class="wicked-trait-name" style="font-size: 0.8rem; font-family: 'Signika', sans-serif;">{{leftName}}</span>
+                                <span class="wicked-left-value" data-pair-index="{{index}}" style="display: inline-block; min-width: 18px; text-align: center; background: rgba(201, 160, 84, 0.1); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 3px; padding: 1px 3px; color: var(--wicked-gold, #c9a054); font-size: 0.75rem; font-weight: bold;">{{leftValue}}</span>
+                                <i class="fa-solid fa-dice-d20" style="font-size: 0.7rem; opacity: 0.6; color: var(--wicked-gold, #c9a054);"></i>
+                            </button>
+
+                            <!-- Slider in Middle -->
+                            <div class="wicked-slider-wrapper" style="flex: 2.5; display: flex; align-items: center;">
+                                <input type="range" min="0" max="20" class="wicked-trait-slider" data-pair-index="{{index}}" value="{{leftValue}}" {{#unless @root.editable}}disabled{{/unless}} style="width: 100%; accent-color: var(--wicked-gold, #c9a054); cursor: pointer; height: 3px; border-radius: 1.5px; margin: 0;">
+                            </div>
+
+                            <!-- Right Trait Roll Button -->
+                            <button type="button" class="qbw-btn roll-trait-btn" style="flex: 2.2; text-align: left; background: none; border: none; color: var(--wicked-text, #e3e3e3); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: flex-start; gap: 0.2rem; padding: 2px 0;" data-action="roll-trait" data-name="{{rightName}}" data-value="{{rightValue}}" data-pair-index="{{index}}" data-side="right">
+                                <i class="fa-solid fa-dice-d20" style="font-size: 0.7rem; opacity: 0.6; color: var(--wicked-gold, #c9a054);"></i>
+                                <span class="wicked-right-value" data-pair-index="{{index}}" style="display: inline-block; min-width: 18px; text-align: center; background: rgba(201, 160, 84, 0.1); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 3px; padding: 1px 3px; color: var(--wicked-gold, #c9a054); font-size: 0.75rem; font-weight: bold;">{{rightValue}}</span>
+                                <span class="wicked-trait-name" style="font-size: 0.8rem; font-family: 'Signika', sans-serif;">{{rightName}}</span>
+                            </button>
+                        </div>
+                    {{/each}}
+                </div>
+            {{else}}
+                <div class="qbw-hint" style="text-align: center; padding: 2rem 1rem; color: var(--wicked-text-muted, #b5b5b5); font-style: italic; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                    <i class="fa-solid fa-yin-yang" style="font-size: 2rem; color: rgba(201, 160, 84, 0.4);"></i>
+                    <span>Personality Traits have not been initialized. Enable them here to start tracking them.</span>
+                    {{#if @root.editable}}
+                    <button type="button" class="qbw-btn qbw-primary" data-action="initialize-traits" style="margin-top: 0.5rem; font-size: 0.85rem; padding: 6px 12px;">
+                        <i class="fa-solid fa-power-off"></i> Initialize Personality Traits
+                    </button>
+                    {{/if}}
+                </div>
+            {{/if}}
+        </div>
+    </div>
+</section>

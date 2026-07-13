@@ -1,0 +1,77 @@
+<section class="tab {{ tab.cssClass }}" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
+    <div class="wicked-campaigns-tab-content" style="padding: 1rem;">
+        <div class="wicked-widgets-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; align-items: start;">
+
+            <!-- In Peril Status Widget -->
+            <div class="wicked-widget-card peril-widget {{#if inPeril}}is-peril{{else}}is-safe{{/if}}">
+                <h3 class="peril-title">
+                    <i class="fa-solid {{#if inPeril}}fa-skull-crossbones{{else}}fa-dove{{/if}}"></i> The Party's Standing
+                </h3>
+                <div class="peril-body">
+                    <div class="peril-icon-circle">
+                        <i class="fa-solid {{#if inPeril}}fa-skull-crossbones{{else}}fa-dove{{/if}}"></i>
+                    </div>
+                    <div class="peril-badge">{{#if inPeril}}In Peril{{else}}Safe{{/if}}</div>
+                    <div class="peril-text">
+                        {{#if inPeril}}The stakes are high and death is on the line!{{else}}For now, fortune favors you. The road ahead is steady.{{/if}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fate Pool Card Widget -->
+            <div class="wicked-widget-card fate-pool-widget">
+                <h3 style="font-family: 'Cinzel', Georgia, serif; color: var(--wicked-gold, #c9a054); border-bottom: 1px solid rgba(201, 160, 84, 0.2); padding-bottom: 0.5rem; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <i class="fa-solid fa-yin-yang"></i> The Fate Pool
+                </h3>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 0.5rem 0;">
+                    <!-- Fate Pool Counter Display -->
+                    <div style="font-size: 3.5rem; font-weight: 800; font-family: 'Signika', sans-serif; color: var(--wicked-bright-gold, #ffd875); line-height: 1; text-shadow: 0 0 8px rgba(201, 160, 84, 0.4);">
+                        {{fatePool}}
+                    </div>
+
+                    <div style="font-size: 0.85rem; color: var(--wicked-text-muted, #b5b5b5); text-align: center; max-width: 250px; font-family: 'Signika', sans-serif;">
+                        A shared pool of destiny and misfortune for the party.
+                    </div>
+
+                    <!-- Spend Button -->
+                    <button type="button" class="qbw-btn qbw-primary spend-fate-btn" style="font-weight: bold; padding: 8px 16px; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; border-radius: 4px; border: none; font-family: 'Signika', sans-serif;" data-action="spend-fate-point">
+                        <i class="fa-solid fa-fire"></i> Spend Fate Point (-1)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Clocks Card -->
+            <div class="wicked-widget-card clocks-widget">
+                <h3 style="font-family: 'Cinzel', Georgia, serif; color: var(--wicked-gold, #c9a054); border-bottom: 1px solid rgba(201, 160, 84, 0.2); padding-bottom: 0.5rem; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <i class="fa-solid fa-clock"></i> Progress Clocks
+                </h3>
+                <div class="qbw-empty-note" style="text-align: center; padding: 2rem 1rem; color: var(--wicked-text-muted, #b5b5b5); font-style: italic; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                    <i class="fa-regular fa-hourglass-half" style="font-size: 2rem; color: rgba(201, 160, 84, 0.4);"></i>
+                    <span>No progress clocks defined. Create clocks to track campaign objectives, threats, or project completions.</span>
+                    {{#if @root.editable}}
+                    <button type="button" class="qbw-btn qbw-primary" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 4px 10px; opacity: 0.8;" disabled>
+                        <i class="fa-solid fa-plus"></i> Add Clock (Coming Soon)
+                    </button>
+                    {{/if}}
+                </div>
+            </div>
+
+            <!-- Reputation & Factions Card -->
+            <div class="wicked-widget-card reputation-widget">
+                <h3 style="font-family: 'Cinzel', Georgia, serif; color: var(--wicked-gold, #c9a054); border-bottom: 1px solid rgba(201, 160, 84, 0.2); padding-bottom: 0.5rem; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <i class="fa-solid fa-hands-holding-child"></i> Reputation & Factions
+                </h3>
+                <div class="qbw-empty-note" style="text-align: center; padding: 2rem 1rem; color: var(--wicked-text-muted, #b5b5b5); font-style: italic; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                    <i class="fa-solid fa-users-line" style="font-size: 2rem; color: rgba(201, 160, 84, 0.4);"></i>
+                    <span>No faction standings tracked. Track your standing with the local barons, cults, or kingdoms here.</span>
+                    {{#if @root.editable}}
+                    <button type="button" class="qbw-btn qbw-primary" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 4px 10px; opacity: 0.8;" disabled>
+                        <i class="fa-solid fa-plus"></i> Add Faction (Coming Soon)
+                    </button>
+                    {{/if}}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

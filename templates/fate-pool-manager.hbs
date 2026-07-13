@@ -1,0 +1,54 @@
+<form class="fate-pool-form" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.5rem;" onsubmit="event.preventDefault();">
+    <!-- Active party -->
+    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Active Party</label>
+        <div style="display: flex; gap: 0.4rem;">
+            <select class="active-party-select" style="flex: 1; font-size: 0.85rem; padding: 4px 6px; background: rgba(0, 0, 0, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;">
+                {{#each parties}}
+                <option value="{{this.uuid}}" {{#if this.active}}selected{{/if}}>{{this.name}}</option>
+                {{/each}}
+            </select>
+            <button type="button" class="qbw-btn new-party" title="Create New Party" style="width: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Value inputs -->
+    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+        <button type="button" class="qbw-btn sub-fate" style="font-size: 1.2rem; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+            <i class="fa-solid fa-minus"></i>
+        </button>
+        <input type="number" class="fate-value-input" value="{{fatePool}}" style="width: 80px; text-align: center; font-size: 1.5rem; font-weight: bold; background: rgba(0, 0, 0, 0.2); color: #fff; border: 1px solid rgba(201, 160, 84, 0.3); border-radius: 4px; height: 36px;"/>
+        <button type="button" class="qbw-btn add-fate" style="font-size: 1.2rem; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Reason text box -->
+    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Update Reason</label>
+        <input type="text" class="fate-reason-input" placeholder="e.g. Completed objective, GM action" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0, 0, 0, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;"/>
+    </div>
+
+    <!-- Save button -->
+    <button type="button" class="qbw-btn qbw-primary save-fate" style="width: 100%; font-weight: bold; padding: 6px 12px; font-size: 0.9rem; cursor: pointer;">
+        <i class="fa-solid fa-save"></i> Save Total & Close
+    </button>
+
+    <!-- In Peril Toggle -->
+    <div class="wicked-peril-toggle-row" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.5rem 0.6rem; margin-top: 0.25rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.15); border-radius: 4px;">
+        <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-skull-crossbones"></i> In Peril
+        </label>
+        <label class="wicked-switch">
+            <input type="checkbox" class="in-peril-toggle" {{#if inPeril}}checked{{/if}}>
+            <span class="wicked-switch-slider"></span>
+        </label>
+    </div>
+
+    <!-- Manual permission resync -->
+    <button type="button" class="qbw-btn sync-permissions" title="Re-check every backstory, NPC entry, and party roster so each player can see their own but not anyone else's." style="width: 100%; font-size: 0.85rem; padding: 6px 12px; cursor: pointer;">
+        <i class="fa-solid fa-user-shield"></i> Sync Permissions
+    </button>
+</form>

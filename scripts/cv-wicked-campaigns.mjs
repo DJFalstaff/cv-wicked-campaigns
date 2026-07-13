@@ -1,0 +1,5794 @@
+/**
+ * Wicked Campaigns Module
+ * A campaign management and helper module for Foundry VTT V14.
+ */
+
+import { exportBackgroundPdf, exportSessionZeroSummaryPdf } from "./pdf-export.mjs";
+
+// ---- Constants -----------------------------------------------------------
+const STEP_COUNT = 12;
+const STEP_TITLES = {
+  1: "Alignment",
+  2: "Gender",
+  3: "Height",
+  4: "Weight",
+  5: "Age",
+  6: "Part 1 · Family",
+  7: "Part 2 · Friends & Enemies",
+  8: "Part 3 · Romance",
+  9: "Part 4 · Appearance",
+  10: "Part 5 · Personality",
+  11: "Part 6 · Life Events",
+  12: "Optional · Trait Pairs",
+};
+
+const ALIGNMENTS = [
+  "Lawful Good", "Neutral Good", "Chaotic Good",
+  "Lawful Neutral", "Neutral", "Chaotic Neutral",
+  "Lawful Evil", "Neutral Evil", "Chaotic Evil",
+];
+const GENDERS = ["Male", "Female", "Unique"];
+const HEIGHT_BANDS = [
+  { band: "Short",   min: 59, max: 65 },
+  { band: "Average", min: 66, max: 72 },
+  { band: "Tall",    min: 73, max: 79 },
+];
+const AGE_STAGES = [
+  { stage: "Young Adult", min: 18, max: 25 },
+  { stage: "Adult",       min: 26, max: 39 },
+  { stage: "Middle Aged", min: 40, max: 59 },
+  { stage: "Old",         min: 60, max: 80 },
+];
+
+
+const BRANCH = {
+  parents: { die: 20, options: [
+    { value: "disaster", label: "Something happened to a parent",          lo: 1,  hi: 8 },
+    { value: "alive",    label: "Both parents are alive and well",          lo: 9,  hi: 19 },
+    { value: "special",  label: "Something special about your parents",     lo: 20, hi: 20 },
+  ]},
+  standing: { die: 20, options: [
+    { value: "good", label: "Good standing",                                lo: 1,  hi: 10 },
+    { value: "bad",  label: "Bad standing — at risk of losing everything",  lo: 11, hi: 20 },
+  ]},
+  romance: { die: 10, options: [
+    { value: "healthy",     label: "In a healthy romance",                  lo: 1, hi: 2 },
+    { value: "lookout",     label: "On the lookout",                        lo: 3, hi: 6 },
+    { value: "tragic",      label: "Recovering from a romantic disaster",   lo: 7, hi: 8 },
+    { value: "problematic", label: "In a love affair, but with problems",   lo: 9, hi: 10 },
+  ]},
+};
+
+// Birth order: weighted 1d100 -> the character's position among their siblings.
+const BIRTH_ORDER = [
+  { n: 1, lo: 1,  hi: 25 },
+  { n: 2, lo: 26, hi: 50 },
+  { n: 3, lo: 51, hi: 70 },
+  { n: 4, lo: 71, hi: 85 },
+  { n: 5, lo: 86, hi: 95 },
+  { n: 6, lo: 96, hi: 100 },
+];
+
+// Sibling structure odds — all rolled on 1d100, thresholds per the lifepath tables.
+const SIBLING_DEATH_PCT = 15;         // a sibling is deceased if roll <= this
+const SIBLINGS_NONE_RANGE = [76, 90]; // "No siblings" (only child); outside this you have some
+const SIBLINGS_UNKNOWN_MIN = 91;      // 91-100: you have siblings "...as far as you know"
+const TWIN_FRATERNAL_MIN = 96;        // 96-98: fraternal twin (adjacent siblings only)
+const TWIN_IDENTICAL_MIN = 99;        // 99-100: identical twin
+const HALF_SIBLING_MIN = 91;          // 91-100: half-sibling (non-adjacent siblings only)
+
+const ROMANCE_LABEL = {
+  healthy: "Currently in a healthy romance",
+  lookout: "On the lookout for love",
+  tragic: "Recovering from a romantic disaster",
+  problematic: "In a love affair, but there are problems",
+};
+
+const ROMANCE_DETAIL = {
+  healthy:     { table: "romanceHealthy",     label: "How it began" },
+  lookout:     { table: "romanceLookout",     label: "What you seek" },
+  tragic:      { table: "romanceTragic",      label: "The tragedy" },
+  problematic: { table: "romanceProblematic", label: "The complication" },
+};
+
+const TRAIT_PAIRS = [
+  ["Amorous", "Chaste"], ["Forgiving", "Vengeful"], ["Generous", "Selfish"],
+  ["Honest", "Deceitful"], ["Just", "Arbitrary"], ["Merciful", "Cruel"],
+  ["Modest", "Proud"], ["Prudent", "Reckless"], ["Temperate", "Indulgent"],
+  ["Trusting", "Suspicious"],
+];
+
+// ---- Helpers -------------------------------------------------------------
+const esc = (s) => String(s ?? "")
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+const isINameTheeActive = () => game.modules.get("cv-iname-thee")?.active === true;
+const isCCMActive = () => game.modules.get("complete-card-management")?.active === true;
+
+// Icon + label per relationship category, keyed by the role stripped of its trailing "-N" index
+// (so "sibling-0", "sibling-1", ... all resolve to the same "sibling" entry). Shared by the
+// inline card buttons below and BackstorySheet's own toolbar, so both show the same icon/wording.
+const ROLE_META = {
+  mother: { icon: "fa-venus", label: "Mother" },
+  father: { icon: "fa-mars", label: "Father" },
+  sibling: { icon: "fa-people-arrows", label: "Sibling" },
+  friend: { icon: "fa-handshake", label: "Friend" },
+  enemy: { icon: "fa-sword", label: "Enemy" },
+  lover: { icon: "fa-heart", label: "Lover" },
+};
+const roleMeta = (role) => ROLE_META[String(role).replace(/-\d+$/, "")] ?? { icon: "fa-signature", label: "NPC" };
+
+// A small button baked directly into the generated biography HTML (see _buildBiographyHtml) so a
+// GM looking at the finished backstory can spin a named person - mother, father, a sibling, a
+// friend/enemy, a lover - into a full NPC via iName Thee, without retyping who they are. Only
+// rendered when iName Thee is active and there's an actual name to seed with (not a placeholder).
+// `role` is a stable key ("mother", "father", "sibling-0", "friend-1", "lover", ...) later used to
+// remember which actor a given person already became, so a second click updates instead of duplicating.
+// Deliberately NOT gated on game.user.isGM here: this markup gets baked once into the stored
+// description HTML by whoever runs the wizard (often the player, not the GM), then viewed by
+// anyone later - baking in a saver-time GM check would mean a GM who opens a player-generated
+// backstory afterward never sees the buttons at all. GM-only enforcement instead happens at
+// render/view time (character sheet DOM cleanup) and at click time (sendToINameThee).
+const iNameTheeBtn = (role, name, concept) => {
+  if (!isINameTheeActive() || !name) return "";
+  const { icon, label } = roleMeta(role);
+  return `<button type="button" class="wicked-iname-thee-btn" data-action="send-to-iname-thee" ` +
+    `data-iname-role="${esc(role)}" data-iname-name="${esc(name)}" data-iname-concept="${esc(concept)}" ` +
+    `data-tooltip="Generate a full ${label} NPC sheet for ${esc(name)} with iName Thee">` +
+    `<i class="fa-solid ${icon}"></i></button>`;
+};
+const randInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const trunc = (s, n) => { s = String(s || ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+const ordinal = (n) => { const s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+const formatHeight = (inches) => `${Math.floor(inches / 12)}'${inches % 12}"`;
+const pickTwoDistinct = (min, max) => {
+  if (max <= min) return [min, min];
+  const a = randInt(min, max);
+  let b = randInt(min, max);
+  let guard = 0;
+  while (b === a && guard++ < 25) b = randInt(min, max);
+  return [a, b].sort((x, y) => x - y);
+};
+
+// ---- @Say Pronunciation Enricher ------------------------------------------
+// Syntax: @Say[modules/cv-wicked-campaigns/audio/mireth-mcdain.ogg]{Mireth McDain}
+const SAY_ENRICHER_PATTERN = /@Say\[(?<path>[^\]]+)\](?:\{(?<label>[^}]+)\})?/g;
+
+function enrichSayLink(match) {
+  const { path, label } = match.groups;
+  const anchor = document.createElement("a");
+  anchor.classList.add("wicked-say-link");
+  anchor.dataset.audioPath = path;
+  anchor.dataset.tooltip = "Click to hear pronunciation";
+  anchor.innerHTML = `<i class="fa-solid fa-volume-high"></i> ${esc(label ?? path)}`;
+  return anchor;
+}
+
+// ---- Styles --------------------------------------------------------------
+const STYLE_ID = "qos-lifepath-styles";
+const STYLE_VERSION = "8";
+function injectStyles() {
+  let style = document.getElementById(STYLE_ID);
+  if (style && style.dataset.qbwVersion === STYLE_VERSION) return;
+  if (!style) { style = document.createElement("style"); style.id = STYLE_ID; document.head.appendChild(style); }
+  style.dataset.qbwVersion = STYLE_VERSION;
+  style.textContent = `
+    .qos-lifepath-wizard .window-content {
+      padding: 0;
+      background: var(--color-bg-app, #1b1c20);
+      color: var(--color-text, #f0f0f0);
+      display: flex;
+      flex-direction: column;
+    }
+    .qbw {
+      --gold: var(--dnd5e-color-gold, #c9a054);
+      --gold-dim: var(--dnd5e-color-gold-dim, #9a7d2e);
+      --ink: var(--color-text, #f0f0f0);
+      --ink-dim: var(--color-text-muted, #a59c83);
+      --panel: var(--color-bg-app, #1b1c20);
+      --panel-2: var(--color-bg-input, rgba(0, 0, 0, 0.25));
+      --line: var(--color-border, #444);
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .qbw-header {
+      padding: 14px 18px 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--line);
+    }
+    .qbw-step-no {
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+    }
+    .qbw-title {
+      margin: 2px 0 10px;
+      font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+      font-weight: 600;
+      font-size: 21px;
+      letter-spacing: .04em;
+      color: var(--gold);
+    }
+    .qbw-progress {
+      height: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .qbw-progress-bar {
+      height: 100%;
+      background: var(--gold);
+      transition: width .25s ease;
+    }
+    .qbw-main {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      height: 60vh;
+    }
+    .qbw-body {
+      flex: 3 1 0;
+      min-height: 0;
+      padding: 16px 18px;
+      overflow-y: auto;
+    }
+    .qbw-aside {
+      flex: 2 1 0;
+      min-height: 0;
+      padding: 14px 16px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.25);
+      border-left: 1px solid var(--line);
+    }
+    .qbw-aside-head {
+      font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+      color: var(--gold-dim);
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin: 0 0 12px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--line);
+    }
+    .qbw-aside-head i {
+      margin-right: 6px;
+    }
+    .qbw-label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin: 0 0 6px;
+    }
+    .qbw-hint {
+      font-size: 11.5px;
+      color: var(--ink-dim);
+      margin: 6px 0 0;
+      font-style: italic;
+    }
+    .qbw-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      margin-bottom: 12px;
+    }
+    .qbw-select, .qbw-num {
+      width: 100%;
+      background: var(--panel-2);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .qbw-num {
+      width: 70px;
+      flex: 0 0 auto;
+    }
+    .qbw-select:focus, .qbw-num:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(201, 160, 84, 0.2);
+    }
+    .qbw-select option {
+      background: var(--color-bg-app, #1b1c20);
+      color: var(--ink);
+    }
+    .qbw-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      background: var(--color-bg-btn, rgba(255, 255, 255, 0.05));
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: background 0.1s ease, border-color 0.1s ease;
+    }
+    .qbw-btn:hover {
+      border-color: var(--gold);
+      background: var(--color-bg-btn-hover, rgba(255, 255, 255, 0.1));
+    }
+    .qbw-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--line);
+    }
+    .qbw-btn i {
+      font-size: 11px;
+    }
+    .qbw-primary {
+      background: var(--dnd5e-color-gold, #c9a054);
+      color: #111;
+      border-color: var(--dnd5e-color-gold-dim, #9a7d2e);
+      font-weight: 600;
+      text-shadow: none;
+    }
+    .qbw-primary:hover {
+      background: var(--dnd5e-color-gold-hover, #dfb462);
+      color: #000;
+    }
+    .qbw-divider {
+      height: 1px;
+      background: var(--line);
+      margin: 14px 0;
+    }
+    /* sections + cards */
+    .qbw-section-title {
+      font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+      color: var(--gold);
+      font-size: 15px;
+      letter-spacing: .04em;
+      margin: 20px 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--line);
+    }
+    .qbw-section-title:first-child {
+      margin-top: 0;
+    }
+    .qbw-sub {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin: 14px 0 8px;
+    }
+    .qbw-card {
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin: 8px 0;
+    }
+    .qbw-card-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .qbw-card-title {
+      font-weight: 600;
+      color: var(--ink);
+      font-size: 11.5px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      flex: 1 1 auto;
+    }
+    .qbw-card.is-deceased {
+      opacity: .72;
+      border-style: dashed;
+    }
+    .qbw-tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      letter-spacing: .06em;
+      background: rgba(201, 160, 84, 0.15);
+      color: var(--gold);
+      vertical-align: middle;
+      text-transform: uppercase;
+    }
+    .qbw-tag-dead {
+      background: rgba(190, 70, 70, 0.15);
+      color: #f0c2c2;
+    }
+    .qbw-tag-fraternal, .qbw-tag-identical {
+      background: rgba(90, 150, 210, 0.15);
+      color: #bcd8f2;
+    }
+    .qbw-tag-half {
+      background: rgba(160, 110, 200, 0.15);
+      color: #dcc2f0;
+    }
+    .qbw-sib-order {
+      font-size: 13px;
+      color: var(--ink);
+      margin: 4px 0 10px;
+    }
+    .qbw-card-attrs {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .qbw-mini {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      color: var(--ink);
+    }
+    .qbw-mini-note {
+      font-size: 11px;
+      color: var(--gold-dim);
+      font-style: italic;
+    }
+    .qbw-inline {
+      display: inline-block;
+      width: auto;
+      min-width: 88px;
+      margin: 0 2px;
+      padding: 3px 8px;
+      vertical-align: middle;
+    }
+    .qbw-iconbtn {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink-dim);
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: color 0.1s, border-color 0.1s;
+    }
+    .qbw-iconbtn:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+    .qbw-count {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .qbw-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--ink);
+      margin: 6px 0;
+      cursor: pointer;
+    }
+    .qbw-check input {
+      accent-color: var(--gold);
+      width: 16px;
+      height: 16px;
+    }
+    .qbw-modes {
+      display: flex;
+      gap: 6px;
+      margin: 10px 0;
+    }
+    /* trait pairs */
+    .qbw-pair {
+      display: grid;
+      grid-template-columns: 1fr 24px 1fr;
+      align-items: center;
+      gap: 6px 10px;
+      padding: 9px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+    .qbw-pair-l {
+      text-align: right;
+      font-size: 12.5px;
+    }
+    .qbw-pair-r {
+      text-align: left;
+      font-size: 12.5px;
+    }
+    .qbw-pair-mid {
+      text-align: center;
+      color: var(--ink-dim);
+    }
+    .qbw-pair-name {
+      color: var(--ink);
+    }
+    .qbw-pair-val {
+      color: var(--gold);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .qbw-slider {
+      grid-column: 1 / -1;
+      width: 100%;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .qbw-budget {
+      font-size: 11.5px;
+      color: var(--ink-dim);
+      margin-top: 10px;
+      font-style: italic;
+    }
+    /* live preview pane */
+    .qbw-preview {
+      font-size: 12.5px;
+      color: var(--ink-dim);
+    }
+    .qbw-empty-note {
+      color: var(--ink-dim);
+      font-style: italic;
+    }
+    .qbw-preview h1 {
+      font-size: 16px;
+      color: var(--gold);
+      font-family: "Cinzel", Georgia, serif;
+      margin: 0 0 8px;
+    }
+    .qbw-preview h2 {
+      font-size: 12px;
+      color: var(--gold-dim);
+      margin: 12px 0 4px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .qbw-preview h3 {
+      font-size: 12px;
+      color: var(--ink);
+      margin: 8px 0 3px;
+    }
+    .qbw-preview p {
+      margin: 3px 0;
+    }
+    .qbw-preview ul {
+      margin: 3px 0 3px 18px;
+      padding: 0;
+    }
+    .qbw-preview li {
+      margin: 2px 0;
+    }
+    .qbw-preview strong {
+      color: var(--ink);
+    }
+    .qbw-foot-check {
+      font-size: 11.5px;
+      color: var(--ink-dim);
+      margin: 0;
+    }
+    .qbw-foot-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .qbw-foot-status.is-ok {
+      color: #bfe6c6;
+      background: rgba(76, 160, 90, 0.16);
+    }
+    .qbw-foot-status.is-err {
+      color: #f0c2c2;
+      background: rgba(190, 70, 70, 0.16);
+    }
+    .qbw-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      background: rgba(0, 0, 0, 0.2);
+      border-top: 1px solid var(--line);
+    }
+    .qbw-spacer {
+      flex: 1 1 auto;
+    }
+    .qbw-input {
+      width: 100%;
+      background: var(--panel-2);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .qbw-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(201, 160, 84, 0.2);
+    }
+    .qbw-group {
+      margin-top: 10px;
+    }
+    .qbw-group-label {
+      font-size: 10.5px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin: 0 0 5px;
+    }
+    .qbw-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .qbw-chip {
+      background: var(--panel-2);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      min-width: 58px;
+      text-align: center;
+      transition: all .12s;
+      font-variant-numeric: tabular-nums;
+      font-family: inherit;
+    }
+    .qbw-chip:hover {
+      border-color: var(--gold);
+      color: #fff;
+      background: var(--color-bg-btn-hover, rgba(255, 255, 255, 0.1));
+    }
+    .qbw-chip.is-active {
+      background: var(--gold);
+      color: #111;
+      border-color: var(--gold-dim);
+      font-weight: 600;
+    }
+    .qbw-personal-summary h3 {
+      font-family: "Cinzel", "Trajan Pro", Georgia, serif;
+      font-size: 13px;
+      color: var(--gold);
+      margin-top: 0;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+    }
+    .qbw-personal-summary ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 10px 0;
+    }
+    .qbw-personal-summary li {
+      font-size: 11.5px;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .qbw-personal-summary li strong {
+      color: var(--gold-dim);
+    }
+  `;
+}
+
+// ---- Campaign Codex Integration -------------------------------------------
+// Wicked Campaigns requires Campaign Codex to be installed and active; backstories
+// are saved as Campaign Codex "backstory" journal entries so they show up in its
+// searchable Table of Contents instead of piling up as pages in one shared journal.
+const CC_MODULE_ID = "campaign-codex";
+const CC_BACKSTORY_TYPE = "backstory";
+// Campaign Codex's TOC/group views use `doc.iconOverride || TemplateComponents.getAsset(...)`
+// for their display icon; setting this flag is the documented way to get a real icon
+// instead of the generic fallback for a type Campaign Codex doesn't know about.
+const BACKSTORY_ICON = "fas fa-book-skull";
+const PARTY_ICON = "fas fa-users";
+const CC_SESSION_ZERO_TYPE = "session-zero-summary";
+const SESSION_ZERO_ICON = "fas fa-clipboard-question";
+
+function isCampaignCodexActive() {
+  return game.modules.get(CC_MODULE_ID)?.active === true;
+}
+
+// Wicked Campaigns' house look for Campaign Codex. Applied once per world on
+// first ready (see the "appliedDefaultCCTheme" setting below) so a GM gets a
+// styled Campaign Codex out of the box, without permanently overriding a
+// theme they've since customized further through CC's own "Configure Colors"
+// menu. `color-accent80/30/10` are deliberately omitted: setting `color-accent`
+// makes Campaign Codex derive and set those three itself (settings.js).
+const WICKED_CC_THEME = {
+  "themeEnabled": true,
+  "color-primary": "#0b0317",
+  "color-slate": "#5a6268",
+  "color-textMuted": "#292929",
+  "color-sidebarBg": "#0b0317",
+  "color-sidebarText": "#ffffff",
+  "color-success": "#28a745",
+  "color-danger": "#dc3545",
+  "color-accent": "#7d6f4f",
+  "color-mainBg": "#b1a491",
+  "color-mainText": "#000000",
+  "color-border": "#444444",
+  "color-cardBg": "#e1bf84",
+  "color-fontHeading": "Modesto Condensed",
+  "color-fontBody": "",
+  "color-backgroundImage": "",
+  "color-backgroundImageTile": false,
+  "color-backgroundOpacity": 100,
+  "color-anchorImage": false,
+  "color-themeOverrideToLight": "light",
+  "useStyledTocButton": true,
+};
+
+async function applyDefaultCampaignCodexTheme() {
+  if (!isCampaignCodexActive()) return;
+  for (const [key, value] of Object.entries(WICKED_CC_THEME)) {
+    await game.settings.set(CC_MODULE_ID, key, value);
+  }
+  console.log("Wicked Campaigns | Applied the default Campaign Codex color theme.");
+
+  await ChatMessage.create({
+    content: `
+        <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif; background: #1c1c1c; border: 1px solid rgba(201, 160, 84, 0.25); border-radius: 6px; padding: 0.75rem 1rem;">
+            <div class="card-content" style="padding: 0.5rem 0; text-align: center;">
+                <h3 style="font-family: 'Cinzel', Georgia, serif; color: #c9a054; margin: 0 0 0.5rem 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-palette"></i> Campaign Codex Theme Applied
+                </h3>
+                <p style="margin: 0.25rem 0 0.75rem 0; font-size: 0.9rem; color: #d5d5d5;">
+                    Wicked Campaigns applied its default Campaign Codex color theme to this world (first time only). You can adjust or revert it any time via Campaign Codex's own <strong>Configure Colors</strong> settings menu.
+                </p>
+            </div>
+        </div>
+    `,
+    speaker: { alias: "Wicked Campaigns" },
+    whisper: ChatMessage.getWhisperRecipients("GM"),
+  });
+}
+
+// Wicked Campaigns ships example lore/backstories/party content in its own
+// "wicked-lore" JournalEntry compendium. Registering it as an "included
+// journal compendium" is how Campaign Codex surfaces compendium content in
+// its Table of Contents and Quest Board without importing anything into the
+// world. Applied once per world; merges into whatever the GM already has
+// selected rather than replacing it, so it never un-checks another pack.
+const WICKED_LORE_PACK_COLLECTION = "cv-wicked-campaigns.wicked-lore";
+
+async function includeWickedLoreCompendium() {
+  if (!isCampaignCodexActive()) return;
+  const current = game.settings.get(CC_MODULE_ID, "includedJournalCompendiums") || {};
+  if (current[WICKED_LORE_PACK_COLLECTION]) return;
+  await game.settings.set(CC_MODULE_ID, "includedJournalCompendiums", {
+    ...current,
+    [WICKED_LORE_PACK_COLLECTION]: true,
+  });
+  console.log("Wicked Campaigns | Included the wicked-lore compendium in the Campaign Codex Table of Contents.");
+}
+
+// Campaign Codex's TOC tag-cloud filter builds one icon per *type* via its
+// own internal icon lookup, which only recognizes its own built-in types and
+// has no override hook (unlike the per-document icon-override flag used for
+// the entry list). This patches the rendered pill icons for our two custom
+// types after each render, rather than reaching into Campaign Codex's actual
+// source — if a future Campaign Codex update changes this panel's markup,
+// this just silently stops matching (icon reverts to "?"), nothing breaks.
+const TOC_TAG_PILL_ICONS = {
+  "type:backstory": BACKSTORY_ICON,
+  "type:party": PARTY_ICON,
+  "type:session-zero-summary": SESSION_ZERO_ICON,
+};
+
+Hooks.on("renderCampaignCodexTOCSheet", (app, html) => {
+  const root = html instanceof HTMLElement ? html : html?.[0];
+  if (!root) return;
+  for (const [tagId, iconClass] of Object.entries(TOC_TAG_PILL_ICONS)) {
+    const pillIcon = root.querySelector(`.tag-pill[data-tag-id="${tagId}"] i`);
+    if (pillIcon) pillIcon.setAttribute("class", iconClass);
+  }
+});
+
+// Backstories link to a Campaign Codex NPC entry, not the actor directly -
+// NPC entries already handle player characters (that's what
+// game.campaignCodex.findOrCreateNPCJournalForActor is for), and CC's own
+// linkActorFlags() already gives the actor sheet a "Codex" button to jump to
+// its NPC entry. We piggyback entirely on that instead of maintaining our
+// own parallel actor-linking system.
+function findNpcJournalForActorSync(actor) {
+  if (!actor) return null;
+  return game.journal.find((j) =>
+    j.getFlag(CC_MODULE_ID, "type") === "npc" &&
+    j.getFlag(CC_MODULE_ID, "data")?.linkedActor === actor.uuid
+  ) || null;
+}
+
+// The backstory is linked into the NPC entry's own generic "Journals" tab
+// (flags.campaign-codex.data.linkedStandardJournals) - a built-in, type-
+// agnostic linking feature Campaign Codex already ships, rather than a
+// bespoke relationship flag of our own.
+function findBackstoryForNpcJournalSync(npcJournal) {
+  const linkedUuids = npcJournal?.getFlag(CC_MODULE_ID, "data")?.linkedStandardJournals || [];
+  for (const uuid of linkedUuids) {
+    const doc = fromUuidSync(uuid);
+    if (doc?.getFlag(CC_MODULE_ID, "type") === CC_BACKSTORY_TYPE) return doc;
+  }
+  return null;
+}
+
+function findBackstoryForActorSync(actor) {
+  return findBackstoryForNpcJournalSync(findNpcJournalForActorSync(actor));
+}
+
+async function getOrCreateBackstoryJournal(npcJournal) {
+  const existing = findBackstoryForNpcJournalSync(npcJournal);
+  if (existing) {
+    if (!existing.getFlag(CC_MODULE_ID, "icon-override")) {
+      await existing.setFlag(CC_MODULE_ID, "icon-override", BACKSTORY_ICON).catch(() => {});
+    }
+    return existing;
+  }
+
+  if (!game.user.isGM) {
+    ui.notifications.warn(`Your Personal Info and Background were saved, but the Campaign Codex backstory entry could not be created. Ask your GM to open the character sheet once to initialize it.`);
+    return null;
+  }
+
+  // Match the NPC entry's own ownership: anyone who can see the NPC entry
+  // can read its linked backstory too, and only its editors can change it.
+  const ownership = foundry.utils.deepClone(npcJournal.ownership || { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER });
+
+  const journal = await JournalEntry.create({
+    name: `${npcJournal.name} - Story`,
+    img: npcJournal.img,
+    folder: getWickedCampaignsFolder(CC_BACKSTORY_TYPE)?.id,
+    ownership,
+    flags: {
+      [CC_MODULE_ID]: {
+        type: CC_BACKSTORY_TYPE,
+        data: { description: "" },
+        "icon-override": BACKSTORY_ICON,
+      },
+      "cv-wicked-campaigns": { linkedNpcUuid: npcJournal.uuid },
+      core: { sheetClass: "cv-wicked-campaigns.BackstorySheet" },
+    },
+  });
+
+  const npcData = npcJournal.getFlag(CC_MODULE_ID, "data") || {};
+  const linkedStandardJournals = foundry.utils.deepClone(npcData.linkedStandardJournals || []);
+  linkedStandardJournals.push(journal.uuid);
+  await npcJournal.update({ "flags.campaign-codex.data.linkedStandardJournals": linkedStandardJournals });
+
+  await addBackstoryToParty(journal.uuid);
+
+  return journal;
+}
+
+// Surgically replaces one friend/enemy card's rendered "Situation" line in the already-rendered
+// biography HTML, by position (the Nth card matching `cardSelector` matches that section's
+// array[Nth]) - used by the iName Thee Helper's accept flow so the displayed prose stays in sync
+// with the structured flag data without having to regenerate/reconcile the whole biography HTML.
+function patchSituationInHtml(html, cardSelector, cardIndex, newSituationText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const card = wrapper.querySelectorAll(cardSelector)[cardIndex];
+  if (!card) return html; // card no longer exists (edited/removed) - leave html untouched
+  const details = card.querySelector(".fe-details");
+  if (details) details.innerHTML = newSituationText ? `<p><strong>Situation:</strong> ${esc(newSituationText)}</p>` : "";
+  return wrapper.innerHTML;
+}
+
+// The lover's romance-detail text lives in a different spot than friend/enemy situations - it's
+// the trailing part of the single "Romance Status" card's value (after the status label), not
+// inside the lover's own .wicked-partner-card at all (that card only shows Appearance).
+function patchLoverRomanceDetailInHtml(html, newDetailText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const card = [...wrapper.querySelectorAll(".wicked-family-card")]
+    .find((c) => c.querySelector(".card-label")?.textContent?.trim() === "Romance Status");
+  const valueEl = card?.querySelector(".card-value");
+  const strongEl = valueEl?.querySelector("strong");
+  if (!valueEl || !strongEl) return html;
+  valueEl.innerHTML = strongEl.outerHTML + (newDetailText ? ` — ${esc(newDetailText)}` : "");
+  return wrapper.innerHTML;
+}
+
+function patchLoverAppearanceInHtml(html, newText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const details = wrapper.querySelector(".wicked-partner-card .partner-details");
+  if (!details) return html;
+  details.innerHTML = newText ? `<p><strong>Appearance:</strong> ${esc(newText)}</p>` : "<p><em>No description details.</em></p>";
+  return wrapper.innerHTML;
+}
+
+function patchFaithDescriptionInHtml(html, newText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const details = wrapper.querySelector(".wicked-faith-card .faith-details");
+  if (!details) return html;
+  details.innerHTML = newText ? `<p>${esc(newText)}</p>` : "";
+  return wrapper.innerHTML;
+}
+
+// Personality fields all live as sibling <p><strong>Label:</strong> value</p> lines inside one
+// shared card, and P() skips empty fields entirely at render time - so this has to match by the
+// field's own label text rather than by position, which wouldn't stay stable across accepts.
+function patchPersonalityFieldInHtml(html, label, newText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const paragraphs = [...wrapper.querySelectorAll(".wicked-family-card .card-value p")];
+  const p = paragraphs.find((el) => el.querySelector("strong")?.textContent?.trim() === `${label}:`);
+  const strongEl = p?.querySelector("strong");
+  if (!p || !strongEl) return html;
+  p.innerHTML = strongEl.outerHTML + ` ${esc(newText)}`;
+  return wrapper.innerHTML;
+}
+
+function patchLifeEventTextInHtml(html, index, newText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const textEl = wrapper.querySelectorAll(".wicked-event-card")[index]?.querySelector(".event-text");
+  if (!textEl) return html;
+  textEl.textContent = newText || "";
+  return wrapper.innerHTML;
+}
+
+// The three general "family" genCards (Parents Status / Family Standing / Family Goal) share the
+// same .wicked-family-card + .card-label/.card-value shape as the Romance Status card above, so
+// this matches by label the same way patchLoverRomanceDetailInHtml does, but replaces the whole
+// value instead of preserving a leading <strong> prefix (these cards have none).
+function patchFamilyCardByLabel(html, label, newText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const card = [...wrapper.querySelectorAll(".wicked-family-card")]
+    .find((c) => c.querySelector(".card-label")?.textContent?.trim() === label);
+  const valueEl = card?.querySelector(".card-value");
+  if (!valueEl) return html;
+  valueEl.textContent = newText || "";
+  return wrapper.innerHTML;
+}
+
+// Mother/father share the exact same .wicked-parent-card markup, disambiguated by which role's
+// card it is. Both lines always render as <strong>Label:</strong> text (even when empty), so this
+// matches by label rather than position, and appends the paragraph if it isn't there yet - which is
+// how "Description" gets created the very first time the Helper adds it (it never exists otherwise).
+function patchParentFieldInHtml(html, role, label, newText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const card = [...wrapper.querySelectorAll(".wicked-parent-card")]
+    .find((c) => c.querySelector(".parent-role")?.textContent?.trim().toLowerCase().startsWith(role));
+  const details = card?.querySelector(".parent-details");
+  if (!details) return html;
+  const p = [...details.querySelectorAll("p")].find((el) => el.querySelector("strong")?.textContent?.trim() === `${label}:`);
+  if (p) {
+    p.innerHTML = `<strong>${label}:</strong> ${esc(newText || "")}`;
+  } else {
+    const newP = document.createElement("p");
+    newP.innerHTML = `<strong>${label}:</strong> ${esc(newText || "")}`;
+    details.appendChild(newP);
+  }
+  return wrapper.innerHTML;
+}
+
+// Sibling cards are positional (the Nth .wicked-sibling-card matches lifepathSiblings[Nth]), but
+// each card holds two independently-enhanceable lines - same label-matching approach as
+// patchParentFieldInHtml above, scoped to that one card's .sibling-details.
+function patchSiblingFieldInHtml(html, index, label, newText) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  const card = wrapper.querySelectorAll(".wicked-sibling-card")[index];
+  const details = card?.querySelector(".sibling-details");
+  if (!details) return html;
+  const p = [...details.querySelectorAll("p")].find((el) => el.querySelector("strong")?.textContent?.trim() === `${label}:`);
+  if (p) {
+    p.innerHTML = `<strong>${label}:</strong> ${esc(newText || "")}`;
+  } else {
+    const newP = document.createElement("p");
+    newP.innerHTML = `<strong>${label}:</strong> ${esc(newText || "")}`;
+    details.appendChild(newP);
+  }
+  return wrapper.innerHTML;
+}
+
+// Shared instruction template for every HELPER_SECTIONS entry below - the boilerplate (mandatory
+// enhancement, clash-fixing priority, avoid-repeat handling) is written once here; each section
+// only declares which field to rewrite, what it needs to stay consistent with, and a couple of
+// concrete example problems to watch for. Adding a future section (personality, life events, etc.)
+// is then just a few lines of field names, not a fresh hand-written paragraph. Enhancement is
+// unconditional (every item comes back rewritten, not just clash cases) - `changed: false` isn't a
+// valid outcome here, unlike a plain consistency-check-only tool would allow.
+function buildSectionInstruction({ sectionLabel, targetField, contextFields, problemHints }) {
+  const contextStr = contextFields?.length ? contextFields.join(" and ") : "the rest of the character's backstory";
+  const hintsStr = problemHints?.length ? ` For example: ${problemHints.join("; ")}.` : "";
+  return (
+    `For the "${sectionLabel}" section: rewrite every item's "${targetField}" into a short, enhanced paragraph ` +
+    `(2-3 sentences) that ties in its ${contextStr} and adds genuine color or texture - do this for every ` +
+    `item, not just ones that need fixing. If "${targetField}" contradicts or clashes with ${contextStr}, ` +
+    `prioritize resolving that clash as part of the rewrite.${hintsStr} Keep it tight and on point - don't ` +
+    `ramble or pad it out just to hit a length. If the item includes "avoidTexts" (phrasings already proposed ` +
+    `for it before, separated by " | "), the new version must be meaningfully different from all of them - ` +
+    `not just a reworded version of the same idea. Always return changed: true with a real rewritten ` +
+    `proposedText for every item - never return changed: false or leave proposedText identical to the original.`
+  );
+}
+
+// Registry describing every section the iName Thee Helper can check. `getEntries`/`setEntries`
+// normalize each section's stored shape down to "a flat array", so #onINameTheeHelper and the
+// review app can treat every section identically regardless of whether the underlying data is
+// itself an array (friends, enemies, lifeEvents), a single object-or-null (lover), or a synthetic
+// list built from several scalar fields (personality). `dataKey` lets two sections that read/write
+// the *same* underlying flag (lover + loverAppearance) share one working copy when both have
+// accepted changes in the same batch, instead of one silently clobbering the other's edit.
+// `getDisplayName` overrides the review card's title when a section's entries don't have a natural
+// "name" field (personality, life events, faith).
+const HELPER_SECTIONS = {
+  friends: {
+    label: "friend",
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathFriends") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathFriends": entries }),
+    buildItem: (e) => ({ name: e.name || "", profession: e.profession || "", situation: e.situation || "" }),
+    getText: (e) => e?.situation || "",
+    setText: (e, text) => { e.situation = text; },
+    patchHtml: (html, entry, index, text) => patchSituationInHtml(html, ".wicked-fe-card.is-friend", index, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "friends",
+      targetField: "situation",
+      contextFields: ["profession"],
+      problemHints: [
+        `a situation implying a different occupation or role than the stated profession (e.g. "became a ` +
+        `devoted cleric" for someone whose profession is "Bandit")`,
+      ],
+    }),
+  },
+  enemies: {
+    label: "enemy",
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathEnemies") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathEnemies": entries }),
+    buildItem: (e) => ({ name: e.name || "", profession: e.profession || "", situation: e.situation || "" }),
+    getText: (e) => e?.situation || "",
+    setText: (e, text) => { e.situation = text; },
+    patchHtml: (html, entry, index, text) => patchSituationInHtml(html, ".wicked-fe-card.is-enemy", index, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "enemies",
+      targetField: "situation",
+      contextFields: ["profession"],
+      problemHints: ["a situation implying a different occupation or role than the stated profession"],
+    }),
+  },
+  lover: {
+    label: "lover",
+    dataKey: "lifepathLover",
+    getEntries: (doc) => {
+      const lover = doc.getFlag("cv-wicked-campaigns", "lifepathLover");
+      return lover ? [lover] : [];
+    },
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathLover": entries[0] ?? null }),
+    buildItem: (e) => ({ name: e.name || "", profession: e.profession || "", romanceDetail: e.romanceDetail || "" }),
+    getText: (e) => e?.romanceDetail || "",
+    setText: (e, text) => { e.romanceDetail = text; },
+    patchHtml: (html, entry, index, text) => patchLoverRomanceDetailInHtml(html, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "lover",
+      targetField: "romanceDetail",
+      contextFields: ["profession"],
+      problemHints: ["a romanceDetail implying a different occupation or role than the stated profession"],
+    }),
+  },
+  loverAppearance: {
+    label: "lover's appearance",
+    dataKey: "lifepathLover", // shares lifepathLover with the "lover" section above
+    getEntries: (doc) => {
+      const lover = doc.getFlag("cv-wicked-campaigns", "lifepathLover");
+      return lover ? [lover] : [];
+    },
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathLover": entries[0] ?? null }),
+    buildItem: (e) => ({ name: e.name || "", race: e.race || "", gender: e.gender || "", appearance: e.appearance || "" }),
+    getText: (e) => e?.appearance || "",
+    setText: (e, text) => { e.appearance = text; },
+    patchHtml: (html, entry, index, text) => patchLoverAppearanceInHtml(html, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "loverAppearance",
+      targetField: "appearance",
+      contextFields: ["race", "gender"],
+      problemHints: ["an appearance description that doesn't fit the stated race (e.g. describing distinctly human features for a non-humanoid ancestry)"],
+    }),
+  },
+  faith: {
+    label: "faith",
+    getEntries: (doc) => {
+      const faith = doc.getFlag("cv-wicked-campaigns", "lifepathFaith");
+      return faith ? [faith] : [];
+    },
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathFaith": entries[0] ?? null }),
+    getDisplayName: (e) => e?.deityName || "Faith",
+    buildItem: (e) => ({ deityName: e.deityName || "(unnamed)", description: e.description || "" }),
+    getText: (e) => e?.description || "",
+    setText: (e, text) => { e.description = text; },
+    patchHtml: (html, entry, index, text) => patchFaithDescriptionInHtml(html, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "faith",
+      targetField: "description",
+      contextFields: ["deityName"],
+      problemHints: ["a description that doesn't fit a deity of the stated name/domain, or reads as generic rather than specific to this deity"],
+    }),
+  },
+  personality: {
+    label: "personality trait",
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathPersonality") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathPersonality": entries }),
+    getDisplayName: (e) => e?.label || "Personality",
+    buildItem: (e) => ({ trait: e.label || "", text: e.text || "" }),
+    getText: (e) => e?.text || "",
+    setText: (e, text) => { e.text = text; },
+    patchHtml: (html, entry, index, text) => patchPersonalityFieldInHtml(html, entry.label, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "personality",
+      targetField: "text",
+      contextFields: [], // no single paired field - each trait just needs its own texture/detail
+      problemHints: ["a one-word or overly terse entry that could use a little more concrete, specific detail"],
+    }),
+  },
+  lifeEvents: {
+    label: "life event",
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathLifeEvents") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathLifeEvents": entries }),
+    getDisplayName: (e, index) => `${e?.luck === "lucky" ? "Lucky" : "Unlucky"} Event ${index + 1}`,
+    buildItem: (e) => ({ luck: e.luck || "", text: e.text || "" }),
+    getText: (e) => e?.text || "",
+    setText: (e, text) => { e.text = text; },
+    patchHtml: (html, entry, index, text) => patchLifeEventTextInHtml(html, index, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "lifeEvents",
+      targetField: "text",
+      contextFields: ["luck"],
+      problemHints: [`an event description that reads as the wrong tone for its "luck" value (a triumphant win tagged "unlucky", or a disaster tagged "lucky")`],
+    }),
+  },
+  family: {
+    label: "family",
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathFamily") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathFamily": entries }),
+    getDisplayName: (e) => e?.label || "Family",
+    buildItem: (e) => ({ aspect: e.label || "", text: e.text || "" }),
+    getText: (e) => e?.text || "",
+    setText: (e, text) => { e.text = text; },
+    patchHtml: (html, entry, index, text) => patchFamilyCardByLabel(html, entry.label, text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "family",
+      targetField: "text",
+      contextFields: [],
+      problemHints: [`a family goal or crisis that contradicts the family's stated standing (e.g. a goal to "amass a great fortune" for a family described as destitute and at risk)`],
+    }),
+  },
+  parentBond: {
+    label: "parent",
+    dataKey: "lifepathParents",
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathParents") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathParents": entries }),
+    getDisplayName: (e) => e?.name || (e?.role === "mother" ? "Mother" : "Father"),
+    buildItem: (e) => ({ role: e.role || "", name: e.name || "", bond: e.bond || "" }),
+    getText: (e) => e?.bond || "",
+    setText: (e, text) => { e.bond = text; },
+    patchHtml: (html, entry, index, text) => patchParentFieldInHtml(html, entry.role, "Relationship/Bond", text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "parentBond",
+      targetField: "bond",
+      contextFields: ["name"],
+      problemHints: ["a warm, loving bond description for a parent whose other details (a family disaster, crisis, or secret) suggest estrangement or tragedy, or vice versa"],
+    }),
+  },
+  parentDescription: {
+    label: "parent description",
+    dataKey: "lifepathParents", // shares lifepathParents with the "parentBond" section above
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathParents") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathParents": entries }),
+    getDisplayName: (e) => e?.name || (e?.role === "mother" ? "Mother" : "Father"),
+    buildItem: (e) => ({ role: e.role || "", name: e.name || "", bond: e.bond || "", description: e.description || "" }),
+    getText: (e) => e?.description || "",
+    setText: (e, text) => { e.description = text; },
+    patchHtml: (html, entry, index, text) => patchParentFieldInHtml(html, entry.role, "Description", text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "parentDescription",
+      targetField: "description",
+      contextFields: ["name", "bond"],
+      problemHints: ["a description that contradicts the established relationship/bond or the family's circumstances"],
+    }),
+  },
+  siblingOccupation: {
+    label: "sibling occupation",
+    dataKey: "lifepathSiblings",
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathSiblings") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathSiblings": entries }),
+    getDisplayName: (e) => e?.name || "Sibling",
+    buildItem: (e) => ({ name: e.name || "", relation: e.relation || "" }),
+    getText: (e) => e?.relation || "",
+    setText: (e, text) => { e.relation = text; },
+    patchHtml: (html, entry, index, text) => patchSiblingFieldInHtml(html, index, "Occupation/Status", text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "siblingOccupation",
+      targetField: "relation",
+      contextFields: ["name"],
+      problemHints: ["an occupation/status implying wealth or prestige that contradicts a family described as poor or in crisis"],
+    }),
+  },
+  siblingRelationship: {
+    label: "sibling relationship",
+    dataKey: "lifepathSiblings", // shares lifepathSiblings with the "siblingOccupation" section above
+    getEntries: (doc) => doc.getFlag("cv-wicked-campaigns", "lifepathSiblings") || [],
+    setEntries: (entries) => ({ "flags.cv-wicked-campaigns.lifepathSiblings": entries }),
+    getDisplayName: (e) => e?.name || "Sibling",
+    buildItem: (e) => ({ name: e.name || "", relation: e.relation || "", bond: e.bond || "" }),
+    getText: (e) => e?.bond || "",
+    setText: (e, text) => { e.bond = text; },
+    patchHtml: (html, entry, index, text) => patchSiblingFieldInHtml(html, index, "Relationship", text),
+    instructions: buildSectionInstruction({
+      sectionLabel: "siblingRelationship",
+      targetField: "bond",
+      contextFields: ["name", "relation"],
+      problemHints: ["a warm sibling relationship that contradicts a stated rivalry or estrangement noted elsewhere"],
+    }),
+  },
+};
+
+async function saveBackstoryToCampaignCodex(actor, html, relatedPeople = [], friends = [], enemies = [], lover = null, faith = null, personality = [], lifeEvents = [], family = [], parents = [], siblings = []) {
+  if (!isCampaignCodexActive()) {
+    console.warn("Wicked Campaigns | Campaign Codex is not active; skipping backstory codex entry.");
+    ui.notifications.warn("Campaign Codex must be installed and active to save a browsable backstory entry. Your background was still saved to the character.");
+    return;
+  }
+
+  let npcJournal = findNpcJournalForActorSync(actor);
+  if (!npcJournal) {
+    if (!game.user.isGM) {
+      ui.notifications.warn(`Your Personal Info and Background were saved to ${actor.name}, but the Campaign Codex entry could not be created. Ask your GM to open ${actor.name}'s sheet once to initialize it.`);
+      return;
+    }
+    npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
+  }
+  if (!npcJournal) return;
+
+  // Campaign Codex names a freshly-created NPC entry "<Actor> - Journal" by default - drop the
+  // suffix right after creation so it just reads "<Actor>". Only fires while the name still
+  // matches that exact default, so a GM's own later rename is never overwritten.
+  if (npcJournal.name === `${actor.name} - Journal`) {
+    await npcJournal.update({ name: actor.name });
+  }
+
+  const journal = await getOrCreateBackstoryJournal(npcJournal);
+  if (!journal) return;
+
+  const updateData = {
+    "flags.campaign-codex.data.description": html,
+    // Kept as its own flag, not inside the description above - ProseMirror (which renders that
+    // field on this journal's own sheet) strips any interactive markup baked into it, so the
+    // "Send to iName Thee" buttons live here instead, read directly by BackstorySheet's toolbar.
+    "flags.cv-wicked-campaigns.relatedPeople": relatedPeople,
+    // Structured, round-trippable friend/enemy/lover data - the rendered prose above has the same
+    // info baked into HTML, but the iName Thee Helper needs clean fields to send for review and
+    // to patch back into the description on accept.
+    "flags.cv-wicked-campaigns.lifepathFriends": friends,
+    "flags.cv-wicked-campaigns.lifepathEnemies": enemies,
+    "flags.cv-wicked-campaigns.lifepathLover": lover,
+    "flags.cv-wicked-campaigns.lifepathFaith": faith,
+    "flags.cv-wicked-campaigns.lifepathPersonality": personality,
+    "flags.cv-wicked-campaigns.lifepathLifeEvents": lifeEvents,
+    "flags.cv-wicked-campaigns.lifepathFamily": family,
+    "flags.cv-wicked-campaigns.lifepathParents": parents,
+    "flags.cv-wicked-campaigns.lifepathSiblings": siblings,
+  };
+  // Name is deliberately NOT force-synced here past creation - it's set once above ("<NPC> -
+  // Story") and left alone afterward so a GM's manual rename (via BackstorySheet's rename
+  // action) sticks across re-rolls instead of being overwritten on every save.
+  if (journal.img !== npcJournal.img) updateData.img = npcJournal.img;
+  await journal.update(updateData);
+
+  await syncActorLinkedOwnership(actor, npcJournal, journal);
+}
+
+// Only mother/father/siblings actually live inside this family, so only their concepts get this
+// context appended - a friend, enemy, or lover isn't defined by the PC's family circumstances the
+// same way, and tacking it onto every role would just dilute what actually matters for them.
+function familyContextSuffix(parts) {
+  const text = (parts || []).filter(Boolean).join(" ");
+  return text ? ` Family background: ${text}` : "";
+}
+
+// Every "Send to iName Thee" button bakes its concept text into a data-iname-concept attribute
+// when the biography HTML is rendered (see iNameTheeBtnTracked) - fine at that instant, but the
+// iName Thee Helper's accept flow only patches the *visible* paragraph text for an enhanced field
+// (patchSituationInHtml, patchSiblingFieldInHtml, etc.), never that hidden attribute sitting
+// elsewhere in the same card. So a friend/enemy/sibling/parent/lover whose situation, bond, or
+// description gets enhanced after the button was first rendered would silently keep sending iName
+// Thee the pre-enhancement text forever. Rebuilding the concept here, live, from the same
+// structured flags the Helper actually writes to - rather than trusting whatever's frozen in the
+// DOM - means the button always reflects whatever the backstory *currently* says, enhanced or not.
+// Mirrors the exact phrasing _buildBiographyHtml() uses when it first bakes these strings, so nothing
+// changes for a backstory the Helper has never touched. Returns "" (never null/undefined) when the
+// role can't be resolved, so callers can safely `|| concept` back to the static fallback.
+function buildLiveINameTheeConcept(backstory, role) {
+  if (!backstory || !role) return "";
+  const get = (key) => backstory.getFlag("cv-wicked-campaigns", key);
+  const familySuffix = () => familyContextSuffix((get("lifepathFamily") || []).map((e) => e.text));
+
+  if (role === "mother" || role === "father") {
+    const parents = get("lifepathParents") || [];
+    const p = parents.find((x) => x.role === role);
+    if (!p?.name) return "";
+    return `${p.name}, the player character's ${role}.` +
+      (p.bond ? ` Relationship/bond: ${p.bond}.` : "") +
+      (p.description ? ` ${p.description}` : "") +
+      familySuffix();
+  }
+
+  if (role.startsWith("sibling-")) {
+    const idx = Number(role.slice("sibling-".length));
+    const s = (get("lifepathSiblings") || [])[idx];
+    if (!s?.name) return "";
+    const who = s.who || (s.sex === "male" ? "brother" : s.sex === "female" ? "sister" : "sibling");
+    // s.kindLabel ("identical twin"/"fraternal twin"/"half-sibling") is absent on data saved
+    // before this field existed - omitted rather than guessed, since twin/half status depends on
+    // birth-order position relative to the PC and there's no safe way to infer it after the fact.
+    const kindStr = s.kindLabel ? `, ${s.kindLabel}` : "";
+    return `${s.name}, the player character's ${who}${kindStr}.` +
+      (s.relation ? ` Occupation/status: ${s.relation}.` : "") +
+      (s.bond ? ` Relationship: ${s.bond}.` : "") +
+      (s.alive === false ? " Deceased." : "") +
+      familySuffix();
+  }
+
+  if (role.startsWith("friend-") || role.startsWith("enemy-")) {
+    const isFriend = role.startsWith("friend-");
+    const idx = Number(role.slice(role.indexOf("-") + 1));
+    const e = (get(isFriend ? "lifepathFriends" : "lifepathEnemies") || [])[idx];
+    if (!e?.name) return "";
+    return `${e.name}, a${isFriend ? "" : "n"} ${isFriend ? "friend" : "enemy"} of the player character.` +
+      [e.sex, e.race, e.profession].filter(Boolean).map((v) => ` ${v}.`).join("") +
+      (e.situation ? ` Situation: ${e.situation}.` : "");
+  }
+
+  if (role === "lover") {
+    const lover = get("lifepathLover");
+    if (!lover?.name) return "";
+    const isTragic = lover.romanceStatus === "tragic";
+    return `${lover.name}, the player character's ${isTragic ? "deceased former lover" : "lover/romantic partner"}.` +
+      [lover.gender, lover.race, lover.profession].filter(Boolean).map((v) => ` ${v}.`).join("") +
+      (lover.appearance ? ` Appearance: ${lover.appearance}.` : "") +
+      (lover.romanceDetail ? ` ${lover.romanceDetail}` : "");
+  }
+
+  return "";
+}
+
+// Shared by WickedCharacterSheet's inline card buttons and BackstorySheet's own toolbar - checks
+// whether this role already has a linked actor (from a previous click) and seeds iName Thee into
+// Update mode against it if so, otherwise Create mode. `backstory` is the backstory journal that
+// owns the relatedActorLinks flag; `actorName` is only used for prompt context (the PC this person
+// is connected to), not looked up here since callers resolve it differently.
+async function sendToINameThee({ backstory, actorName, role, name, concept }) {
+  concept = buildLiveINameTheeConcept(backstory, role) || concept;
+  // Creating NPCs is GM-only - enforced here regardless of iName Thee's own "allow players"
+  // setting, since that setting also covers unrelated player-facing features (like PC self-rename)
+  // and leaving it on for those shouldn't silently open this up too.
+  if (!game.user.isGM) {
+    ui.notifications.warn("Only the GM can generate NPCs this way.");
+    return;
+  }
+  const api = game.modules.get("cv-iname-thee")?.api;
+  if (!api?.openWithSeed) {
+    ui.notifications.warn("iName Thee is not active.");
+    return;
+  }
+  if (!backstory || !role || !name) return;
+
+  const existingUuid = backstory.getFlag("cv-wicked-campaigns", "relatedActorLinks")?.[role];
+  const existingActor = existingUuid ? await fromUuid(existingUuid).catch(() => null) : null;
+
+  const prompt = `${concept} Related to the player character ${actorName}.`;
+  await api.openWithSeed({
+    tabId: "npc",
+    prompt,
+    fixedName: name,
+    targetUuid: existingActor?.uuid ?? null,
+    context: { backstoryUuid: backstory.uuid, role },
+  });
+}
+
+// ---- Party Sheet (GM-only roster of linked backstories) -------------------
+// Multiple parties can exist side by side (e.g. separate campaigns sharing
+// one world). Each party roster is paired 1:1 with its own "party state"
+// document (fate pool / peril), linked by flag in both directions - the
+// state document stays fully player-writable so a player can spend a fate
+// point without a GM online, while the roster itself stays GM-only. Exactly
+// one party is "active" at a time (ACTIVE_PARTY_SETTING); that's the one
+// character sheets and the fate pool widgets read from by default.
+const CC_PARTY_TYPE = "party";
+// Deliberately NOT given a campaign-codex type flag: state documents are
+// internal plumbing, never meant to be opened directly, so they should never
+// show up in the TOC.
+const PARTY_STATE_FLAG = "isPartyState";
+const ACTIVE_PARTY_SETTING = "activePartyUuid";
+
+// Mirrors Campaign Codex's own ensureCampaignCodexFolders()/getCampaignCodexFolder()
+// pattern (see campaign-codex/scripts/helper.js), but for our custom types -
+// CC only auto-organizes its own 7 built-in types, so "backstory" and "party"
+// need the same treatment from us. Respects CC's own "useOrganizedFolders"
+// world setting rather than adding a second toggle, and also backfills any
+// existing backstory/party/party-state journals that predate this feature or
+// were created outside the normal flow.
+const WICKED_FOLDER_COLOR = "#000000";
+const WICKED_FOLDER_NAMES = {
+  [CC_BACKSTORY_TYPE]: "Wicked Campaigns - Backstories",
+  [CC_PARTY_TYPE]: "Wicked Campaigns - Parties",
+  [CC_SESSION_ZERO_TYPE]: "Wicked Campaigns - Session Zero Summaries",
+};
+// Party-state journals deliberately carry no campaign-codex type flag (see above), so
+// they can't be keyed into WICKED_FOLDER_NAMES the same way - they get their own folder,
+// matched by PARTY_STATE_FLAG instead.
+const WICKED_PARTY_STATE_FOLDER_NAME = "Wicked Campaigns - Party States";
+
+function getWickedCampaignsFolder(type) {
+  if (!game.settings.get("campaign-codex", "useOrganizedFolders")) return null;
+  const folderName = WICKED_FOLDER_NAMES[type];
+  if (!folderName) return null;
+  return game.folders.find((f) => f.name === folderName && f.type === "JournalEntry") || null;
+}
+
+function getWickedPartyStateFolder() {
+  if (!game.settings.get("campaign-codex", "useOrganizedFolders")) return null;
+  return game.folders.find((f) => f.name === WICKED_PARTY_STATE_FOLDER_NAME && f.type === "JournalEntry") || null;
+}
+
+// Creates the folder if missing, and also corrects its color if it already exists with a
+// stale one (e.g. from before WICKED_FOLDER_COLOR was locked to black) - Foundry only seeds
+// a folder's properties from code once, on creation, so this re-check is what keeps it
+// self-healing across reloads instead of silently drifting.
+async function ensureFolder(name, folderType) {
+  let folder = game.folders.find((f) => f.name === name && f.type === "JournalEntry");
+  if (!folder) {
+    folder = await Folder.create({
+      name,
+      type: "JournalEntry",
+      color: WICKED_FOLDER_COLOR,
+      flags: { "cv-wicked-campaigns": { type: folderType, autoOrganize: true } },
+    });
+    console.log(`Wicked Campaigns | Created folder: ${name}`);
+  } else if (folder.color !== WICKED_FOLDER_COLOR) {
+    await folder.update({ color: WICKED_FOLDER_COLOR });
+  }
+  return folder;
+}
+
+async function ensureWickedCampaignsFolders() {
+  if (!game.settings.get("campaign-codex", "useOrganizedFolders")) return;
+
+  for (const [type, folderName] of Object.entries(WICKED_FOLDER_NAMES)) {
+    const folder = await ensureFolder(folderName, type);
+    const strays = game.journal.filter((j) =>
+      j.getFlag(CC_MODULE_ID, "type") === type && j.folder?.id !== folder.id
+    );
+    for (const journal of strays) {
+      await journal.update({ folder: folder.id });
+    }
+  }
+
+  const stateFolder = await ensureFolder(WICKED_PARTY_STATE_FOLDER_NAME, "party-state");
+  const strayStates = game.journal.filter((j) =>
+    j.getFlag("cv-wicked-campaigns", PARTY_STATE_FLAG) === true && j.folder?.id !== stateFolder.id
+  );
+  for (const journal of strayStates) {
+    await journal.update({ folder: stateFolder.id });
+  }
+}
+
+function getAllPartyRosters() {
+  return game.journal.filter((j) => j.getFlag(CC_MODULE_ID, "type") === CC_PARTY_TYPE);
+}
+
+function findPartyStateForRoster(roster) {
+  const stateUuid = roster?.getFlag("cv-wicked-campaigns", "partyStateUuid");
+  if (!stateUuid) return null;
+  const state = fromUuidSync(stateUuid);
+  return state?.getFlag("cv-wicked-campaigns", PARTY_STATE_FLAG) === true ? state : null;
+}
+
+function findActivePartyRosterSync() {
+  const activeUuid = game.settings.get("cv-wicked-campaigns", ACTIVE_PARTY_SETTING);
+  if (activeUuid) {
+    const active = fromUuidSync(activeUuid);
+    if (active?.getFlag(CC_MODULE_ID, "type") === CC_PARTY_TYPE) return active;
+  }
+  // Active pointer is unset or stale (e.g. that party was deleted) - fall
+  // back to whatever party roster happens to exist, if any.
+  return getAllPartyRosters()[0] || null;
+}
+
+// Self-heals a roster whose paired Fate State document is missing (e.g. accidentally deleted) by
+// creating a fresh one (fatePool 0, inPeril false) and re-pairing it via partyStateUuid - mirrors
+// the existing self-heal for a missing roster in getOrCreateActivePartyRoster(). Only a GM can
+// create the replacement, same as every other world-write in this module. `silent` is used by
+// createPartyPair(), where a "missing" state is just the normal first-creation case, not a repair.
+async function ensurePartyState(roster, { silent = false } = {}) {
+  if (!roster) return null;
+  const existing = findPartyStateForRoster(roster);
+  if (existing) return existing;
+  if (!game.user.isGM) return null;
+
+  const state = await JournalEntry.create({
+    name: `${roster.name} - Fate State`,
+    folder: getWickedPartyStateFolder()?.id,
+    ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER },
+    flags: {
+      "cv-wicked-campaigns": {
+        [PARTY_STATE_FLAG]: true,
+        partyUuid: roster.uuid,
+        fatePool: 0,
+        inPeril: false,
+      },
+    },
+  });
+  await roster.update({ "flags.cv-wicked-campaigns.partyStateUuid": state.uuid });
+
+  if (!silent) {
+    console.warn(`Wicked Campaigns | "${roster.name}" was missing its Fate State document - created a replacement.`, roster.uuid);
+    ui.notifications.warn(`"${roster.name}"'s Fate Pool state was missing and has been repaired. Its Fate Pool was reset to 0.`);
+  }
+  return state;
+}
+
+async function createPartyPair(name = "The Party") {
+  const roster = await JournalEntry.create({
+    name,
+    folder: getWickedCampaignsFolder(CC_PARTY_TYPE)?.id,
+    // Default stays NONE so non-members never see it; syncPartyOwnership()
+    // grants Observer to each member's owning player as they join, and
+    // revokes it if they later leave the roster.
+    ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE },
+    flags: {
+      [CC_MODULE_ID]: {
+        type: CC_PARTY_TYPE,
+        data: { members: [], description: "" },
+        "icon-override": PARTY_ICON,
+      },
+      core: { sheetClass: "cv-wicked-campaigns.PartySheet" },
+    },
+  });
+
+  await ensurePartyState(roster, { silent: true });
+  return roster;
+}
+
+async function getOrCreateActivePartyRoster() {
+  const existing = findActivePartyRosterSync();
+  if (existing) {
+    if (game.user.isGM && game.settings.get("cv-wicked-campaigns", ACTIVE_PARTY_SETTING) !== existing.uuid) {
+      await game.settings.set("cv-wicked-campaigns", ACTIVE_PARTY_SETTING, existing.uuid);
+    }
+    return existing;
+  }
+
+  if (!game.user.isGM) return null;
+
+  const roster = await createPartyPair("The Party");
+  await game.settings.set("cv-wicked-campaigns", ACTIVE_PARTY_SETTING, roster.uuid);
+  return roster;
+}
+
+async function getOrCreateActivePartyState() {
+  const roster = await getOrCreateActivePartyRoster();
+  if (!roster) {
+    ui.notifications.warn("No active party is set up yet. Ask your GM to open their character sheet first!");
+    return null;
+  }
+  return ensurePartyState(roster);
+}
+
+function refreshFatePoolConsumers() {
+  const CharacterActorSheet = dnd5e?.applications?.actor?.CharacterActorSheet;
+  for (const app of foundry.applications.instances.values()) {
+    if (CharacterActorSheet && app instanceof CharacterActorSheet) app.render();
+    if (app instanceof PartySheet) app.render(true);
+  }
+  const manager = foundry.applications.instances.get("fate-pool-manager");
+  if (manager) manager.render(true);
+}
+
+async function setActivePartyRoster(rosterUuid) {
+  if (!game.user.isGM) return;
+  await game.settings.set("cv-wicked-campaigns", ACTIVE_PARTY_SETTING, rosterUuid);
+  refreshFatePoolConsumers();
+}
+
+async function addBackstoryToParty(backstoryUuid) {
+  const party = await getOrCreateActivePartyRoster();
+  if (!party) return;
+  const members = foundry.utils.deepClone(party.getFlag(CC_MODULE_ID, "data")?.members || []);
+  if (!members.includes(backstoryUuid)) {
+    members.push(backstoryUuid);
+    await party.update({ "flags.campaign-codex.data.members": members });
+  }
+  await syncPartyOwnership(party);
+}
+
+// ---- Player visibility sync ------------------------------------------------
+// Compendium content can only be all-or-nothing per pack for players (see
+// module.json), but world documents support real per-user ownership. Once a
+// backstory/NPC/party lives in the world, a PC's owning player should be able
+// to see their own stuff (and the party they're in) without seeing anyone
+// else's - so whenever those links change, re-derive Observer access from
+// whoever currently owns the linked actor, and strip any player-role entry
+// that's no longer warranted (e.g. actor ownership was reassigned, or a
+// member left the party).
+function resolveOwningPlayerIds(actor) {
+  if (!actor) return [];
+  return Object.keys(actor.ownership || {}).filter((userId) => {
+    if (actor.ownership[userId] < CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER) return false;
+    const user = game.users.get(userId);
+    return !!user && !user.isGM;
+  });
+}
+
+async function syncOwnershipForPlayers(doc, playerIds) {
+  if (!doc) return false;
+  const current = doc.ownership || {};
+  const next = {};
+  for (const [userId, level] of Object.entries(current)) {
+    if (userId === "default") { next.default = level; continue; }
+    // Preserve any GM-specific grants untouched; only player-role entries
+    // are re-derived below.
+    if (game.users.get(userId)?.isGM) next[userId] = level;
+  }
+  for (const userId of playerIds) next[userId] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
+  if (JSON.stringify(next) === JSON.stringify(current)) return false;
+  await doc.update({ ownership: next });
+  return true;
+}
+
+async function syncActorLinkedOwnership(actor, npcJournal, backstoryJournal) {
+  const playerIds = resolveOwningPlayerIds(actor);
+  const npcChanged = await syncOwnershipForPlayers(npcJournal, playerIds);
+  const backstoryChanged = await syncOwnershipForPlayers(backstoryJournal, playerIds);
+  return npcChanged || backstoryChanged;
+}
+
+async function syncPartyOwnership(partyDoc) {
+  if (!partyDoc) return false;
+  const memberUuids = partyDoc.getFlag(CC_MODULE_ID, "data")?.members || [];
+  const playerIds = new Set();
+  for (const uuid of memberUuids) {
+    const backstory = await fromUuid(uuid).catch(() => null);
+    const npcUuid = backstory?.getFlag("cv-wicked-campaigns", "linkedNpcUuid");
+    const npcJournal = npcUuid ? await fromUuid(npcUuid).catch(() => null) : null;
+    const actorUuid = npcJournal?.getFlag(CC_MODULE_ID, "data")?.linkedActor;
+    const actor = actorUuid ? await fromUuid(actorUuid).catch(() => null) : null;
+    for (const id of resolveOwningPlayerIds(actor)) playerIds.add(id);
+  }
+  return syncOwnershipForPlayers(partyDoc, Array.from(playerIds));
+}
+
+// Manual fallback for the "Sync Permissions" button: re-derives ownership
+// for every actor-linked NPC/backstory pair and every party roster in the
+// world, in case actor ownership was reassigned or a roster was edited by
+// hand since the last automatic sync.
+async function syncAllCampaignCodexOwnership() {
+  let count = 0;
+  const npcJournals = game.journal.filter((j) =>
+    j.getFlag(CC_MODULE_ID, "type") === "npc" && j.getFlag(CC_MODULE_ID, "data")?.linkedActor
+  );
+  for (const npcJournal of npcJournals) {
+    const actorUuid = npcJournal.getFlag(CC_MODULE_ID, "data")?.linkedActor;
+    const actor = actorUuid ? await fromUuid(actorUuid).catch(() => null) : null;
+    if (!actor) continue;
+    const backstory = findBackstoryForNpcJournalSync(npcJournal);
+    if (await syncActorLinkedOwnership(actor, npcJournal, backstory)) count++;
+  }
+  for (const party of getAllPartyRosters()) {
+    if (await syncPartyOwnership(party)) count++;
+  }
+  return count;
+}
+
+// ---- Backstory Sheet -------------------------------------------------------
+// Renders the Campaign Codex "backstory" journal entries created by saveBackstoryToCampaignCodex().
+const backstorySheetBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.DocumentSheetV2);
+
+class BackstorySheet extends backstorySheetBase {
+  // The inherited DocumentSheetV2 form handler already expands and applies
+  // form data to the document, so no custom submit handler is needed here.
+  static DEFAULT_OPTIONS = {
+    classes: ["wicked-campaigns", "backstory-sheet"],
+    window: { icon: "fa-solid fa-book-skull", resizable: true },
+    position: { width: 720, height: 780 },
+    form: { submitOnChange: true },
+    actions: {
+      openNpc: BackstorySheet.#onOpenNpc,
+      "send-to-iname-thee": BackstorySheet.#onSendToINameThee,
+      rename: BackstorySheet.#onRename,
+      "iname-thee-helper": BackstorySheet.#onINameTheeHelper,
+      "review-friend-suggestions": BackstorySheet.#onReviewFriendSuggestions,
+    },
+  };
+
+  static PARTS = {
+    main: { template: "modules/cv-wicked-campaigns/templates/backstory-sheet.hbs", scrollable: [""] },
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    const data = this.document.getFlag(CC_MODULE_ID, "data") || {};
+    context.description = data.description || "";
+    const linkedNpcUuid = this.document.getFlag("cv-wicked-campaigns", "linkedNpcUuid");
+    context.linkedNpc = linkedNpcUuid ? await fromUuid(linkedNpcUuid).catch(() => null) : null;
+    // Rendered as real buttons outside the <prose-mirror> element below - anything baked into
+    // the description itself gets stripped by that editor (see sendToINameThee's comment).
+    // Creating NPCs is GM-only, so the toolbar is hidden entirely for non-GM viewers.
+    context.relatedPeople = this.document.getFlag("cv-wicked-campaigns", "relatedPeople") || [];
+    context.isGM = game.user.isGM;
+
+    const pendingSuggestions = this.document.getFlag("cv-wicked-campaigns", "pendingSuggestions") || {};
+    context.hasPendingSuggestions = Object.values(pendingSuggestions).some((arr) => arr?.length);
+
+    const inameThee = game.modules.get("cv-iname-thee");
+    const hasAnyRelationshipData = Object.values(HELPER_SECTIONS).some((cfg) => cfg.getEntries(this.document).length);
+    // Only offered when there's nothing already pending review - avoids piling up multiple
+    // overlapping runs before the first batch has even been looked at.
+    context.showHelperButton =
+      this.isEditable && hasAnyRelationshipData && !context.hasPendingSuggestions &&
+      !!inameThee?.active && game.settings.get("cv-wicked-campaigns", "inameTheeIntegration") &&
+      !!game.users.activeGM && !!inameThee.api?.canUse?.();
+    return context;
+  }
+
+  // This custom template has no name field at all (unlike the default JournalEntry sheet it
+  // replaces), so without this there'd be no way to rename a backstory short of hunting for it
+  // in the sidebar directory - this gives it a direct, discoverable path from the sheet itself.
+  static async #onRename(event, target) {
+    const current = this.document.name;
+    const newName = await foundry.applications.api.DialogV2.prompt({
+      window: { title: "Rename Backstory" },
+      content: `<div class="form-group"><label>Name</label><input type="text" name="name" value="${esc(current)}" autofocus></div>`,
+      ok: {
+        icon: "fas fa-check",
+        label: "Rename",
+        callback: (event, button) => button.form.elements.name.value.trim(),
+      },
+      rejectClose: false,
+    }).catch(() => null);
+    if (!newName || newName === current) return;
+    await this.document.update({ name: newName });
+  }
+
+  static async #onOpenNpc(event, target) {
+    const doc = await fromUuid(target.dataset.uuid).catch(() => null);
+    doc?.sheet?.render(true);
+  }
+
+  static async #onSendToINameThee(event, target) {
+    const { inameRole: role, inameName: name, inameConcept: concept } = target.dataset;
+    const linkedNpcUuid = this.document.getFlag("cv-wicked-campaigns", "linkedNpcUuid");
+    const npcJournal = linkedNpcUuid ? await fromUuid(linkedNpcUuid).catch(() => null) : null;
+    const actorUuid = npcJournal?.getFlag(CC_MODULE_ID, "data")?.linkedActor;
+    const actor = actorUuid ? await fromUuid(actorUuid).catch(() => null) : null;
+    await sendToINameThee({ backstory: this.document, actorName: actor?.name ?? "the player character", role, name, concept });
+  }
+
+  // Fires the reconcile call in the background and returns immediately - the sheet stays usable
+  // while it runs. Completion shows a toast and (via re-render) the persistent "Review
+  // Suggestions" badge, sourced from the pendingSuggestions flag set once results land. Checks
+  // every HELPER_SECTIONS entry that actually has data on this backstory, in one combined call.
+  static async #onINameTheeHelper(event, target) {
+    const inameThee = game.modules.get("cv-iname-thee");
+    if (!inameThee?.active || !inameThee.api?.reconcileBackstory) {
+      ui.notifications.warn("iName Thee is not active.");
+      return;
+    }
+
+    const doc = this.document;
+    const sectionsToCheck = Object.keys(HELPER_SECTIONS).filter((id) => HELPER_SECTIONS[id].getEntries(doc).length);
+    if (!sectionsToCheck.length) {
+      ui.notifications.info("There's nothing on this backstory yet for the Helper to review - run the Lifepath Wizard first.");
+      return;
+    }
+
+    // Last few phrasings already proposed per section+index (regardless of accept/reject) -
+    // without this, re-running tends to get back the same "most likely" answer every time, since
+    // nothing in the prompt signals this is a repeat attempt (same trick as iName Thee's own
+    // avoid-repeat-names list for candidate generation, just scoped per-item instead of per-tab).
+    const history = doc.getFlag("cv-wicked-campaigns", "suggestionHistory") || {};
+    // The reconcile API only echoes back a single flat `index` per result, with no concept of
+    // "section" - so items across every section share one globally-unique index here, and this
+    // map translates each one back to {section, localIndex} once results come in.
+    const items = [];
+    const indexMap = [];
+    const sectionInstructions = {};
+    for (const sectionId of sectionsToCheck) {
+      const cfg = HELPER_SECTIONS[sectionId];
+      sectionInstructions[sectionId] = cfg.instructions;
+      cfg.getEntries(doc).forEach((entry, localIndex) => {
+        const item = { index: items.length, section: sectionId, ...cfg.buildItem(entry) };
+        const avoid = history[sectionId]?.[localIndex];
+        if (avoid?.length) item.avoidTexts = avoid.join(" | ");
+        indexMap.push({ section: sectionId, localIndex });
+        items.push(item);
+      });
+    }
+
+    const data = doc.getFlag(CC_MODULE_ID, "data") || {};
+    const docName = doc.name;
+    const docUuid = doc.uuid;
+    ui.notifications.info(`iName Thee Helper is reviewing "${docName}" in the background…`);
+
+    inameThee.api.reconcileBackstory({ backstoryHtml: data.description || "", sections: sectionsToCheck, items, sectionInstructions })
+      .then(async (results) => {
+        const list = results || [];
+        const changed = list.filter((r) => r.changed && r.proposedText?.trim());
+        // An item can be "not suggested" for two different reasons: the AI reviewed it and found
+        // nothing wrong (changed: false), or the AI just never returned that index at all (schema
+        // non-compliance further down the pipeline). Both used to look identical from here - this
+        // distinguishes them so it's not a silent guess whether every item was actually reviewed.
+        const reviewedIndices = new Set(list.map((r) => r.index));
+        const skippedCount = items.length - reviewedIndices.size;
+        const unchangedCount = list.length - changed.length;
+        console.log(
+          `Wicked Campaigns | iName Thee Helper reviewed ${reviewedIndices.size}/${items.length} item(s) for "${docName}" ` +
+          `— ${changed.length} suggested, ${unchangedCount} needed no change` +
+          `${skippedCount ? `, ${skippedCount} not returned by the AI at all` : ""}.`
+        );
+        const skippedNote = skippedCount
+          ? ` (${skippedCount} item${skippedCount === 1 ? " wasn't" : "s weren't"} returned by the AI at all — see console)`
+          : "";
+
+        const freshDoc = await fromUuid(docUuid).catch(() => null); // re-fetch: the sheet/document may have closed or changed by now
+        if (!freshDoc) return;
+
+        const bySection = {}; // section -> [{index (local, not global), changed, proposedText}]
+        if (changed.length) {
+          const historyUpdate = foundry.utils.deepClone(history);
+          for (const r of changed) {
+            const map = indexMap[r.index];
+            if (!map) continue;
+            const { section, localIndex } = map;
+            (bySection[section] || (bySection[section] = [])).push({ index: localIndex, changed: true, proposedText: r.proposedText });
+
+            const sectionHistory = historyUpdate[section] || (historyUpdate[section] = {});
+            const arr = sectionHistory[localIndex] || (sectionHistory[localIndex] = []);
+            arr.push(r.proposedText);
+            if (arr.length > 3) arr.shift();
+          }
+          await freshDoc.setFlag("cv-wicked-campaigns", "suggestionHistory", historyUpdate);
+        }
+
+        if (!changed.length) {
+          ui.notifications.info(`iName Thee Helper found no clashes to fix in "${docName}"${skippedNote}.`);
+          return;
+        }
+        await freshDoc.setFlag("cv-wicked-campaigns", "pendingSuggestions", bySection);
+        const sectionLabels = Object.keys(bySection)
+          .map((s) => `${bySection[s].length} ${HELPER_SECTIONS[s].label}${bySection[s].length === 1 ? "" : "s"}`)
+          .join(", ");
+        ui.notifications.info(`iName Thee Helper has suggestions ready for "${docName}" (${sectionLabels})${skippedNote}.`);
+        freshDoc.sheet?.render(false);
+      })
+      .catch((err) => {
+        ui.notifications.warn(`iName Thee Helper failed for "${docName}": ${err?.message ?? "Something went wrong."}`);
+      });
+  }
+
+  static async #onReviewFriendSuggestions() {
+    new HelperSuggestionsReviewApp(this.document).render(true);
+  }
+}
+
+// Old-vs-proposed review for the iName Thee Helper's results, across every section (friends,
+// enemies, lover) in one mixed list - Accept/Reject per suggestion, or Accept All/Reject All for
+// the whole batch at once. Never auto-closes on its own; it stays open (showing "no pending
+// suggestions" once the batch is cleared) so you're not stuck reopening it after every single
+// decision - only the window's own close button dismisses it. Reads/writes the Backstory
+// document's own flags directly, so it stays correct even if reopened after the sheet (or this
+// app) was closed mid-review.
+const helperSuggestionsReviewBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2);
+
+class HelperSuggestionsReviewApp extends helperSuggestionsReviewBase {
+  constructor(backstory, options = {}) {
+    super(options);
+    this.backstory = backstory;
+  }
+
+  static DEFAULT_OPTIONS = {
+    id: "friend-suggestions-review",
+    classes: ["wicked-campaigns", "friend-suggestions-review"],
+    window: { title: "iName Thee Helper — Review Suggestions", icon: "fa-solid fa-wand-magic-sparkles", resizable: true },
+    position: { width: 520, height: 480 },
+    actions: {
+      accept: HelperSuggestionsReviewApp.#onAccept,
+      reject: HelperSuggestionsReviewApp.#onReject,
+      acceptAll: HelperSuggestionsReviewApp.#onAcceptAll,
+      rejectAll: HelperSuggestionsReviewApp.#onRejectAll,
+    },
+  };
+
+  static PARTS = {
+    main: { template: "modules/cv-wicked-campaigns/templates/friend-suggestions-review.hbs", scrollable: [""] },
+  };
+
+  async _prepareContext(options) {
+    const pending = this.backstory.getFlag("cv-wicked-campaigns", "pendingSuggestions") || {};
+    const items = [];
+    for (const [sectionId, suggestions] of Object.entries(pending)) {
+      const cfg = HELPER_SECTIONS[sectionId];
+      if (!cfg || !suggestions?.length) continue;
+      const entries = cfg.getEntries(this.backstory);
+      for (const s of suggestions) {
+        const entry = entries[s.index];
+        items.push({
+          section: sectionId,
+          sectionLabel: cfg.label,
+          index: s.index,
+          name: cfg.getDisplayName ? cfg.getDisplayName(entry, s.index) : (entry?.name || `(unknown ${cfg.label})`),
+          currentSituation: cfg.getText(entry),
+          proposedSituation: s.proposedText,
+        });
+      }
+    }
+    return { items };
+  }
+
+  static async #onAccept(event, target) {
+    await this._resolveOne(target.dataset.section, Number(target.dataset.index), true);
+  }
+
+  static async #onReject(event, target) {
+    await this._resolveOne(target.dataset.section, Number(target.dataset.index), false);
+  }
+
+  static async #onAcceptAll() {
+    await this._resolveAll(true);
+  }
+
+  static async #onRejectAll() {
+    await this._resolveAll(false);
+  }
+
+  async _resolveOne(section, index, accepted) {
+    const doc = this.backstory;
+    const pending = doc.getFlag("cv-wicked-campaigns", "pendingSuggestions") || {};
+    const sectionPending = pending[section] || [];
+    const suggestion = sectionPending.find((s) => s.index === index);
+    if (!suggestion) return;
+
+    if (accepted) await this._applyChanges(doc, { [section]: [suggestion] });
+
+    const remaining = sectionPending.filter((s) => s.index !== index);
+    await (remaining.length
+      ? doc.setFlag("cv-wicked-campaigns", `pendingSuggestions.${section}`, remaining)
+      : doc.unsetFlag("cv-wicked-campaigns", `pendingSuggestions.${section}`));
+
+    await this.render();
+    await doc.sheet?.render(false);
+    this._bringToFrontSoon();
+  }
+
+  async _resolveAll(accepted) {
+    const doc = this.backstory;
+    const pending = doc.getFlag("cv-wicked-campaigns", "pendingSuggestions") || {};
+    if (!Object.values(pending).some((arr) => arr?.length)) return;
+
+    if (accepted) await this._applyChanges(doc, pending);
+
+    await doc.unsetFlag("cv-wicked-campaigns", "pendingSuggestions");
+    await this.render();
+    await doc.sheet?.render(false);
+    this._bringToFrontSoon();
+  }
+
+  // The Backstory sheet re-rendering above steals focus/z-order back at some unpredictable later
+  // point (confirmed live - likely its ProseMirror editor re-initializing and auto-focusing
+  // asynchronously), well past any single short delay. Re-asserting bringToFront a few times over
+  // ~1.5s is a pragmatic way to reliably win that race without depending on exactly when the
+  // sheet's internal refocus happens.
+  _bringToFrontSoon() {
+    for (const delay of [50, 150, 400, 900, 1500]) {
+      setTimeout(() => this.rendered && this.bringToFront(), delay);
+    }
+  }
+
+  // Applies every accepted suggestion (potentially spanning multiple sections) to the relevant
+  // lifepath* flags + the rendered HTML in one single document update, rather than one write per
+  // suggestion or per section.
+  async _applyChanges(doc, bySection) {
+    const updateData = {};
+    const data = doc.getFlag(CC_MODULE_ID, "data") || {};
+    let html = data.description || "";
+    // Sections sharing a dataKey (lover + loverAppearance both read/write lifepathLover) reuse the
+    // same working clone so accepting changes from both in one batch doesn't have the second
+    // section's setEntries() clobber the first section's edit with a stale re-fetch of the doc.
+    const workingEntries = new Map();
+    for (const [section, suggestions] of Object.entries(bySection)) {
+      const cfg = HELPER_SECTIONS[section];
+      if (!cfg || !suggestions?.length) continue;
+      const dataKey = cfg.dataKey || section;
+      let entries = workingEntries.get(dataKey);
+      if (!entries) {
+        entries = foundry.utils.deepClone(cfg.getEntries(doc));
+        workingEntries.set(dataKey, entries);
+      }
+      for (const s of suggestions) {
+        if (!entries[s.index]) continue;
+        cfg.setText(entries[s.index], s.proposedText);
+        html = cfg.patchHtml(html, entries[s.index], s.index, s.proposedText);
+      }
+      Object.assign(updateData, cfg.setEntries(entries));
+    }
+    updateData["flags.campaign-codex.data.description"] = html;
+    await doc.update(updateData);
+  }
+}
+
+// ---- Party Sheet -----------------------------------------------------------
+// GM-only roster of linked backstory entries, plus GM shortcuts for the fate
+// pool / peril status that actually live on the separate party-state journal.
+const partySheetBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.DocumentSheetV2);
+
+class PartySheet extends partySheetBase {
+  static DEFAULT_OPTIONS = {
+    classes: ["wicked-campaigns", "party-sheet"],
+    window: { icon: "fa-solid fa-users", resizable: true },
+    position: { width: 760, height: 680 },
+    actions: {
+      spendFate: PartySheet.#onSpendFate,
+      addFate: PartySheet.#onAddFate,
+      subFate: PartySheet.#onSubFate,
+      toggleInPeril: PartySheet.#onToggleInPeril,
+      openMember: PartySheet.#onOpenMember,
+      removeMember: PartySheet.#onRemoveMember,
+      makeActive: PartySheet.#onMakeActive,
+      rename: PartySheet.#onRename,
+    },
+  };
+
+  static PARTS = {
+    main: { template: "modules/cv-wicked-campaigns/templates/party-sheet.hbs", scrollable: [""] },
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    // Fate pool / peril live on this party's own paired party-state journal,
+    // independent of whichever party is currently marked "active".
+    const state = findPartyStateForRoster(this.document);
+    context.fatePool = state?.getFlag("cv-wicked-campaigns", "fatePool") ?? 0;
+    context.inPeril = state?.getFlag("cv-wicked-campaigns", "inPeril") ?? false;
+    context.editable = this.isEditable;
+    context.isGM = game.user.isGM;
+    context.isActiveParty = findActivePartyRosterSync()?.uuid === this.document.uuid;
+
+    const memberUuids = this.document.getFlag(CC_MODULE_ID, "data")?.members || [];
+    const members = await Promise.all(memberUuids.map(async (uuid) => {
+      const doc = await fromUuid(uuid).catch(() => null);
+      if (!doc) return null;
+      const linkedNpcUuid = doc.getFlag("cv-wicked-campaigns", "linkedNpcUuid");
+      const npcJournal = linkedNpcUuid ? await fromUuid(linkedNpcUuid).catch(() => null) : null;
+      return {
+        uuid: doc.uuid,
+        name: doc.name,
+        img: doc.getFlag(CC_MODULE_ID, "image") || npcJournal?.img || doc.img || "icons/svg/book.svg",
+      };
+    }));
+    context.members = members.filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
+
+    return context;
+  }
+
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    if (!this.isEditable) return;
+    const roster = this.element.querySelector(".party-roster");
+    if (!roster) return;
+    new foundry.applications.ux.DragDrop.implementation({
+      dropSelector: ".party-roster",
+      permissions: { drop: () => this.isEditable },
+      callbacks: { drop: this._onDropMember.bind(this) },
+    }).bind(this.element);
+  }
+
+  async _onDropMember(event) {
+    event.preventDefault();
+    let data;
+    try {
+      data = JSON.parse(event.dataTransfer.getData("text/plain"));
+    } catch (_error) {
+      return;
+    }
+    if (data?.type !== "JournalEntry" || !data.uuid) return;
+
+    const doc = await fromUuid(data.uuid).catch(() => null);
+    if (!doc) return;
+    if (doc.getFlag(CC_MODULE_ID, "type") !== CC_BACKSTORY_TYPE) {
+      ui.notifications.warn(`${doc.name} isn't a Backstory codex entry.`);
+      return;
+    }
+
+    const members = foundry.utils.deepClone(this.document.getFlag(CC_MODULE_ID, "data")?.members || []);
+    if (members.includes(doc.uuid)) return;
+    members.push(doc.uuid);
+    await this.document.update({ "flags.campaign-codex.data.members": members });
+  }
+
+  static async #onSpendFate() {
+    const state = await ensurePartyState(this.document);
+    if (!state) {
+      ui.notifications.warn("This party's Fate Pool state is missing. Ask your GM to open this party's sheet to repair it.");
+      return;
+    }
+    const current = state.getFlag("cv-wicked-campaigns", "fatePool") ?? 0;
+    if (current <= 0 && !game.user.isGM) {
+      ui.notifications.warn("The Fate Pool is empty!");
+      return;
+    }
+    await updateFatePoolForState(state, -1, `Spent from ${this.document.name}`);
+  }
+
+  static async #onAddFate() {
+    if (!game.user.isGM) return;
+    await updateFatePoolForState(await ensurePartyState(this.document), 1, `GM Action (${this.document.name})`);
+  }
+
+  static async #onSubFate() {
+    if (!game.user.isGM) return;
+    await updateFatePoolForState(await ensurePartyState(this.document), -1, `GM Action (${this.document.name})`);
+  }
+
+  static async #onToggleInPeril() {
+    if (!game.user.isGM) return;
+    const state = await ensurePartyState(this.document);
+    const current = state?.getFlag("cv-wicked-campaigns", "inPeril") ?? false;
+    await setInPerilForState(state, !current);
+  }
+
+  static async #onOpenMember(event, target) {
+    const doc = await fromUuid(target.dataset.uuid).catch(() => null);
+    doc?.sheet?.render(true);
+  }
+
+  static async #onRemoveMember(event, target) {
+    event.preventDefault();
+    if (!this.isEditable) return;
+    const uuid = target.dataset.uuid;
+    const members = (this.document.getFlag(CC_MODULE_ID, "data")?.members || []).filter((m) => m !== uuid);
+    await this.document.update({ "flags.campaign-codex.data.members": members });
+  }
+
+  static async #onMakeActive() {
+    if (!game.user.isGM) return;
+    await setActivePartyRoster(this.document.uuid);
+    this.render(true);
+  }
+
+  // Same gap BackstorySheet had: this custom sheet has no name field of its own, so without
+  // this there'd be no way to rename the roster short of hunting for it in the sidebar directory.
+  // Safe to rename freely - nothing keys off the literal "The Party" string, only its uuid/flags.
+  static async #onRename(event, target) {
+    const current = this.document.name;
+    const newName = await foundry.applications.api.DialogV2.prompt({
+      window: { title: "Rename Party" },
+      content: `<div class="form-group"><label>Name</label><input type="text" name="name" value="${esc(current)}" autofocus></div>`,
+      ok: {
+        icon: "fas fa-check",
+        label: "Rename",
+        callback: (event, button) => button.form.elements.name.value.trim(),
+      },
+      rejectClose: false,
+    }).catch(() => null);
+    if (!newName || newName === current) return;
+    await this.document.update({ name: newName });
+  }
+}
+
+// ---- Session Zero Summary Sheet -------------------------------------------
+// A GM-facing (by default) read log of a Session Zero Q&A game - fed by the
+// Complete Card Management deck/card actions further down this file. Entries
+// are append-only: each pairs the card's face image with a GM-typed title
+// and answer, plus whoever's turn it was in the combat tracker at record time.
+const sessionZeroSheetBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.DocumentSheetV2);
+
+class SessionZeroSheet extends sessionZeroSheetBase {
+  static DEFAULT_OPTIONS = {
+    classes: ["wicked-campaigns", "session-zero-sheet"],
+    window: { icon: "fa-solid fa-clipboard-question", resizable: true },
+    position: { width: 640, height: 760 },
+    actions: {
+      rename: SessionZeroSheet.#onRename,
+      "export-pdf": SessionZeroSheet.#onExportPdf,
+      "view-card-image": SessionZeroSheet.#onViewCardImage,
+    },
+  };
+
+  static PARTS = {
+    main: { template: "modules/cv-wicked-campaigns/templates/session-zero-sheet.hbs", scrollable: [".session-zero-entries"] },
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    const data = this.document.getFlag(CC_MODULE_ID, "data") || {};
+    context.entries = (data.entries || []).map((entry) => ({
+      ...entry,
+      timestampLabel: entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "",
+    }));
+    context.editable = this.isEditable;
+    return context;
+  }
+
+  // Same reasoning as BackstorySheet/PartySheet's #onRename: this custom template has no name
+  // field of its own, so without this there'd be no way to rename a summary short of hunting for
+  // it in the sidebar directory.
+  static async #onRename(event, target) {
+    const current = this.document.name;
+    const newName = await foundry.applications.api.DialogV2.prompt({
+      window: { title: "Rename Session Zero Summary" },
+      content: `<div class="form-group"><label>Name</label><input type="text" name="name" value="${esc(current)}" autofocus></div>`,
+      ok: {
+        icon: "fas fa-check",
+        label: "Rename",
+        callback: (event, button) => button.form.elements.name.value.trim(),
+      },
+      rejectClose: false,
+    }).catch(() => null);
+    if (!newName || newName === current) return;
+    await this.document.update({ name: newName });
+  }
+
+  static async #onExportPdf() {
+    ui.notifications.info(`Building PDF for "${this.document.name}"…`);
+    try {
+      await exportSessionZeroSummaryPdf(this.document);
+    } catch (err) {
+      console.error("Wicked Campaigns | Failed to export Session Zero summary PDF", err);
+      ui.notifications.error(`Failed to build PDF: ${err?.message ?? "Something went wrong."}`);
+    }
+  }
+
+  // Same viewer every other card image in the module opens through (CardHud's own "View Card
+  // Image" button, the lib-wrapper replacement for Foundry's native ImagePopout) - reused here
+  // rather than falling back to a plain browser image tab, so a recorded answer's card art gets
+  // the same zoomable viewer treatment everywhere it shows up.
+  static #onViewCardImage(event, target) {
+    const src = target.dataset.src;
+    if (!src) return;
+    CardImageViewerApp.open(src, target.dataset.title || "");
+  }
+}
+
+// Sortable rather than locale-formatted (unlike the per-entry timestamps shown in the summary
+// sheet itself) so multiple summaries also sort chronologically by name in the sidebar directory,
+// not just alphabetically-identically.
+function formatSortableTimestamp(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+// Creates a new Session Zero Summary journal. Unlike Backstory/Party, these are deliberately
+// multi-instance with no "active one" concept - a GM can have as many running (or finished) as
+// they like, purely for reading back later, so there's no getOrCreate/singleton wrapper here.
+// `limits`, when provided, is the { villainMax, arcanaPerPlayerMax, moonsMax, mobiusMax } object
+// collected by the Session Zero setup dialog - stored on the summary itself so the Reassign Turn
+// Order panel and the post-answer threshold checks can both read it back from one place.
+async function createSessionZeroSummary(name = "Session Zero Summary", limits = null) {
+  return JournalEntry.create({
+    name,
+    folder: getWickedCampaignsFolder(CC_SESSION_ZERO_TYPE)?.id,
+    // GM-only by default per spec; a GM can manually widen visibility later via the sheet's own
+    // standard Foundry ownership configuration, same as any other JournalEntry.
+    ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE },
+    flags: {
+      [CC_MODULE_ID]: {
+        type: CC_SESSION_ZERO_TYPE,
+        data: { entries: [] },
+        "icon-override": SESSION_ZERO_ICON,
+      },
+      "cv-wicked-campaigns": limits ? {
+        sessionZeroLimits: limits,
+        // Each suit's discard prompt fires exactly once per game, regardless of the GM's answer.
+        // "sessionComplete" is a separate, derived flag (see checkSessionZeroThresholds) - true
+        // once every *configured* tier above has fired its own discard prompt.
+        sessionZeroDiscardPrompted: { villain: false, majorArcana: false, moons: false, mobius: false, roses: false, sessionComplete: false },
+      } : {},
+      core: { sheetClass: "cv-wicked-campaigns.SessionZeroSheet" },
+    },
+  });
+}
+
+async function addSessionZeroEntry(summary, entry) {
+  const data = summary.getFlag(CC_MODULE_ID, "data") || {};
+  const entries = foundry.utils.deepClone(data.entries || []);
+  entries.push(entry);
+  await summary.update({ "flags.campaign-codex.data.entries": entries });
+}
+
+// ---- Wizard Class --------------------------------------------------------
+class LifepathWizard extends foundry.applications.api.ApplicationV2 {
+  constructor(targetActor, tables, options = {}) {
+    super({ id: `qos-lifepath-${targetActor.id}`, ...options });
+    this.actor = targetActor;
+    this.tableText = tables.text;
+    this.tableWeights = tables.weights;
+    this.tableDocs = tables.docs;
+    this.step = 1;
+    this.saveResult = null;
+    const details = targetActor.system?.details || {};
+    this.data = {
+      // Personal Info (Biography)
+      alignment: details.alignment || "",
+      gender: details.gender || "",
+      height: details.height || "",
+      weight: details.weight || "",
+      age: details.age || "",
+      weightTouched: !!details.weight,
+      heightOptions: [],
+      ageOptions: [],
+
+      // Lifepath
+      status: "", childhood: "",
+      parentsBranch: "", parentalDisaster: "", familySecret: "",
+      standingBranch: "", familyCrisis: "",
+      familyGoal: "", siblings: [], birthOrder: 0, siblingsUnknown: false,
+      motherName: "", fatherName: "",
+      motherBond: "", fatherBond: "",
+      // Helper-only fields - never set by the wizard itself, only ever written by the iName Thee
+      // Helper's "add a new field" flow, so these always start blank here.
+      motherDescription: "", fatherDescription: "",
+      friends: [], enemies: [],
+      romanceStatus: "", romanceDetail: "",
+      loverName: "", loverGender: "", loverRace: "", loverProfession: "", loverAppearance: "",
+      hairColor: details.hair || "", hairStyle: "", eyeColor: details.eyes || "", skin: details.skin || "", personalStyle: "",
+      trait: "", values: "", valuedObject: "", lostIt: "", fear: "", valuedPerson: "", quirk: "", faith: details.faith || "",
+      useTraitPairs: false, traitMode: "selected", traitPairs: {},
+      lifeEvents: [],
+    };
+    const flags = targetActor.flags?.["cv-wicked-campaigns"] || {};
+    this.data.loverGender = details.loverGender || flags.loverGender || "";
+    this.data.motherName = details.motherName || flags.motherName || this._withFamilyLastName(this.generateNames("female", { firstNameOnly: true }));
+    this.data.fatherName = details.fatherName || flags.fatherName || this._withFamilyLastName(this.generateNames("male", { firstNameOnly: true }));
+    const hasExistingTraits = !!flags.useTraitPairs;
+    this.data.useTraitPairs = hasExistingTraits;
+    if (hasExistingTraits) {
+      this.data.traitPairs = foundry.utils.deepClone(flags.traitPairs || {});
+      for (let i = 0; i < TRAIT_PAIRS.length; i++) {
+        if (this.data.traitPairs[i] === undefined) this.data.traitPairs[i] = 10;
+      }
+    } else {
+      for (let i = 0; i < TRAIT_PAIRS.length; i++) this.data.traitPairs[i] = 10;
+    }
+    this._generateHeightOptions();
+    this._generateAgeOptions();
+  }
+
+  _generateHeightOptions() {
+    this.data.heightOptions = HEIGHT_BANDS.map((b) => ({
+      band: b.band,
+      picks: pickTwoDistinct(b.min, b.max).map(formatHeight),
+    }));
+  }
+
+  _generateAgeOptions() {
+    this.data.ageOptions = AGE_STAGES.map((s) => ({
+      stage: s.stage,
+      picks: pickTwoDistinct(s.min, s.max).map(String),
+    }));
+  }
+
+  _parseHeightInches(str) {
+    if (!str) return null;
+    const m = String(str).match(/(\d+)\s*(?:'|’|ft|feet|foot)\s*(\d+)?/i);
+    if (m) return parseInt(m[1], 10) * 12 + (m[2] ? parseInt(m[2], 10) : 0);
+    return null;
+  }
+
+  _defaultWeightFromHeight() {
+    const inches = this._parseHeightInches(this.data.height) ?? 68; // fallback 5'8"
+    return `${Math.round((22 * inches * inches) / 703)} lbs`;
+  }
+
+  _randomField(field) {
+    this._touch();
+    switch (field) {
+      case "alignment": this.data.alignment = pick(ALIGNMENTS); break;
+      case "gender": {
+        const r = Math.random();
+        this.data.gender = r < 0.01 ? "Unique" : (r < 0.505 ? "Male" : "Female");
+        break;
+      }
+    }
+  }
+
+  static DEFAULT_OPTIONS = {
+    id: "qos-lifepath",
+    classes: ["qos-lifepath-wizard"],
+    tag: "div",
+    window: { title: "Lifepath Wizard", icon: "fa-solid fa-scroll", resizable: true },
+    position: { width: 900, height: "auto" },
+  };
+
+  get title() { return `Lifepath Wizard — ${this.actor?.name ?? ""}`; }
+
+  async _renderHTML() {
+    injectStyles();
+    const s = this.step;
+    const pct = Math.round((s / STEP_COUNT) * 100);
+    const header = `
+      <header class="qbw-header">
+        <div class="qbw-step-no">Step ${s} of ${STEP_COUNT}</div>
+        <h2 class="qbw-title">${STEP_TITLES[s]}</h2>
+        <div class="qbw-progress"><div class="qbw-progress-bar" style="width:${pct}%"></div></div>
+      </header>`;
+    return `<div class="qbw">${header}
+      <div class="qbw-main">
+        <section class="qbw-body">${this._renderBody()}</section>
+        <aside class="qbw-aside">${this._renderAside()}</aside>
+      </div>
+      ${this._renderFooter()}</div>`;
+  }
+
+  _replaceHTML(result, content) {
+    const SCROLLERS = [".qbw-body", ".qbw-aside"];
+    const tops = {};
+    for (const sel of SCROLLERS) { const p = content.querySelector(sel); if (p) tops[sel] = p.scrollTop; }
+    content.innerHTML = result;
+    for (const sel of SCROLLERS) { const n = content.querySelector(sel); if (n && tops[sel]) n.scrollTop = tops[sel]; }
+  }
+
+  _tableRow(field, label, table) {
+    const list = this.tableText[table] || [];
+    const cur = this.data[field];
+    const opts = ['<option value="">— choose or roll —</option>'].concat(
+      list.map((txt, i) => `<option value="${esc(txt)}" ${txt === cur ? "selected" : ""}>${i + 1}. ${esc(txt)}</option>`)
+    ).join("");
+    return `<label class="qbw-label">${esc(label)}</label>
+      <div class="qbw-row">
+        <select class="qbw-select" data-field="${field}">${opts}</select>
+        <button type="button" class="qbw-btn" data-act="roll" data-field="${field}" data-table="${table}"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+      </div>`;
+  }
+
+  _branchRow(field, name, label) {
+    const b = BRANCH[name];
+    const cur = this.data[field];
+    const opts = ['<option value="">— choose or roll —</option>'].concat(
+      b.options.map((o) => `<option value="${o.value}" ${o.value === cur ? "selected" : ""}>${esc(o.label)}</option>`)
+    ).join("");
+    return `<label class="qbw-label">${esc(label)}</label>
+      <div class="qbw-row">
+        <select class="qbw-select" data-field="${field}" data-rerender="1">${opts}</select>
+        <button type="button" class="qbw-btn" data-act="rollbranch" data-field="${field}" data-branch="${name}"><i class="fa-solid fa-dice-d20"></i> Roll d${b.die}</button>
+      </div>`;
+  }
+
+  _selectRow(field, options) {
+    const current = this.data[field];
+    const opts = ['<option value="">— choose —</option>']
+      .concat(options.map((o) => `<option value="${esc(o)}" ${o === current ? "selected" : ""}>${esc(o)}</option>`))
+      .join("");
+    return `
+      <label class="qbw-label">${STEP_TITLES[this.step]}</label>
+      <div class="qbw-row">
+        <select class="qbw-select" data-field="${field}">${opts}</select>
+        <button type="button" class="qbw-btn" data-act="random" data-field="${field}">
+          <i class="fa-solid fa-dice-d20"></i> Random
+        </button>
+      </div>`;
+  }
+
+  _chipGroups(groups, field, labelKey) {
+    return groups.map((g) => `
+      <div class="qbw-group">
+        <div class="qbw-group-label">${esc(g[labelKey])}</div>
+        <div class="qbw-chips">
+          ${g.picks.map((p) => `<button type="button" class="qbw-chip ${p === this.data[field] ? "is-active" : ""}" data-act="preset" data-field="${field}" data-value="${esc(p)}">${esc(p)}</button>`).join("")}
+        </div>
+      </div>`).join("");
+  }
+
+  _renderBody() {
+    switch (this.step) {
+      case 1: return this._selectRow("alignment", ALIGNMENTS) + `
+        <div class="qbw-divider" style="margin: 20px 0;"></div>
+        <div style="display: flex; justify-content: center; width: 100%;">
+          <button type="button" class="qbw-btn qbw-primary qbw-full-width" style="height: 38px; font-size: 0.95rem; border: 1px solid var(--dnd5e-color-gold, #c9a054);" data-act="roll-all-backstory">
+            <i class="fa-solid fa-dice-d20"></i> Roll Complete Backstory
+          </button>
+        </div>`;
+      case 2: return this._selectRow("gender", GENDERS) +
+        `<div class="qbw-hint">If Unique is picked or generated, it's up to you to customize it later.</div>`;
+      case 3: return `
+        <label class="qbw-label">Generated options</label>
+        ${this._chipGroups(this.data.heightOptions, "height", "band")}
+        <button type="button" class="qbw-btn qbw-reroll" data-act="reroll" data-field="height">
+          <i class="fa-solid fa-rotate"></i> Reroll options
+        </button>
+        <div class="qbw-divider"></div>
+        <label class="qbw-label">Your height</label>
+        <input type="text" class="qbw-input" data-field="height" value="${esc(this.data.height)}" placeholder="e.g. 5'8&quot;">
+        <div class="qbw-hint">Pick a generated option above or type your own (human range 4'11"–6'7").</div>`;
+      case 4: {
+        if (!this.data.weightTouched) this.data.weight = this._defaultWeightFromHeight();
+        return `
+          <label class="qbw-label">Weight</label>
+          <div class="qbw-row">
+            <input type="text" class="qbw-input" data-field="weight" value="${esc(this.data.weight)}" placeholder="e.g. 150 lbs">
+            <button type="button" class="qbw-btn" data-act="reset-weight">
+              <i class="fa-solid fa-rotate"></i> Randomize
+            </button>
+          </div>
+          <div class="qbw-hint">Defaults to a healthy weight for the chosen height (${esc(this.data.height || "—")}). Edit freely.</div>`;
+      }
+      case 5: return `
+        <label class="qbw-label">Generated options</label>
+        ${this._chipGroups(this.data.ageOptions, "age", "stage")}
+        <button type="button" class="qbw-btn qbw-reroll" data-act="reroll" data-field="age">
+          <i class="fa-solid fa-rotate"></i> Reroll options
+        </button>
+        <div class="qbw-divider"></div>
+        <label class="qbw-label">Your age</label>
+        <input type="text" class="qbw-input" data-field="age" value="${esc(this.data.age)}" placeholder="e.g. 27">
+        <div class="qbw-hint">Pick a generated option above or type your own.</div>`;
+      case 6: return this._renderFamily();
+      case 7: return this._renderFriendsEnemies();
+      case 8: return this._renderRomance();
+      case 9: return this._renderAppearance();
+      case 10: return this._renderPersonality();
+      case 11: return this._renderLifeEvents();
+      case 12: return this._renderTraitPairs();
+      default: return "";
+    }
+  }
+
+  _renderFamily() {
+    const d = this.data;
+    let h = `<div class="qbw-section-title">Family &amp; Money</div>`;
+    h += this._tableRow("status", "Social standing (Table 1)", "status");
+    h += this._tableRow("childhood", "Childhood event (1A)", "childhood");
+    h += `<div class="qbw-section-title">Parents</div>`;
+    h += this._branchRow("parentsBranch", "parents", "Family situation (1B)");
+    if (d.parentsBranch === "disaster") h += this._tableRow("parentalDisaster", "What happened to your parents? (1C)", "parentalDisaster");
+    else if (d.parentsBranch === "special") h += this._tableRow("familySecret", "Your family's secret (1D)", "familySecret");
+    else if (d.parentsBranch === "alive") h += `<div class="qbw-hint">Both parents are alive and well — no further roll.</div>`;
+    h += `<label class="qbw-label">Mother's Name</label>
+      <div class="qbw-row">
+        <input type="text" class="qbw-input" data-field="motherName" value="${esc(d.motherName || "")}" placeholder="[Mother Name]">
+        <button type="button" class="qbw-btn" data-act="roll-parent-name" data-gender="female" data-field="motherName"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+      </div>`;
+    h += this._tableRow("motherBond", "Bond with your mother (0R)", "familyBond");
+    h += `<label class="qbw-label">Father's Name</label>
+      <div class="qbw-row">
+        <input type="text" class="qbw-input" data-field="fatherName" value="${esc(d.fatherName || "")}" placeholder="[Father Name]">
+        <button type="button" class="qbw-btn" data-act="roll-parent-name" data-gender="male" data-field="fatherName"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+      </div>`;
+    h += this._tableRow("fatherBond", "Bond with your father (0R)", "familyBond");
+    h += `<div class="qbw-hint">A bond is kept for each parent whether they are living or not.</div>`;
+    h += `<div class="qbw-section-title">Standing &amp; Legacy</div>`;
+    h += this._branchRow("standingBranch", "standing", "Family standing (1E)");
+    if (d.standingBranch === "bad") h += this._tableRow("familyCrisis", "Current family crisis (1F)", "familyCrisis");
+    else if (d.standingBranch === "good") h += `<div class="qbw-hint">Your family status is good — no crisis.</div>`;
+    h += this._tableRow("familyGoal", "Family goal (1G)", "familyGoal");
+    h += this._renderSiblings();
+    return h;
+  }
+
+  _listCard(listKey, idx, title, fields) {
+    const entry = this.data[listKey][idx];
+    let body = "";
+    for (const [sub, label, table] of fields) {
+      const list = this.tableText[table] || [];
+      const cur = entry[sub] || "";
+      const opts = ['<option value="">— choose or roll —</option>'].concat(
+        list.map((txt, i) => `<option value="${esc(txt)}" ${txt === cur ? "selected" : ""}>${i + 1}. ${esc(txt)}</option>`)
+      ).join("");
+      body += `<label class="qbw-label" style="margin-top:6px">${esc(label)}</label>
+        <div class="qbw-row">
+          <select class="qbw-select" data-list="${listKey}" data-idx="${idx}" data-sub="${sub}">${opts}</select>
+          <button type="button" class="qbw-btn" data-act="roll-list" data-list="${listKey}" data-idx="${idx}" data-sub="${sub}" data-table="${table}"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+        </div>`;
+    }
+    return `<div class="qbw-card">
+      <div class="qbw-card-head">
+        <span class="qbw-card-title">${esc(title)} ${idx + 1}</span>
+        <button type="button" class="qbw-iconbtn" data-act="reroll-entry" data-list="${listKey}" data-idx="${idx}"><i class="fa-solid fa-rotate"></i> Reroll</button>
+        <button type="button" class="qbw-iconbtn" data-act="remove-entry" data-list="${listKey}" data-idx="${idx}"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <label class="qbw-label">Name</label>
+      <div class="qbw-row">
+        <input type="text" class="qbw-input" data-list="${listKey}" data-idx="${idx}" data-sub="name" value="${esc(entry.name || "")}" placeholder="[${title} Name]">
+        <button type="button" class="qbw-btn" data-act="roll-fe-name" data-list="${listKey}" data-idx="${idx}"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+      </div>
+      ${body}
+      <div class="qbw-card-attrs">
+        <label class="qbw-mini">Sex
+          <select class="qbw-select qbw-inline" data-list="${listKey}" data-idx="${idx}" data-sub="sex">
+            <option value="male" ${entry.sex === "male" ? "selected" : ""}>Male</option>
+            <option value="female" ${entry.sex === "female" ? "selected" : ""}>Female</option>
+          </select>
+        </label>
+      </div>
+    </div>`;
+  }
+
+  _renderFriendsEnemies() {
+    const d = this.data;
+    const friendFields = [["situation", "Situation (Table 2)", "friendSituation"], ["race", "Identity (2B)", "feRace"], ["profession", "Profession (2C)", "feProfession"]];
+    const enemyFields  = [["situation", "Situation (2A)", "enemySituation"], ["race", "Identity (2B)", "feRace"], ["profession", "Profession (2C)", "feProfession"]];
+    let h = `<div class="qbw-section-title">Friends</div>
+      <div class="qbw-count">
+        <span class="qbw-label" style="margin:0">Count</span>
+        <input type="number" class="qbw-num" min="0" max="20" value="${d.friends.length}" data-countfield="friends">
+        <button type="button" class="qbw-btn" data-act="rollcount" data-list="friends" data-die="6"><i class="fa-solid fa-dice-d6"></i> Roll 1d6</button>
+        <button type="button" class="qbw-btn" data-act="gen" data-list="friends"><i class="fa-solid fa-arrows-rotate"></i> Generate</button>
+        <button type="button" class="qbw-btn" data-act="add" data-list="friends"><i class="fa-solid fa-plus"></i> Add</button>
+      </div>`;
+    if (!d.friends.length) h += `<div class="qbw-hint">Roll 1d6 (or set a count) to generate friends.</div>`;
+    h += d.friends.map((_, i) => this._listCard("friends", i, "Friend", friendFields)).join("");
+    h += `<div class="qbw-section-title">Enemies</div>
+      <div class="qbw-count">
+        <span class="qbw-label" style="margin:0">Count</span>
+        <input type="number" class="qbw-num" min="0" max="20" value="${d.enemies.length}" data-countfield="enemies">
+        <button type="button" class="qbw-btn" data-act="rollcount" data-list="enemies" data-die="4"><i class="fa-solid fa-dice-d4"></i> Roll 1d4</button>
+        <button type="button" class="qbw-btn" data-act="gen" data-list="enemies"><i class="fa-solid fa-arrows-rotate"></i> Generate</button>
+        <button type="button" class="qbw-btn" data-act="add" data-list="enemies"><i class="fa-solid fa-plus"></i> Add</button>
+      </div>`;
+    if (!d.enemies.length) h += `<div class="qbw-hint">Roll 1d4 (or set a count) to generate enemies.</div>`;
+    h += d.enemies.map((_, i) => this._listCard("enemies", i, "Enemy", enemyFields)).join("");
+    return h;
+  }
+
+  _renderSiblings() {
+    const d = this.data;
+    const Y = d.siblings.length + 1;
+    let X = Number(d.birthOrder) || 0;
+    if (X > Y) { X = Y; d.birthOrder = X; }
+    const rolled = X >= 1;
+    const onlyChild = rolled && d.siblings.length === 0;
+    let h = `<div class="qbw-section-title">Siblings</div>`;
+
+    if (d.siblingsUnknown) {
+      h += `<div class="qbw-sib-order">You may have siblings — <strong>as far as you know</strong> — but none are known to you.</div>`;
+    } else if (!rolled) {
+      h += `<div class="qbw-hint">Roll to see whether you have siblings, your birth order, and your family.</div>`;
+    } else if (onlyChild) {
+      h += `<div class="qbw-sib-order">You are an <strong>only child</strong>.</div>`;
+    } else {
+      const xOpts = [];
+      for (let p = 1; p <= Y; p++) xOpts.push(`<option value="${p}" ${p === X ? "selected" : ""}>${ordinal(p)}</option>`);
+      h += `<div class="qbw-sib-order">You are the
+        <select class="qbw-select qbw-inline" data-field="birthOrder" data-rerender="1">${xOpts.join("")}</select>
+        of <strong>${Y}</strong> children.</div>`;
+    }
+
+    h += `<div class="qbw-count">
+      <button type="button" class="qbw-btn" data-act="roll-family"><i class="fa-solid fa-dice-d20"></i> Roll Siblings &amp; Family</button>
+      ${rolled ? `<button type="button" class="qbw-btn" data-act="add" data-list="siblings"><i class="fa-solid fa-plus"></i> Add younger sibling</button>` : ""}
+    </div>`;
+
+    if (rolled && d.siblings.length) {
+      const positions = [];
+      for (let p = 1; p <= Y; p++) if (p !== X) positions.push(p);
+      h += d.siblings.map((_, i) => this._siblingCard(i, positions[i], X)).join("");
+    }
+    return h;
+  }
+
+  _siblingCard(idx, position, X) {
+    const s = this.data.siblings[idx];
+    const older = position < X;
+    const dead = s.alive === false;
+    const kind = this._siblingKind(s, position, X);
+    const idTwin = kind.key === "identical";
+    const sexVal = idTwin ? this._pcSex() : (s.sex || "");
+    const rowFor = (sub, label, table) => {
+      const list = this.tableText[table] || [];
+      const cur = s[sub] || "";
+      const opts = ['<option value="">— choose or roll —</option>'].concat(
+        list.map((txt, i) => `<option value="${esc(txt)}" ${txt === cur ? "selected" : ""}>${i + 1}. ${esc(txt)}</option>`)
+      ).join("");
+      return `<label class="qbw-label" style="margin-top:6px">${esc(label)}</label>
+        <div class="qbw-row">
+          <select class="qbw-select" data-list="siblings" data-idx="${idx}" data-sub="${sub}">${opts}</select>
+          <button type="button" class="qbw-btn" data-act="roll-sib" data-idx="${idx}" data-sub="${sub}" data-table="${table}"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+        </div>`;
+    };
+    return `<div class="qbw-card${dead ? " is-deceased" : ""}">
+      <div class="qbw-card-head">
+        <span class="qbw-card-title">${ordinal(position)} child <span class="qbw-tag">${older ? "older" : "younger"}</span>${kind.label ? `<span class="qbw-tag qbw-tag-${kind.key}">${esc(kind.label)}</span>` : ""}${dead ? '<span class="qbw-tag qbw-tag-dead">deceased</span>' : ""}</span>
+        <button type="button" class="qbw-iconbtn" data-act="reroll-entry" data-list="siblings" data-idx="${idx}"><i class="fa-solid fa-rotate"></i> Reroll</button>
+        <button type="button" class="qbw-iconbtn" data-act="remove-entry" data-list="siblings" data-idx="${idx}"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <label class="qbw-label">Name</label>
+      <div class="qbw-row">
+        <input type="text" class="qbw-input" data-list="siblings" data-idx="${idx}" data-sub="name" value="${esc(s.name || "")}" placeholder="[Sibling Name]">
+        <button type="button" class="qbw-btn" data-act="roll-sib-name" data-idx="${idx}"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+      </div>
+      ${rowFor("relation", "Sibling (1H)", "siblings")}
+      ${rowFor("bond", "Relationship bond (0R)", "familyBond")}
+      <div class="qbw-card-attrs">
+        <label class="qbw-mini">Sex
+          <select class="qbw-select qbw-inline" data-list="siblings" data-idx="${idx}" data-sub="sex" ${idTwin ? "disabled" : ""}>
+            <option value="male" ${sexVal === "male" ? "selected" : ""}>Male</option>
+            <option value="female" ${sexVal === "female" ? "selected" : ""}>Female</option>
+          </select>
+        </label>
+        ${idTwin ? `<span class="qbw-mini-note">matches you — identical twin</span>` : ""}
+        <label class="qbw-check" style="margin:0">
+          <input type="checkbox" data-list="siblings" data-idx="${idx}" data-sub="alive" data-rerender="1" ${dead ? "" : "checked"}>
+          Living (1d100 &gt; ${SIBLING_DEATH_PCT})
+        </label>
+      </div>
+    </div>`;
+  }
+
+  _renderRomance() {
+    const d = this.data;
+    let h = this._branchRow("romanceStatus", "romance", "Romance status (Table 3)");
+    if (d.romanceStatus && ROMANCE_DETAIL[d.romanceStatus]) {
+      const cfg = ROMANCE_DETAIL[d.romanceStatus];
+      h += this._tableRow("romanceDetail", cfg.label, cfg.table);
+    }
+    if (d.romanceStatus && d.romanceStatus !== "lookout") {
+      const isTragic = d.romanceStatus === "tragic";
+      h += `<div class="qbw-section-title">${isTragic ? "Their Lost Lover" : "Their Lover"}</div>`;
+      h += `<label class="qbw-label">Lover's Name</label>
+        <div class="qbw-row">
+          <input type="text" class="qbw-input" data-field="loverName" value="${esc(d.loverName)}" placeholder="${isTragic ? "[Lost Lover Name]" : "[Lover Name]"}">
+          <button type="button" class="qbw-btn" data-act="roll-lover-name"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+        </div>`;
+      h += `<div class="qbw-card-attrs" style="margin-top: 6px; margin-bottom: 8px;">
+        <label class="qbw-mini">Sex
+          <select class="qbw-select qbw-inline" data-field="loverGender">
+            <option value="male" ${d.loverGender === "male" ? "selected" : ""}>Male</option>
+            <option value="female" ${d.loverGender === "female" ? "selected" : ""}>Female</option>
+            <option value="neutral" ${d.loverGender === "neutral" ? "selected" : ""}>Neutral</option>
+          </select>
+        </label>
+      </div>`;
+      h += this._tableRow("loverRace", "Cultural background (3E)", "loverRace");
+      h += this._tableRow("loverProfession", "Profession (3F)", "loverProfession");
+      h += this._tableRow("loverAppearance", "Appearance (3G)", "loverAppearance");
+    } else if (d.romanceStatus === "lookout") {
+      h += `<div class="qbw-hint">No current partner — nothing more to detail here.</div>`;
+    }
+    return h;
+  }
+
+  _renderAppearance() {
+    let h = this._tableRow("hairColor", "Hair colour (Table 4)", "hairColor");
+    h += this._tableRow("hairStyle", "Hair style (4A)", "hairStyle");
+    h += this._tableRow("eyeColor", "Eye colour (4B)", "eyeColor");
+    h += this._tableRow("skin", "Skin tone (4AA)", "skinTone");
+    h += this._tableRow("personalStyle", "Personal style (4C)", "personalStyle");
+    return h;
+  }
+
+  _renderPersonality() {
+    let h = this._tableRow("trait", "Defining personality trait (Table 5)", "trait");
+    h += this._tableRow("values", "What you value most (5A)", "values");
+    h += this._tableRow("valuedObject", "Most valued object (5B)", "valuedObject");
+    h += this._tableRow("lostIt", "If you lost it… (5C)", "lostIt");
+    h += this._tableRow("fear", "Greatest fear (5D)", "fear");
+    h += this._tableRow("valuedPerson", "Person you value most (5E)", "valuedPerson");
+    h += this._tableRow("quirk", "Personality quirk (5F → 5G/5H)", "quirk");
+    h += this._tableRow("faith", "Faith (5I)", "faith");
+    return h;
+  }
+
+  _pairBudget() {
+    let s = 0;
+    for (let i = 0; i < TRAIT_PAIRS.length; i++) s += Math.abs((this.data.traitPairs[i] ?? 10) - 10);
+    return s;
+  }
+
+  _renderTraitPairs() {
+    const d = this.data;
+    let h = `<label class="qbw-check">
+        <input type="checkbox" data-field="useTraitPairs" data-rerender="1" ${d.useTraitPairs ? "checked" : ""}>
+        Use the detailed Trait Pairs system
+      </label>
+      <div class="qbw-hint">Optional, more demanding alternative to the single Personality Trait. Each pair sums to 20.</div>`;
+    if (!d.useTraitPairs) return h;
+    h += `<div class="qbw-modes">
+        <button type="button" class="qbw-btn ${d.traitMode === "random" ? "qbw-primary" : ""}" data-act="pairs-mode" data-mode="random">Random</button>
+        <button type="button" class="qbw-btn ${d.traitMode === "selected" ? "qbw-primary" : ""}" data-act="pairs-mode" data-mode="selected">Selected</button>
+      </div>`;
+    if (d.traitMode === "random") {
+      h += `<div class="qbw-count">
+          <button type="button" class="qbw-btn qbw-primary" data-act="pairs-roll"><i class="fa-solid fa-dice"></i> Roll all (3d6 each)</button>
+          <button type="button" class="qbw-btn" data-act="pairs-reset"><i class="fa-solid fa-rotate-left"></i> Reset to 10/10</button>
+        </div>
+        <div class="qbw-hint">Rolls 3d6 for the left trait of each pair; the right trait is 20 minus that.</div>`;
+    } else {
+      h += `<div class="qbw-count">
+          <button type="button" class="qbw-btn" data-act="pairs-reset"><i class="fa-solid fa-rotate-left"></i> Reset to 10/10</button>
+        </div>
+        <div class="qbw-hint">Suggested budget: +3 to five traits, then distribute 15 more (raising one side lowers its opposite).</div>`;
+    }
+    h += TRAIT_PAIRS.map((pr, i) => {
+      const l = d.traitPairs[i] ?? 10;
+      return `<div class="qbw-pair">
+          <div class="qbw-pair-l"><span class="qbw-pair-name">${pr[0]}</span> <span class="qbw-pair-val" data-pairleft="${i}">${l}</span></div>
+          <div class="qbw-pair-mid">/</div>
+          <div class="qbw-pair-r"><span class="qbw-pair-val" data-pairright="${i}">${20 - l}</span> <span class="qbw-pair-name">${pr[1]}</span></div>
+          <input type="range" class="qbw-slider" min="0" max="20" value="${l}" data-pair="${i}">
+        </div>`;
+    }).join("");
+    h += `<div class="qbw-budget">Points allocated: <span data-pairbudget>${this._pairBudget()}</span> / 30 (suggested)</div>`;
+    return h;
+  }
+
+  _renderLifeEvents() {
+    const d = this.data;
+    let h = `<div class="qbw-hint">Ask your GM how many life events to roll. Each is Lucky (Table 6B) or Unlucky (6A).</div>
+      <div class="qbw-count">
+        <span class="qbw-label" style="margin:0">Count</span>
+        <input type="number" class="qbw-num" min="0" max="20" value="${d.lifeEvents.length}" data-countfield="lifeEvents">
+        <button type="button" class="qbw-btn" data-act="gen" data-list="lifeEvents" data-die="6"><i class="fa-solid fa-arrows-rotate"></i> Generate</button>
+        <button type="button" class="qbw-btn" data-act="add" data-list="lifeEvents"><i class="fa-solid fa-plus"></i> Add</button>
+      </div>`;
+    if (!d.lifeEvents.length) h += `<div class="qbw-hint">Set a count and Generate, or add events one at a time.</div>`;
+    h += d.lifeEvents.map((e, i) => {
+      const luckOpts = ['<option value="">— luck —</option>',
+        `<option value="unlucky" ${e.luck === "unlucky" ? "selected" : ""}>Unlucky (6A)</option>`,
+        `<option value="lucky" ${e.luck === "lucky" ? "selected" : ""}>Lucky (6B)</option>`].join("");
+      const tbl = e.luck === "lucky" ? "lucky" : (e.luck === "unlucky" ? "unlucky" : null);
+      let textSel;
+      if (tbl) {
+        const list = this.tableText[tbl] || [];
+        const opts = ['<option value="">— choose —</option>'].concat(
+          list.map((txt, k) => `<option value="${esc(txt)}" ${txt === e.text ? "selected" : ""}>${k + 1}. ${esc(txt)}</option>`)
+        ).join("");
+        textSel = `<select class="qbw-select" data-list="lifeEvents" data-idx="${i}" data-sub="text">${opts}</select>`;
+      } else {
+        textSel = `<select class="qbw-select" disabled><option>Pick a luck type first</option></select>`;
+      }
+      return `<div class="qbw-card">
+        <div class="qbw-card-head">
+          <span class="qbw-card-title">Event ${i + 1}</span>
+          <button type="button" class="qbw-iconbtn" data-act="reroll-entry" data-list="lifeEvents" data-idx="${i}"><i class="fa-solid fa-rotate"></i> Reroll</button>
+          <button type="button" class="qbw-iconbtn" data-act="remove-entry" data-list="lifeEvents" data-idx="${i}"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="qbw-row" style="margin-bottom:6px">
+          <select class="qbw-select" data-list="lifeEvents" data-idx="${i}" data-sub="luck" data-rerender="1" style="flex:0 0 150px">${luckOpts}</select>
+        </div>
+        ${textSel}
+      </div>`;
+    }).join("");
+    return h;
+  }
+
+  _renderAside() {
+    return `<div class="qbw-aside-head"><i class="fa-solid fa-feather"></i> Manuscript</div>
+      <div class="qbw-preview" data-preview>${this._previewInner()}</div>`;
+  }
+
+  _previewInner() {
+    const d = this.data;
+    const personalInfoHtml = `
+      <div class="qbw-personal-summary">
+        <h3>Personal Info</h3>
+        <ul>
+          <li><strong>Alignment:</strong> ${esc(d.alignment) || "—"}</li>
+          <li><strong>Gender:</strong> ${esc(d.gender) || "—"}</li>
+          <li><strong>Height:</strong> ${esc(d.height) || "—"}</li>
+          <li><strong>Weight:</strong> ${esc(d.weight) || "—"}</li>
+          <li><strong>Hair:</strong> ${esc(d.hairColor) || "—"}</li>
+          <li><strong>Eyes:</strong> ${esc(d.eyeColor) || "—"}</li>
+          <li><strong>Skin:</strong> ${esc(d.skin) || "—"}</li>
+          <li><strong>Age:</strong> ${esc(d.age) || "—"}</li>
+          <li><strong>Faith:</strong> ${esc(d.faith) || "—"}</li>
+        </ul>
+      </div>
+      <div class="qbw-divider" style="margin: 10px 0;"></div>
+    `;
+    const { html } = this._buildBiographyHtml();
+    const backstoryPreview = html || '<span class="qbw-empty-note">Nothing yet — choose or roll on the left and the lifepath takes shape here.</span>';
+    return personalInfoHtml + backstoryPreview;
+  }
+
+  _refreshPreview() {
+    const el = this.element; if (!el) return;
+    const p = el.querySelector("[data-preview]");
+    if (p) p.innerHTML = this._previewInner();
+  }
+
+  _renderFooter() {
+    const s = this.step;
+    const status = this.saveResult
+      ? `<span class="qbw-foot-status ${this.saveResult.ok ? "is-ok" : "is-err"}"><i class="fa-solid ${this.saveResult.ok ? "fa-circle-check" : "fa-circle-exclamation"}"></i> ${esc(trunc(this.saveResult.msg, 64))}</span>`
+      : "";
+    return `<footer class="qbw-footer">
+      <button type="button" class="qbw-btn" data-act="back" ${s === 1 ? "disabled" : ""}><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <button type="button" class="qbw-btn" data-act="next" ${s === STEP_COUNT ? "disabled" : ""}>Next <i class="fa-solid fa-arrow-right"></i></button>
+      <div class="qbw-spacer"></div>
+      ${status}
+      <button type="button" class="qbw-btn qbw-primary" data-act="save"><i class="fa-solid fa-floppy-disk"></i> Save to Character Sheet</button>
+      <button type="button" class="qbw-btn" data-act="close"><i class="fa-solid fa-xmark"></i> Close</button>
+    </footer>`;
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+    const el = this.element;
+    if (!el || el.__qbwBound) return;
+    el.__qbwBound = true;
+    el.addEventListener("click", (ev) => {
+      const btn = ev.target.closest("[data-act]");
+      if (!btn || !el.contains(btn)) return;
+      ev.preventDefault();
+      this._handleAction(btn.dataset.act, btn);
+    });
+    el.addEventListener("change", (ev) => {
+      const t = ev.target;
+      this._syncFromDom();
+      if (t.dataset.list && t.dataset.idx !== undefined && t.dataset.sub) {
+        const list = this.data[t.dataset.list]; const i = +t.dataset.idx;
+        if (list && list[i]) {
+          this._touch();
+          if (t.dataset.sub === "luck") { list[i].text = ""; this.render(); return; }
+          if (t.dataset.rerender) { this.render(); return; }
+        }
+        this._refreshPreview();
+        return;
+      }
+      if (t.dataset.field) {
+        this._touch();
+        if (t.dataset.field === "romanceStatus") {
+          this.data.romanceDetail = "";
+          if (t.value && t.value !== "lookout" && !this.data.loverName) {
+            const oppGender = this._getOppositeGender();
+            this.data.loverGender = oppGender;
+            this.data.loverName = this.generateNames(oppGender, { count: 1, firstNameOnly: false });
+          }
+        }
+        if (t.dataset.rerender) { this.render(); return; }
+      }
+      this._refreshPreview();
+    });
+    el.addEventListener("input", (ev) => {
+      const t = ev.target;
+      const f = t.closest('input[type="text"][data-field]');
+      if (f) {
+        this._setField(f.dataset.field, f.value);
+        if (f.dataset.field === "weight") this.data.weightTouched = true;
+        this._refreshPreview();
+      }
+      const l = t.closest('input[type="text"][data-list][data-idx][data-sub]');
+      if (l) {
+        const list = this.data[l.dataset.list]; const i = +l.dataset.idx;
+        if (list && list[i]) {
+          list[i][l.dataset.sub] = l.value;
+          this._touch();
+          this._refreshPreview();
+        }
+      }
+      if (t.dataset.pair !== undefined) {
+        const i = +t.dataset.pair;
+        const left = Math.max(0, Math.min(20, parseInt(t.value, 10) || 0));
+        this.data.traitPairs[i] = left;
+        this._touch();
+        const ls = el.querySelector(`[data-pairleft="${i}"]`); if (ls) ls.textContent = left;
+        const rs = el.querySelector(`[data-pairright="${i}"]`); if (rs) rs.textContent = 20 - left;
+        const bd = el.querySelector("[data-pairbudget]"); if (bd) bd.textContent = this._pairBudget();
+        if (this.data.useTraitPairs) this._refreshPreview();
+      }
+    });
+  }
+
+  _touch() { this.saveResult = null; }
+  _setField(field, value) { this.data[field] = value; this._touch(); }
+
+  _syncFromDom() {
+    const el = this.element; if (!el) return;
+    el.querySelectorAll("select[data-field], input[data-field]").forEach((f) => {
+      if (f.type === "checkbox") this.data[f.dataset.field] = f.checked;
+      else this.data[f.dataset.field] = f.value;
+    });
+    el.querySelectorAll("select[data-list][data-idx][data-sub], input[data-list][data-idx][data-sub]").forEach((f) => {
+      const list = this.data[f.dataset.list]; const i = +f.dataset.idx;
+      if (list && list[i]) list[i][f.dataset.sub] = (f.type === "checkbox") ? f.checked : f.value;
+    });
+    el.querySelectorAll("[data-pair]").forEach((f) => {
+      this.data.traitPairs[+f.dataset.pair] = Math.max(0, Math.min(20, parseInt(f.value, 10) || 0));
+    });
+  }
+
+  _goStep(n) {
+    this._syncFromDom();
+    this.step = Math.max(1, Math.min(STEP_COUNT, n));
+    this.render();
+  }
+
+  _rollBranch(name) {
+    const b = BRANCH[name];
+    const r = randInt(1, b.die);
+    return (b.options.find((o) => r >= o.lo && r <= o.hi) ?? b.options[0]).value;
+  }
+
+  _rollBirthOrder() {
+    const r = randInt(1, 100);
+    return (BIRTH_ORDER.find((o) => r >= o.lo && r <= o.hi) ?? BIRTH_ORDER[0]).n;
+  }
+
+  _rollHaveSiblings() {
+    const r = randInt(1, 100);
+    const none = r >= SIBLINGS_NONE_RANGE[0] && r <= SIBLINGS_NONE_RANGE[1];
+    return { has: !none, unknown: r >= SIBLINGS_UNKNOWN_MIN };
+  }
+
+  _siblingKind(s, position, X) {
+    const adjacent = position === X - 1 || position === X + 1;
+    if (adjacent) {
+      const r = s.twinRoll || 0;
+      if (r >= TWIN_IDENTICAL_MIN) return { key: "identical", label: "identical twin" };
+      if (r >= TWIN_FRATERNAL_MIN) return { key: "fraternal", label: "fraternal twin" };
+      return { key: "full", label: "" };
+    }
+    return (s.halfRoll || 0) >= HALF_SIBLING_MIN ? { key: "half", label: "half-sibling" } : { key: "full", label: "" };
+  }
+
+  _pcSex() {
+    const g = String(this.data?.gender || "").trim().toLowerCase();
+    if (g === "male") return "male";
+    if (g === "female") return "female";
+    return "female";
+  }
+
+  _rollKey(key) {
+    const names = this.tableText[key] || [];
+    if (!names.length) {
+      if (key === "familySecret") return "A mysterious family secret.";
+      return "";
+    }
+    const weights = this.tableWeights[key] || [];
+    let total = 0;
+    for (let i = 0; i < names.length; i++) total += weights[i] || 1;
+    let roll = Math.random() * total;
+    for (let i = 0; i < names.length; i++) { roll -= (weights[i] || 1); if (roll < 0) return names[i]; }
+    return names[names.length - 1];
+  }
+
+  // No AI involved - just splits the actor's Foundry document name on whitespace.
+  // A single-word name (e.g. "Kai") has no last name; anything with 2+ words uses the final word.
+  _getCharacterLastName() {
+    const parts = String(this.actor?.name || "").trim().split(/\s+/).filter(Boolean);
+    return parts.length > 1 ? parts[parts.length - 1] : "";
+  }
+
+  _withFamilyLastName(firstName) {
+    const lastName = this._getCharacterLastName();
+    return lastName ? `${firstName} ${lastName}` : firstName;
+  }
+
+  generateNames(gender, options = {}) {
+    const count = options.count === 5 ? 5 : 1;
+    const firstNameOnly = !!options.firstNameOnly;
+
+    let firstKey = "neutralNames";
+    if (gender === "male") firstKey = "maleNames";
+    else if (gender === "female") firstKey = "femaleNames";
+
+    const results = [];
+    for (let k = 0; k < count; k++) {
+      let firstName = "";
+      if (firstKey === "neutralNames" && !this.tableText["neutralNames"]) {
+        const fallbackKey = Math.random() < 0.5 ? "femaleNames" : "maleNames";
+        firstName = this._rollKey(fallbackKey) || "Robin";
+      } else {
+        firstName = this._rollKey(firstKey) || "Robin";
+      }
+
+      if (firstNameOnly) {
+        results.push(firstName);
+      } else {
+        const lastName = this._rollKey("lastNames") || "Swift";
+        results.push(`${firstName} ${lastName}`);
+      }
+    }
+
+    return count === 1 ? results[0] : results;
+  }
+
+  _getOppositeGender() {
+    const g = String(this.data?.gender || "").trim().toLowerCase();
+    if (g.includes("female") || g.includes("woman") || g === "f") return "male";
+    if (g.includes("male") || g.includes("man") || g === "m") return "female";
+    return "neutral";
+  }
+
+  _randEntry(list) {
+    if (list === "friends") {
+      const sex = randInt(1, 2) === 1 ? "male" : "female";
+      const name = this.generateNames(sex, { count: 1, firstNameOnly: false });
+      return { name, sex, situation: this._rollKey("friendSituation"), race: this._rollKey("feRace"), profession: this._rollKey("feProfession") };
+    }
+    if (list === "enemies") {
+      const sex = randInt(1, 2) === 1 ? "male" : "female";
+      const name = this.generateNames(sex, { count: 1, firstNameOnly: false });
+      return { name, sex, situation: this._rollKey("enemySituation"), race: this._rollKey("feRace"), profession: this._rollKey("feProfession") };
+    }
+    if (list === "siblings") {
+      const sex = randInt(1, 2) === 1 ? "male" : "female";
+      const name = this._withFamilyLastName(this.generateNames(sex, { count: 1, firstNameOnly: true }));
+      return { name, sex, relation: this._rollKey("siblings"), bond: this._rollKey("familyBond"), alive: randInt(1, 100) > SIBLING_DEATH_PCT, twinRoll: randInt(1, 100), halfRoll: randInt(1, 100) };
+    }
+    if (list === "lifeEvents") { const luck = randInt(1, 6) <= 3 ? "unlucky" : "lucky"; return { luck, text: this._rollKey(luck) }; }
+    return {};
+  }
+
+  _regenList(list, n) {
+    this._syncFromDom();
+    const arr = [];
+    for (let k = 0; k < n; k++) arr.push(this._randEntry(list));
+    this.data[list] = arr;
+    this._touch();
+  }
+
+  _handleAction(act, btn) {
+    switch (act) {
+      case "next": this._goStep(this.step + 1); break;
+      case "back": this._goStep(this.step - 1); break;
+      case "close": this.close(); break;
+      case "save": this._save(); break;
+
+      case "roll": {
+        this._syncFromDom();
+        const v = this._rollKey(btn.dataset.table);
+        if (v) this._setField(btn.dataset.field, v);
+        this.render(); break;
+      }
+      case "rollbranch": {
+        this._syncFromDom();
+        const field = btn.dataset.field;
+        const rolledVal = this._rollBranch(btn.dataset.branch);
+        this._setField(field, rolledVal);
+        if (field === "romanceStatus") {
+          this.data.romanceDetail = "";
+          if (rolledVal && rolledVal !== "lookout" && !this.data.loverName) {
+            const oppGender = this._getOppositeGender();
+            this.data.loverGender = oppGender;
+            this.data.loverName = this.generateNames(oppGender, { count: 1, firstNameOnly: false });
+          }
+        }
+        this.render(); break;
+      }
+      case "rollcount": this._regenList(btn.dataset.list, randInt(1, +btn.dataset.die)); this.render(); break;
+      case "roll-family": {
+        this._syncFromDom();
+        const { has, unknown } = this._rollHaveSiblings();
+        if (!has) {
+          this.data.birthOrder = 1;
+          this.data.siblings = [];
+          this.data.siblingsUnknown = false;
+        } else if (unknown) {
+          this.data.birthOrder = 0;
+          this.data.siblings = [];
+          this.data.siblingsUnknown = true;
+        } else {
+          const X = this._rollBirthOrder();
+          let younger = randInt(1, 6) - 1;
+          if (X === 1 && younger === 0) younger = 1;
+          const Y = X + younger;
+          this.data.birthOrder = X;
+          this.data.siblingsUnknown = false;
+          const arr = [];
+          for (let k = 0; k < Y - 1; k++) arr.push(this._randEntry("siblings"));
+          this.data.siblings = arr;
+        }
+        this._touch(); this.render(); break;
+      }
+      case "roll-sib": {
+        this._syncFromDom();
+        const i = +btn.dataset.idx;
+        const sub = btn.dataset.sub || "relation";
+        const table = btn.dataset.table || "siblings";
+        if (this.data.siblings[i]) this.data.siblings[i][sub] = this._rollKey(table);
+        this._touch(); this.render(); break;
+      }
+      case "roll-list": {
+        this._syncFromDom();
+        const listKey = btn.dataset.list;
+        const i = +btn.dataset.idx;
+        const sub = btn.dataset.sub;
+        const table = btn.dataset.table;
+        if (this.data[listKey] && this.data[listKey][i]) {
+          this.data[listKey][i][sub] = this._rollKey(table);
+        }
+        this._touch(); this.render(); break;
+      }
+      case "roll-parent-name": {
+        this._syncFromDom();
+        const gender = btn.dataset.gender;
+        const field = btn.dataset.field;
+        this.data[field] = this._withFamilyLastName(this.generateNames(gender, { count: 1, firstNameOnly: true }));
+        this._touch(); this.render(); break;
+      }
+      case "roll-lover-name": {
+        this._syncFromDom();
+        const gender = this.data.loverGender || this._getOppositeGender();
+        this.data.loverName = this.generateNames(gender, { count: 1, firstNameOnly: false });
+        this._touch(); this.render(); break;
+      }
+      case "roll-sib-name": {
+        this._syncFromDom();
+        const i = +btn.dataset.idx;
+        if (this.data.siblings[i]) {
+          const gender = this.data.siblings[i].sex || "neutral";
+          this.data.siblings[i].name = this._withFamilyLastName(this.generateNames(gender, { count: 1, firstNameOnly: true }));
+        }
+        this._touch(); this.render(); break;
+      }
+      case "roll-fe-name": {
+        this._syncFromDom();
+        const listKey = btn.dataset.list;
+        const i = +btn.dataset.idx;
+        if (this.data[listKey] && this.data[listKey][i]) {
+          const gender = this.data[listKey][i].sex || "neutral";
+          this.data[listKey][i].name = this.generateNames(gender, { count: 1, firstNameOnly: false });
+        }
+        this._touch(); this.render(); break;
+      }
+      case "gen": {
+        const list = btn.dataset.list;
+        const input = this.element.querySelector(`[data-countfield="${list}"]`);
+        let n = parseInt(input?.value, 10);
+        if (!Number.isFinite(n) || n < 0) n = this.data[list].length;
+        this._regenList(list, Math.max(0, Math.min(20, n)));
+        this.render(); break;
+      }
+      case "add": this._syncFromDom(); this.data[btn.dataset.list].push(this._randEntry(btn.dataset.list)); this._touch(); this.render(); break;
+      case "reroll-entry": this._syncFromDom(); this.data[btn.dataset.list][+btn.dataset.idx] = this._randEntry(btn.dataset.list); this._touch(); this.render(); break;
+      case "remove-entry": this._syncFromDom(); this.data[btn.dataset.list].splice(+btn.dataset.idx, 1); this._touch(); this.render(); break;
+
+      case "pairs-mode": this._syncFromDom(); this.data.traitMode = btn.dataset.mode; this.render(); break;
+      case "pairs-roll": for (let i = 0; i < TRAIT_PAIRS.length; i++) this.data.traitPairs[i] = randInt(1, 6) + randInt(1, 6) + randInt(1, 6); this._touch(); this.render(); break;
+      case "pairs-reset": for (let i = 0; i < TRAIT_PAIRS.length; i++) this.data.traitPairs[i] = 10; this._touch(); this.render(); break;
+
+      case "random": this._syncFromDom(); this._randomField(btn.dataset.field); this.render(); break;
+      case "reroll":
+        this._syncFromDom(); this._touch();
+        if (btn.dataset.field === "height") this._generateHeightOptions();
+        else if (btn.dataset.field === "age") this._generateAgeOptions();
+        this.render();
+        break;
+      case "preset": this._syncFromDom(); this._setField(btn.dataset.field, btn.dataset.value); this.render(); break;
+      case "reset-weight": {
+        this._syncFromDom();
+        const currentWeight = this.data.weight || this._defaultWeightFromHeight();
+        const baseVal = parseInt(currentWeight, 10) || parseInt(this._defaultWeightFromHeight(), 10) || 150;
+        const diff = randInt(-10, 10);
+        this.data.weight = `${baseVal + diff} lbs`;
+        this.data.weightTouched = true;
+        this._touch();
+        this.render();
+        break;
+      }
+      case "roll-all-backstory": {
+        this._syncFromDom();
+        
+        // 1. Personal Details
+        if (!this.data.alignment) this.data.alignment = pick(ALIGNMENTS);
+        if (!this.data.gender) {
+          const r = Math.random();
+          this.data.gender = r < 0.01 ? "Unique" : (r < 0.505 ? "Male" : "Female");
+        }
+        
+        if (!this.data.heightOptions.length) this._generateHeightOptions();
+        const hGroup = pick(this.data.heightOptions);
+        this.data.height = pick(hGroup.picks);
+        
+        const currentWeight = this._defaultWeightFromHeight();
+        const baseVal = parseInt(currentWeight, 10) || 150;
+        this.data.weight = `${baseVal + randInt(-10, 10)} lbs`;
+        this.data.weightTouched = true;
+        
+        if (!this.data.ageOptions.length) this._generateAgeOptions();
+        const aGroup = pick(this.data.ageOptions);
+        this.data.age = pick(aGroup.picks);
+        
+        // 2. Family
+        this.data.status = this._rollKey("status");
+        this.data.childhood = this._rollKey("childhood");
+        
+        this.data.parentsBranch = this._rollBranch("parents");
+        if (this.data.parentsBranch === "disaster") {
+          this.data.parentalDisaster = this._rollKey("parentalDisaster");
+        } else if (this.data.parentsBranch === "special") {
+          this.data.familySecret = this._rollKey("familySecret");
+        }
+        
+        this.data.standingBranch = this._rollBranch("standing");
+        if (this.data.standingBranch === "bad") {
+          this.data.familyCrisis = this._rollKey("familyCrisis");
+        }
+        this.data.familyGoal = this._rollKey("familyGoal");
+        
+        this.data.motherBond = this._rollKey("familyBond");
+        this.data.fatherBond = this._rollKey("familyBond");
+        
+        // Siblings
+        const { has, unknown } = this._rollHaveSiblings();
+        if (!has) {
+          this.data.birthOrder = 1;
+          this.data.siblings = [];
+          this.data.siblingsUnknown = unknown;
+        } else {
+          const nSib = randInt(1, 8);
+          const bo = randInt(1, nSib + 1);
+          this.data.birthOrder = bo;
+          this.data.siblingsUnknown = false;
+          
+          this.data.siblings = [];
+          for (let k = 0; k < nSib; k++) {
+            this.data.siblings.push(this._randEntry("siblings"));
+          }
+        }
+        
+        // 3. Friends & Enemies
+        const nFriends = randInt(1, 3);
+        this.data.friends = [];
+        for (let k = 0; k < nFriends; k++) {
+          this.data.friends.push(this._randEntry("friends"));
+        }
+        const nEnemies = randInt(1, 3);
+        this.data.enemies = [];
+        for (let k = 0; k < nEnemies; k++) {
+          this.data.enemies.push(this._randEntry("enemies"));
+        }
+        
+        // 4. Romance
+        this.data.romanceStatus = this._rollBranch("romance");
+        if (this.data.romanceStatus && this.data.romanceStatus !== "lookout") {
+          const cfg = ROMANCE_DETAIL[this.data.romanceStatus];
+          if (cfg) this.data.romanceDetail = this._rollKey(cfg.table);
+          
+          const oppGender = this._getOppositeGender();
+          this.data.loverGender = oppGender;
+          this.data.loverName = this.generateNames(oppGender, { count: 1, firstNameOnly: false });
+          this.data.loverRace = this._rollKey("loverRace");
+          this.data.loverProfession = this._rollKey("loverProfession");
+          this.data.loverAppearance = this._rollKey("loverAppearance");
+        } else {
+          this.data.romanceDetail = "";
+        }
+        
+        // 5. Characteristics
+        this.data.hairColor = this._rollKey("hairColor");
+        this.data.hairStyle = this._rollKey("hairStyle");
+        this.data.eyeColor = this._rollKey("eyeColor");
+        this.data.skin = this._rollKey("skinTone");
+        this.data.personalStyle = this._rollKey("personalStyle");
+        
+        // 6. Personality & Traits
+        const hasExistingTraits = !!this.actor.getFlag("cv-wicked-campaigns", "useTraitPairs");
+        this.data.useTraitPairs = true;
+        if (hasExistingTraits) {
+          this.data.traitPairs = foundry.utils.deepClone(this.actor.getFlag("cv-wicked-campaigns", "traitPairs") || {});
+          for (let i = 0; i < TRAIT_PAIRS.length; i++) {
+            if (this.data.traitPairs[i] === undefined) this.data.traitPairs[i] = 10;
+          }
+        } else {
+          for (let i = 0; i < TRAIT_PAIRS.length; i++) {
+            this.data.traitPairs[i] = randInt(0, 20);
+          }
+        }
+        this.data.trait = this._rollKey("trait");
+        this.data.values = this._rollKey("values");
+        this.data.valuedObject = this._rollKey("valuedObject");
+        this.data.lostIt = this._rollKey("lostIt");
+        this.data.fear = this._rollKey("fear");
+        this.data.valuedPerson = this._rollKey("valuedPerson");
+        this.data.quirk = this._rollKey("quirk");
+        this.data.faith = this._rollKey("faith");
+        
+        // 7. Life Events
+        this.data.lifeEvents = [];
+        for (let k = 0; k < 3; k++) {
+          this.data.lifeEvents.push(this._randEntry("lifeEvents"));
+        }
+        
+        // 8. Go to Step 12 (Review & Save)
+        this.step = STEP_COUNT;
+        this._touch();
+        this.render();
+        break;
+      }
+    }
+  }
+
+  _buildBiographyHtml() {
+    const d = this.data;
+    const P = (label, val) => val ? `<p><strong>${label}:</strong> ${esc(val)}</p>` : "";
+    let out = "";
+
+    // Structured (non-HTML) record of every named person mentioned below, kept in lockstep
+    // with the inline iNameTheeBtn() calls further down - this is what BackstorySheet's own
+    // "Send to iName Thee" toolbar reads from, since anything baked into the HTML itself gets
+    // stripped by that sheet's ProseMirror editor (buttons aren't a valid content node there).
+    const relatedPeople = [];
+    const iNameTheeBtnTracked = (role, name, concept) => {
+      if (name) relatedPeople.push({ role, name, concept, ...roleMeta(role) });
+      return iNameTheeBtn(role, name, concept);
+    };
+
+    let fam = "";
+    const genCards = [];
+    if (d.status) {
+      genCards.push(`
+      <div class="wicked-family-card">
+        <div class="card-label">Social Standing</div>
+        <div class="card-value">${esc(d.status)}</div>
+      </div>`);
+    }
+    if (d.childhood) {
+      genCards.push(`
+      <div class="wicked-family-card">
+        <div class="card-label">Childhood</div>
+        <div class="card-value">${esc(d.childhood)}</div>
+      </div>`);
+    }
+    // Kept as plain (unescaped) text here rather than baked-in HTML, so the exact same value can
+    // also seed the "family" HELPER_SECTIONS entry below - including the "alive"/"good" branches,
+    // which otherwise have no backing field at all (just this hardcoded one-liner) and would
+    // silently have nothing for the Helper to send/enhance.
+    let parentsVal = "";
+    if (d.parentsBranch === "disaster") parentsVal = d.parentalDisaster || "A disaster befell one or both parents.";
+    else if (d.parentsBranch === "special") parentsVal = d.familySecret ? `Family secret — ${d.familySecret}` : "There is something special about them.";
+    else if (d.parentsBranch === "alive") parentsVal = "Both alive and well.";
+    if (parentsVal) {
+      genCards.push(`
+      <div class="wicked-family-card">
+        <div class="card-label">Parents Status</div>
+        <div class="card-value">${esc(parentsVal)}</div>
+      </div>`);
+    }
+    let standingVal = "";
+    if (d.standingBranch === "bad") standingVal = d.familyCrisis ? `At risk — ${d.familyCrisis}` : "At risk — a crisis looms.";
+    else if (d.standingBranch === "good") standingVal = "Secure, even amid hardship.";
+    if (standingVal) {
+      genCards.push(`
+      <div class="wicked-family-card">
+        <div class="card-label">Family Standing</div>
+        <div class="card-value">${esc(standingVal)}</div>
+      </div>`);
+    }
+    if (d.familyGoal) {
+      genCards.push(`
+      <div class="wicked-family-card">
+        <div class="card-label">Family Goal</div>
+        <div class="card-value">${esc(d.familyGoal)}</div>
+      </div>`);
+    }
+    if (genCards.length) {
+      fam += `<div class="wicked-family-grid">${genCards.join("")}</div>`;
+    }
+
+    // Parent Cards
+    const familySuffix = familyContextSuffix([d.status, d.childhood, parentsVal, standingVal, d.familyGoal]);
+    const motherConcept = `${d.motherName}, the player character's mother.` +
+      (d.motherBond ? ` Relationship/bond: ${d.motherBond}.` : "") + (d.motherDescription ? ` ${d.motherDescription}` : "") + familySuffix;
+    const fatherConcept = `${d.fatherName}, the player character's father.` +
+      (d.fatherBond ? ` Relationship/bond: ${d.fatherBond}.` : "") + (d.fatherDescription ? ` ${d.fatherDescription}` : "") + familySuffix;
+    fam += `
+    <div class="wicked-parent-grid">
+      <div class="wicked-parent-card">
+        <div class="parent-role">Mother ${iNameTheeBtnTracked("mother", d.motherName, motherConcept)}</div>
+        <div class="parent-name">${esc(d.motherName || "[Mother Name]")}</div>
+        <div class="parent-details">
+          <p><strong>Relationship/Bond:</strong> ${d.motherBond ? esc(d.motherBond) : "<em>Not yet detailed.</em>"}</p>
+          <p><strong>Description:</strong> ${d.motherDescription ? esc(d.motherDescription) : "<em>Not yet detailed.</em>"}</p>
+        </div>
+      </div>
+      <div class="wicked-parent-card">
+        <div class="parent-role">Father ${iNameTheeBtnTracked("father", d.fatherName, fatherConcept)}</div>
+        <div class="parent-name">${esc(d.fatherName || "[Father Name]")}</div>
+        <div class="parent-details">
+          <p><strong>Relationship/Bond:</strong> ${d.fatherBond ? esc(d.fatherBond) : "<em>Not yet detailed.</em>"}</p>
+          <p><strong>Description:</strong> ${d.fatherDescription ? esc(d.fatherDescription) : "<em>Not yet detailed.</em>"}</p>
+        </div>
+      </div>
+    </div>`;
+
+    const bo = Number(d.birthOrder) || 0;
+    if (d.siblingsUnknown && d.siblings.length === 0) {
+      fam += `
+      <div class="wicked-uncertain-siblings-card">
+        <div class="card-title"><i class="fa-solid fa-circle-question"></i> Siblings Status</div>
+        <p>Uncertain — you may have siblings, as far as you know.</p>
+      </div>`;
+    } else if (bo >= 1) {
+      const Y = d.siblings.length + 1;
+      if (Y === 1) {
+        fam += `
+        <div class="wicked-only-child-card">
+          <div class="card-title"><i class="fa-solid fa-user"></i> Siblings Status</div>
+          <p>An only child.</p>
+        </div>`;
+      } else {
+        fam += `<p><strong>Birth order:</strong> ${ordinal(Math.min(bo, Y))} of ${Y} children.</p>`;
+        const positions = [];
+        for (let p = 1; p <= Y; p++) if (p !== Math.min(bo, Y)) positions.push(p);
+        const X = Math.min(bo, Y);
+        const pcSex = this._pcSex();
+        const items = d.siblings.map((s, i) => {
+          const pos = positions[i];
+          const ord = pos < X ? "older" : "younger";
+          const kind = this._siblingKind(s, pos, X);
+          const sex = kind.key === "identical" ? pcSex : s.sex;
+          const noun = sex === "male" ? "brother" : sex === "female" ? "sister" : "";
+          const who = noun ? `${ord} ${noun}` : ord;
+          // Persisted onto the sibling record (not just used for this render) so a live-rebuilt
+          // "Send to iName Thee" concept can still say "older brother" instead of just "sibling",
+          // and "identical twin"/"half-sibling" instead of nothing at all - twin/half status
+          // depends on birth-order position relative to the PC (twins are only adjacent siblings),
+          // which isn't otherwise derivable from lifepathSiblings alone.
+          s.who = who;
+          s.kindLabel = kind.label || "";
+          const kindStr = kind.label ? `, ${kind.label}` : "";
+          const rel = s.relation ? esc(s.relation) : "";
+          const bond = s.bond ? esc(s.bond) : "";
+          const dead = s.alive === false;
+          
+          const tags = [];
+          tags.push(`<span class="sibling-tag-pill">${who}</span>`);
+          if (kind.key && kind.key !== "full") {
+            tags.push(`<span class="sibling-tag-pill ${kind.key}">${kind.label}</span>`);
+          }
+          if (dead) {
+            tags.push(`<span class="sibling-tag-pill dead">deceased</span>`);
+          }
+          const tagsHtml = tags.join(" ");
+          const siblingConcept = `${s.name}, the player character's ${who}${kindStr}.` +
+            (rel ? ` Occupation/status: ${s.relation}.` : "") + (bond ? ` Relationship: ${s.bond}.` : "") + (dead ? " Deceased." : "") + familySuffix;
+
+          return `
+          <div class="wicked-sibling-card${dead ? " is-dead" : ""}">
+            <div class="sibling-name">${esc(s.name || "[Sibling Name]")} ${iNameTheeBtnTracked(`sibling-${i}`, s.name, siblingConcept)}</div>
+            <div class="sibling-header">
+              <span class="sibling-ordinal">${ordinal(pos)} Child</span>
+              ${tagsHtml}
+            </div>
+            <div class="sibling-details" style="margin-top: 0.5rem;">
+              <p><strong>Occupation/Status:</strong> ${rel || "<em>Not yet detailed.</em>"}</p>
+              <p><strong>Relationship:</strong> ${bond || "<em>Not yet detailed.</em>"}</p>
+            </div>
+          </div>`;
+        }).join("");
+        fam += `<div class="wicked-sibling-grid">${items}</div>`;
+      }
+    }
+    if (fam) out += "<h2>Family</h2>" + fam;
+
+    const renderFECard = (e, idx, isFriend) => {
+      const typeClass = isFriend ? "is-friend" : "is-enemy";
+      const namePlaceholder = isFriend ? "[Friend Name]" : "[Enemy Name]";
+      const nameVal = e.name ? esc(e.name) : namePlaceholder;
+      const tags = [];
+      if (e.sex) tags.push(`<span class="fe-tag-pill">${esc(e.sex)}</span>`);
+      if (e.race) tags.push(`<span class="fe-tag-pill">${esc(e.race)}</span>`);
+      if (e.profession) tags.push(`<span class="fe-tag-pill">${esc(e.profession)}</span>`);
+      const tagsHtml = tags.join(" ");
+      const relationWord = isFriend ? "friend" : "enemy";
+      const feConcept = `${e.name}, a${isFriend ? "" : "n"} ${relationWord} of the player character.` +
+        [e.sex, e.race, e.profession].filter(Boolean).map((v) => ` ${v}.`).join("") +
+        (e.situation ? ` Situation: ${e.situation}.` : "");
+
+      return `
+      <div class="wicked-fe-card ${typeClass}">
+        <div class="fe-name">${nameVal} ${iNameTheeBtnTracked(`${relationWord}-${idx}`, e.name, feConcept)}</div>
+        ${tagsHtml ? `<div class="fe-header">${tagsHtml}</div>` : ""}
+        <div class="fe-details" style="margin-top: 0.5rem;">
+          ${e.situation ? `<p><strong>Situation:</strong> ${esc(e.situation)}</p>` : ""}
+        </div>
+      </div>`;
+    };
+
+    let fe = "";
+    if (d.friends.length) {
+      fe += "<h3>Friends</h3>";
+      const cards = d.friends.map((e, i) => renderFECard(e, i, true)).join("");
+      fe += `<div class="wicked-fe-grid">${cards}</div>`;
+    }
+    if (d.enemies.length) {
+      fe += "<h3>Enemies</h3>";
+      const cards = d.enemies.map((e, i) => renderFECard(e, i, false)).join("");
+      fe += `<div class="wicked-fe-grid">${cards}</div>`;
+    }
+    if (fe) out += "<h2>Friends &amp; Enemies</h2>" + fe;
+
+    if (d.romanceStatus) {
+      let rom = `
+      <div class="wicked-family-grid">
+        <div class="wicked-family-card">
+          <div class="card-label">Romance Status</div>
+          <div class="card-value"><strong>${esc(ROMANCE_LABEL[d.romanceStatus])}</strong>${d.romanceDetail ? ` — ${esc(d.romanceDetail)}` : ""}</div>
+        </div>
+      </div>`;
+      if (d.romanceStatus !== "lookout") {
+        const isTragic = d.romanceStatus === "tragic";
+        const namePlaceholder = isTragic ? "[Lost Lover Name]" : "[Lover Name]";
+        const nameVal = d.loverName ? esc(d.loverName) : namePlaceholder;
+        
+        const tags = [];
+        if (d.loverGender) tags.push(`<span class="partner-tag-pill">${esc(d.loverGender)}</span>`);
+        if (d.loverRace) tags.push(`<span class="partner-tag-pill">${esc(d.loverRace)}</span>`);
+        if (d.loverProfession) tags.push(`<span class="partner-tag-pill">${esc(d.loverProfession)}</span>`);
+        const tagsHtml = tags.join(" ");
+
+        const loverConcept = `${d.loverName}, the player character's ${isTragic ? "deceased former lover" : "lover/romantic partner"}.` +
+          [d.loverGender, d.loverRace, d.loverProfession].filter(Boolean).map((v) => ` ${v}.`).join("") +
+          (d.loverAppearance ? ` Appearance: ${d.loverAppearance}.` : "") +
+          (d.romanceDetail ? ` ${d.romanceDetail}` : "");
+
+        rom += `
+        <div class="wicked-partner-card${isTragic ? " is-tragic" : ""}">
+          <div class="partner-role">${isTragic ? "Lost Lover" : "Lover"} ${iNameTheeBtnTracked("lover", d.loverName, loverConcept)}</div>
+          <div class="partner-name">${nameVal}</div>
+          ${tagsHtml ? `<div class="partner-header">${tagsHtml}</div>` : ""}
+          <div class="partner-details" style="margin-top: 0.5rem;">
+            ${d.loverAppearance ? `<p><strong>Appearance:</strong> ${esc(d.loverAppearance)}</p>` : "<p><em>No description details.</em></p>"}
+          </div>
+        </div>`;
+      }
+      out += "<h2>Romance</h2>" + rom;
+    }
+
+    // Appearance (hair/eyes/skin) isn't duplicated here anymore - the wizard
+    // only uses those answers to help fill in the character sheet's own
+    // native fields, which is where that data actually lives.
+
+    if (d.faith) {
+      const plainFaith = d.faith.replace(/<\/?p>/gi, "").trim();
+      const dashMatch = plainFaith.match(/^(.+?)\s+—\s+(.+)$/);
+      const faithCard = dashMatch
+        ? `
+        <div class="wicked-faith-card">
+          <div class="faith-role">Deity</div>
+          <div class="faith-name">${esc(dashMatch[1].trim())}</div>
+          <div class="faith-details">
+            <p>${esc(dashMatch[2].trim())}</p>
+          </div>
+        </div>`
+        : `
+        <div class="wicked-faith-card">
+          <div class="faith-role">Faith</div>
+          <div class="faith-details">
+            <p>${esc(plainFaith)}</p>
+          </div>
+        </div>`;
+      out += "<h2>Faith</h2>" + faithCard;
+    }
+
+    let per = "";
+    // Trait pairs are deliberately not duplicated here - they live authoritatively on the
+    // actor's own flags and render live on the character sheet's own Wicked Traits tab, so
+    // baking a static copy into this HTML would just be a second, stale-risk copy of the same
+    // data (same reasoning as the single Personality Trait/Appearance fields above).
+    let perBody = P("Defining trait", d.trait) + P("Values most", d.values) + P("Most valued object", d.valuedObject)
+      + P("If it were lost", d.lostIt) + P("Greatest fear", d.fear) + P("Person they value most", d.valuedPerson) + P("Quirk", d.quirk);
+    if (perBody) {
+      per = `
+      <div class="wicked-family-card">
+        <div class="card-label">Persona &amp; Values</div>
+        <div class="card-value" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          ${perBody}
+        </div>
+      </div>`;
+    }
+    if (per) out += "<h2>Personality</h2>" + per;
+
+    let ev = "";
+    if (d.lifeEvents.length) {
+      const cards = d.lifeEvents.map((e, idx) => {
+        if (!e.text) return "";
+        const isLucky = e.luck === "lucky";
+        const typeClass = isLucky ? "is-lucky" : "is-unlucky";
+        const tagLabel = isLucky ? "Lucky Event" : "Unlucky Event";
+        return `
+        <div class="wicked-event-card ${typeClass}">
+          <div class="event-title">Event ${idx + 1}</div>
+          <div class="event-header">
+            <span class="event-tag-pill">${tagLabel}</span>
+          </div>
+          <div class="event-text" style="margin-top: 0.5rem;">
+            ${esc(e.text)}
+          </div>
+        </div>`;
+      }).filter(Boolean).join("");
+      if (cards) {
+        ev = `<div class="wicked-event-grid">${cards}</div>`;
+      }
+    }
+    if (ev) out += "<h2>Life Events</h2>" + ev;
+
+    // Friends/enemies/lover/faith/personality/lifeEvents are returned separately (not just baked
+    // into html) so they can be persisted as their own flags - the iName Thee Helper feature needs
+    // clean fields to review/rewrite later, which the rendered prose alone can't give it back. No
+    // lover at all (or still "on the lookout") means null - nothing for the Helper to check there.
+    const lover = (d.romanceStatus && d.romanceStatus !== "lookout")
+      ? {
+          name: d.loverName, gender: d.loverGender, race: d.loverRace,
+          profession: d.loverProfession, appearance: d.loverAppearance,
+          romanceStatus: d.romanceStatus, romanceDetail: d.romanceDetail,
+        }
+      : null;
+
+    // d.faith is one raw string, sometimes "Deity Name — description" and sometimes just plain
+    // description with no named deity - split it the same way the HTML rendering above already
+    // does, so the Helper can enhance the description without ever touching/inventing a deity name.
+    let faith = null;
+    if (d.faith) {
+      const plainFaith = d.faith.replace(/<\/?p>/gi, "").trim();
+      const dashMatch = plainFaith.match(/^(.+?)\s+—\s+(.+)$/);
+      faith = dashMatch
+        ? { deityName: dashMatch[1].trim(), description: dashMatch[2].trim() }
+        : { deityName: "", description: plainFaith };
+    }
+
+    // Personality is several independent scalar fields on `d`, not already an array - reshaped
+    // into {field, label, text} entries (only for fields that actually have a value, same as P()'s
+    // own conditional rendering above) so it fits the same "array of reviewable entries" shape
+    // every other HELPER_SECTIONS entry expects.
+    const personalityFieldDefs = [
+      { field: "trait", label: "Defining trait" },
+      { field: "values", label: "Values most" },
+      { field: "valuedObject", label: "Most valued object" },
+      { field: "lostIt", label: "If it were lost" },
+      { field: "fear", label: "Greatest fear" },
+      { field: "valuedPerson", label: "Person they value most" },
+      { field: "quirk", label: "Quirk" },
+    ];
+    const personality = personalityFieldDefs
+      .filter(({ field }) => d[field])
+      .map(({ field, label }) => ({ field, label, text: d[field] }));
+
+    // Family background is a mix of independent scalar fields (status, childhood, familyGoal) and
+    // two branch-dependent values (parentsVal, standingVal - computed above, already covering the
+    // "good"/"alive" branches' hardcoded one-liners too, not just the "bad"/"disaster" ones that
+    // have a real backing field) - reshaped into the same {field, label, text} entries shape as
+    // personality, keyed by the exact .card-label text each one renders under above so
+    // patchFamilyCardByLabel can find it later.
+    const familyFieldDefs = [];
+    if (d.status) familyFieldDefs.push({ field: "status", label: "Social Standing", text: d.status });
+    if (d.childhood) familyFieldDefs.push({ field: "childhood", label: "Childhood", text: d.childhood });
+    if (parentsVal) familyFieldDefs.push({ field: "parentsStatus", label: "Parents Status", text: parentsVal });
+    if (standingVal) familyFieldDefs.push({ field: "familyStanding", label: "Family Standing", text: standingVal });
+    if (d.familyGoal) familyFieldDefs.push({ field: "familyGoal", label: "Family Goal", text: d.familyGoal });
+
+    // Mother/father share the same two enhanceable fields (an existing bond, plus a
+    // Helper-only description that starts blank) - stored together under one flag so accepting
+    // both in the same batch can't clobber each other (same dataKey-sharing pattern lover/
+    // loverAppearance already use).
+    const parents = [
+      { role: "mother", name: d.motherName || "", bond: d.motherBond || "", description: d.motherDescription || "" },
+      { role: "father", name: d.fatherName || "", bond: d.fatherBond || "", description: d.fatherDescription || "" },
+    ];
+
+    return {
+      html: out, relatedPeople, friends: d.friends, enemies: d.enemies, lover, faith, personality,
+      lifeEvents: d.lifeEvents, family: familyFieldDefs, parents, siblings: d.siblings,
+    };
+  }
+
+  async _save() {
+    const existingBackstory = findBackstoryForActorSync(this.actor);
+    const hasExistingContent = !!existingBackstory?.getFlag(CC_MODULE_ID, "data")?.description;
+    if (hasExistingContent) {
+      const confirmed = await foundry.applications.api.DialogV2.confirm({
+        window: { title: "Overwrite Existing Backstory?" },
+        content: `<p>${this.actor.name} already has a backstory saved. Saving now will overwrite it with what's currently in the wizard. This can't be undone.</p>`,
+        rejectClose: false,
+      }).catch(() => false);
+      if (!confirmed) return;
+    }
+
+    this._syncFromDom();
+    const { html, relatedPeople, friends, enemies, lover, faith, personality, lifeEvents, family, parents, siblings } = this._buildBiographyHtml();
+    try {
+      const actorUpdates = {
+        "system.details.alignment": this.data.alignment ?? "",
+        "system.details.gender": this.data.gender ?? "",
+        "system.details.height": this.data.height ?? "",
+        "system.details.weight": this.data.weight ?? "",
+        "system.details.age": this.data.age ?? "",
+        "system.details.hair": this.data.hairColor ?? "",
+        "system.details.eyes": this.data.eyeColor ?? "",
+        "system.details.skin": this.data.skin ?? "",
+        "system.details.faith": this.data.faith ? `${this.data.faith} (See the backstory sheet for more info)` : "",
+        "system.details.ideal": "See the backstory sheet for more info",
+        "system.details.trait": "See the backstory sheet for more info",
+        "system.details.bond": "See the backstory sheet for more info",
+        "system.details.appearance": "See the backstory sheet for more info",
+        "system.details.flaw": "See the backstory sheet for more info",
+        "system.details.biography.value": "See the backstory sheet for more info",
+      };
+
+      await this.actor.update(actorUpdates);
+
+      if (html) {
+        await this.actor.setFlag("cv-wicked-campaigns", "useTraitPairs", this.data.useTraitPairs);
+        await this.actor.setFlag("cv-wicked-campaigns", "traitPairs", this.data.traitPairs);
+        try {
+          await saveBackstoryToCampaignCodex(this.actor, html, relatedPeople, friends, enemies, lover, faith, personality, lifeEvents, family, parents, siblings);
+        } catch (jErr) {
+          console.error("Wicked Campaigns | Failed to save backstory codex entry", jErr);
+        }
+      }
+
+      // Force trigger character sheet re-render so it shows everything instantly
+      if (this.actor.sheet) {
+          this.actor.sheet.render(false);
+      }
+      
+      this.saveResult = { ok: true, msg: `Personal Info and Background saved to ${this.actor.name}.` };
+      ui.notifications.info(`Personal Info and Background saved to ${this.actor.name}.`);
+    } catch (err) {
+      console.error("Wicked Wizard | save failed", err);
+      this.saveResult = { ok: false, msg: `Save failed: ${err.message}` };
+      ui.notifications.error(`Wicked Wizard save failed: ${err.message}`);
+    }
+    this.render();
+  }
+
+  static async launch(actor) {
+    const id = `qos-lifepath-${actor.id}`;
+    const existing = foundry.applications?.instances?.get?.(id);
+    if (existing) {
+      existing.render(true);
+      return existing;
+    }
+
+    const PACK_ID = "cv-wicked-campaigns.wicked-adventures";
+    const ADVENTURE_NAME = "The Unknown Lands";
+    const FLAG_MODULE_ID = "cv-queen-of-storms-compendiums";
+    
+    const pack = game.packs.get(PACK_ID);
+    if (!pack) {
+        ui.notifications.error(`Wicked Campaigns | Compendium "${PACK_ID}" not found.`);
+        return;
+    }
+
+    ui.notifications.info("Wicked Campaigns | Loading Lifepath tables...");
+    
+    try {
+        const docs = await pack.getDocuments();
+        const adventure = docs.find(d => d.name === ADVENTURE_NAME);
+        if (!adventure) {
+            ui.notifications.error(`Wicked Campaigns | Adventure "${ADVENTURE_NAME}" not found in compendium "${PACK_ID}".`);
+            return;
+        }
+
+        const tableDocs = {};
+        const tableText = {};
+        const tableWeights = {};
+
+        const stripHtml = (s) => {
+            const d = document.createElement("div");
+            d.innerHTML = String(s ?? "");
+            return (d.textContent || d.innerText || "").trim();
+        };
+
+        for (const t of adventure.tables) {
+            let key = t.flags?.[FLAG_MODULE_ID]?.key;
+            if (!key) {
+                const n = t.name || "";
+                if (n.includes("Skin Tone")) key = "skinTone";
+                else if (n.includes("Faith")) key = "faith";
+                else if (n === "Fantasy Female Names") key = "femaleNames";
+                else if (n === "Fantasy Male Names") key = "maleNames";
+                else if (n === "Fantasy Neutral Names") key = "neutralNames";
+                else if (n === "Fantasy Last Names") key = "lastNames";
+            }
+            if (key) {
+                tableDocs[key] = t;
+            }
+        }
+
+        const mappings = game.settings.get("cv-wicked-campaigns", "tableMappings") || {};
+        for (const grp of LIFEPATH_TABLES_LIST) {
+            for (const item of grp.items) {
+                const customTableId = mappings[item.key];
+                let activeTable = null;
+                if (customTableId) {
+                    activeTable = game.tables.get(customTableId);
+                }
+                if (!activeTable) {
+                    activeTable = game.tables.getName(item.defaultName);
+                }
+                if (activeTable) {
+                    tableDocs[item.key] = activeTable;
+                }
+            }
+        }
+
+        for (const [key, doc] of Object.entries(tableDocs)) {
+            const rows = [...doc.results].sort((a, b) => (a.range?.[0] ?? 0) - (b.range?.[0] ?? 0));
+            tableText[key] = rows.map((r) => stripHtml(r.description || r.name || ""));
+            tableWeights[key] = rows.map((r) => Math.max(1, (r.range?.[1] ?? 1) - (r.range?.[0] ?? 1) + 1));
+        }
+
+        const wizard = new LifepathWizard(actor, { text: tableText, weights: tableWeights, docs: tableDocs });
+        wizard.render({ force: true });
+        return wizard;
+    } catch (err) {
+        console.error("Wicked Campaigns | Failed to load lifepath tables", err);
+        ui.notifications.error("Wicked Campaigns | Could not load lifepath tables. See console for details.");
+    }
+  }
+}
+
+// `label` is short/display-only now - the "(Table X)" suffix these used to carry inline moved to
+// its own `code` field, rendered as a small trailing badge instead of being duplicated a second
+// time in the "Default: ..." hint line below the label (see table-config.hbs). `defaultName` is
+// still the load-bearing lookup key startSessionZeroGame/table-loading code searches world tables
+// for - unchanged.
+const LIFEPATH_TABLES_LIST = [
+  { group: "1. Social & Family Origin", items: [
+    { key: "status", label: "Social Standing", code: "T1", defaultName: "Lifepath · Social Standing (T1)" },
+    { key: "childhood", label: "Childhood Event", code: "1A", defaultName: "Lifepath · Childhood Event (1A)" },
+    { key: "parentalDisaster", label: "Parental Tragedy", code: "1C", defaultName: "Lifepath · What Happened to Your Parents (1C)" },
+    { key: "familySecret", label: "Family Secret", code: "1D", defaultName: "Lifepath · Family Secret (1D)" },
+    { key: "familyCrisis", label: "Family Crisis", code: "1F", defaultName: "Lifepath · Family Crisis (1F)" },
+    { key: "familyGoal", label: "Family Goal", code: "1G", defaultName: "Lifepath · Family Goal (1G)" },
+    { key: "siblings", label: "Sibling Relationship", code: "1H", defaultName: "Lifepath · Siblings (1H)" },
+    { key: "familyBond", label: "Family/Sibling Bond", code: "0R", defaultName: "Lifepath · Family Bond (0R)" }
+  ]},
+  { group: "2. Friends, Enemies & Romance", items: [
+    { key: "friendSituation", label: "Friend Situation", code: "T2/2A", defaultName: "Lifepath · Friend Situation (T2/2A)" },
+    { key: "enemySituation", label: "Enemy Situation", code: "T2/2A", defaultName: "Lifepath · Enemy Situation (T2/2A)" },
+    { key: "feRace", label: "Friend/Enemy Ancestry/Identity", code: "2B", defaultName: "Lifepath · Friend/Enemy Identity (2B)" },
+    { key: "feProfession", label: "Friend/Enemy Profession", code: "2C", defaultName: "Lifepath · Friend/Enemy Profession (2C)" },
+    { key: "romanceHealthy", label: "Romance Detail: Healthy", code: "3A", defaultName: "Lifepath · Healthy Romance (3A)" },
+    { key: "romanceLookout", label: "Romance Detail: Lookout", code: "3B", defaultName: "Lifepath · On the Lookout (3B)" },
+    { key: "romanceTragic", label: "Romance Detail: Tragic", code: "3C", defaultName: "Lifepath · Tragic Romance (3C)" },
+    { key: "romanceProblematic", label: "Romance Detail: Complication", code: "3D", defaultName: "Lifepath · Problematic Romance (3D)" },
+    { key: "loverRace", label: "Lover Ancestry/Identity", code: "3E", defaultName: "Lifepath · Lover Identity (3E)" },
+    { key: "loverProfession", label: "Lover Profession", code: "3F", defaultName: "Lifepath · Lover Profession (3F)" },
+    { key: "loverAppearance", label: "Lover Appearance", code: "3G", defaultName: "Lifepath · Lover Appearance (3G)" }
+  ]},
+  { group: "3. Personal Characteristics", items: [
+    { key: "hairColor", label: "Hair Color", code: "4", defaultName: "Lifepath · Hair Color (4)" },
+    { key: "hairStyle", label: "Hair Style", code: "4A", defaultName: "Lifepath · Hair Style (4A)" },
+    { key: "eyeColor", label: "Eye Color", code: "4B", defaultName: "Lifepath · Eye Color (4B)" },
+    { key: "skinTone", label: "Skin Tone", code: "4AA", defaultName: "Lifepath · Skin Tone (4AA)" },
+    { key: "personalStyle", label: "Personal Style", code: "4C", defaultName: "Lifepath · Personal Style (4C)" },
+    { key: "trait", label: "Defining Personality Trait", code: "5", defaultName: "Lifepath · Personality Trait (5)" },
+    { key: "values", label: "What is Valued Most", code: "5A", defaultName: "Lifepath · Values (5A)" },
+    { key: "valuedObject", label: "Most Valued Object", code: "5B", defaultName: "Lifepath · Valued Object (5B)" },
+    { key: "lostIt", label: "If It Were Lost...", code: "5C", defaultName: "Lifepath · If You Lost It (5C)" },
+    { key: "fear", label: "Greatest Fear", code: "5D", defaultName: "Lifepath · Fear (5D)" },
+    { key: "valuedPerson", label: "Person Valued Most", code: "5E", defaultName: "Lifepath · Valued Person (5E)" },
+    { key: "quirk", label: "Personality Quirk", code: "5F–5H", defaultName: "Lifepath · Quirk (5F–5H)" },
+    { key: "faith", label: "Faith", code: "5I", defaultName: "Lifepath · Faith (5I)" }
+  ]},
+  { group: "4. Names & Life Events", items: [
+    { key: "femaleNames", label: "Fantasy Female Names", code: "", defaultName: "Fantasy Female Names" },
+    { key: "maleNames", label: "Fantasy Male Names", code: "", defaultName: "Fantasy Male Names" },
+    { key: "neutralNames", label: "Fantasy Neutral Names", code: "", defaultName: "Fantasy Neutral Names" },
+    { key: "lastNames", label: "Fantasy Last Names", code: "", defaultName: "Fantasy Last Names" },
+    { key: "lucky", label: "Lucky Life Events", code: "6B", defaultName: "Lifepath · Lucky Life Event (6B)" },
+    { key: "unlucky", label: "Unlucky Life Events", code: "6A", defaultName: "Lifepath · Unlucky Life Event (6A)" }
+  ]}
+];
+
+// Migrated from a legacy V1 FormApplication to standard ApplicationV2 - matches every other
+// custom window in this module (FatePoolManager is the closest precedent: a standalone,
+// non-document-linked config window). The "standard-form" class is what gives the plain
+// form-group/form-fields/fieldset/legend markup below Foundry's own default spacing and
+// theme-reactive styling for free, instead of the hand-rolled colors/!important overrides this
+// sheet used to need.
+class LifepathTableConfigApp extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+  static DEFAULT_OPTIONS = {
+    id: "wicked-lifepath-table-config",
+    classes: ["wicked-campaigns", "standard-form"],
+    window: {
+      title: "Configure Lifepath Roll Tables",
+      icon: "fa-solid fa-dice",
+      resizable: true,
+    },
+    position: {
+      width: 600,
+      height: 600,
+    },
+  };
+
+  static PARTS = {
+    form: { template: "modules/cv-wicked-campaigns/templates/table-config.hbs", scrollable: [".config-body"] },
+  };
+
+  async _prepareContext(options) {
+    const mappings = game.settings.get("cv-wicked-campaigns", "tableMappings") || {};
+    const worldTables = game.tables.contents
+      .map((t) => ({ id: t.id, name: t.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const sections = LIFEPATH_TABLES_LIST.map((grp) => ({
+      group: grp.group,
+      items: grp.items.map((item) => ({
+        key: item.key,
+        label: item.label,
+        code: item.code,
+        defaultName: item.defaultName,
+        selected: mappings[item.key] || "",
+        worldTables,
+      })),
+    }));
+
+    return { sections };
+  }
+
+  _onRender(context, options) {
+    this.element.querySelector("form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const mappings = {};
+      this.element.querySelectorAll("select[name]").forEach((select) => {
+        if (select.value) mappings[select.name] = select.value;
+      });
+      await game.settings.set("cv-wicked-campaigns", "tableMappings", mappings);
+      ui.notifications.info("Wicked Campaigns | Lifepath table mappings saved successfully.");
+      this.close();
+    });
+  }
+}
+
+// ---- Hooks ---------------------------------------------------------------
+Hooks.once('init', async function() {
+    console.log('Wicked Campaigns | Initializing Wicked Campaigns module');
+
+    game.settings.registerMenu("cv-wicked-campaigns", "tableConfig", {
+      name: "Configure Lifepath Roll Tables",
+      label: "Configure Tables",
+      hint: "Select which world-level roll tables the Lifepath Wizard should use instead of the compendium defaults.",
+      icon: "fas fa-dice",
+      type: LifepathTableConfigApp,
+      restricted: true
+    });
+
+    game.settings.register("cv-wicked-campaigns", "tableMappings", {
+      scope: "world",
+      config: false,
+      type: Object,
+      default: {}
+    });
+
+    game.settings.register("cv-wicked-campaigns", ACTIVE_PARTY_SETTING, {
+      scope: "world",
+      config: false,
+      type: String,
+      default: ""
+    });
+
+    game.settings.register("cv-wicked-campaigns", "appliedDefaultCCTheme", {
+      scope: "world",
+      config: false,
+      type: Boolean,
+      default: false
+    });
+
+    game.settings.register("cv-wicked-campaigns", "appliedDefaultIncludedCompendium", {
+      scope: "world",
+      config: false,
+      type: Boolean,
+      default: false
+    });
+
+    // Gates the "iName Thee Helper" button on the Backstory sheet - off by default since it
+    // depends on iName Thee being installed/active and a GM being online to relay through.
+    game.settings.register("cv-wicked-campaigns", "inameTheeIntegration", {
+      name: "iName Thee Integration",
+      hint: "Enables the \"iName Thee Helper\" button on Backstory sheets, which asks iName Thee's AI to smooth logic clashes (e.g. a friend's situation contradicting their rolled profession). Requires iName Thee to be installed and active.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: false
+    });
+
+    DocumentSheetConfig.registerSheet(JournalEntry, "cv-wicked-campaigns", PartySheet, {
+      types: ["base"],
+      label: "CV_WICKED_CAMPAIGNS.PartySheetLabel"
+    });
+
+    DocumentSheetConfig.registerSheet(JournalEntry, "cv-wicked-campaigns", BackstorySheet, {
+      types: ["base"],
+      label: "CV_WICKED_CAMPAIGNS.BackstorySheetLabel"
+    });
+
+    DocumentSheetConfig.registerSheet(JournalEntry, "cv-wicked-campaigns", SessionZeroSheet, {
+      types: ["base"],
+      label: "CV_WICKED_CAMPAIGNS.SessionZeroSheetLabel"
+    });
+
+    // @Say pronunciation links: click to play the referenced audio file.
+    CONFIG.TextEditor.enrichers.push({
+      id: "wicked-say",
+      pattern: SAY_ENRICHER_PATTERN,
+      enricher: async (match) => enrichSayLink(match)
+    });
+
+    document.addEventListener("click", (event) => {
+      const link = event.target.closest(".wicked-say-link");
+      if (!link) return;
+      event.preventDefault();
+      const path = link.dataset.audioPath;
+      if (!path) return;
+      foundry.audio.AudioHelper.play({ src: path, volume: 0.8, autoplay: true, loop: false }, false);
+    });
+
+    // Toggle between Token Controls and the Complete Card Management card layer.
+    // From any layer other than "cards", jumps to "tokens" first.
+    game.keybindings.register("cv-wicked-campaigns", "toggleTokenCardLayer", {
+      name: "CV_WICKED_CAMPAIGNS.Keybindings.ToggleTokenCardLayer.Name",
+      hint: "CV_WICKED_CAMPAIGNS.Keybindings.ToggleTokenCardLayer.Hint",
+      editable: [{ key: "KeyZ", modifiers: ["Alt"] }],
+      restricted: false,
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
+      onDown: () => {
+        if (!canvas?.ready) return;
+        const target = ui.controls.control?.name === "tokens" ? "cards" : "tokens";
+        ui.controls.activate({ control: target });
+      }
+    });
+
+    // Keybinding to open Fate Pool Manager (GM only)
+    game.keybindings.register("cv-wicked-campaigns", "openFatePoolManager", {
+        name: "Open Fate Pool Manager",
+        hint: "Open the Fate Pool manager dialog (GM only).",
+        editable: [{ key: "KeyB", modifiers: ["SHIFT"] }],
+        onDown: () => {
+            if (!game.user.isGM) return;
+            const openWindow = foundry.applications.instances.get("fate-pool-manager");
+            if (openWindow) openWindow.close();
+            else new FatePoolManager().render(true);
+        },
+        restricted: true
+    });
+
+    // Keybinding to Quick Add Fate Point (GM only)
+    game.keybindings.register("cv-wicked-campaigns", "addFatePoint", {
+        name: "Quick Add Fate Point",
+        hint: "Instantly add 1 point to the Fate Pool (GM only).",
+        editable: [{ key: "KeyB" }],
+        onDown: () => {
+            if (!game.user.isGM) return;
+            updateFatePool(1, "Quick Add (Hot Key)");
+        },
+        restricted: true
+    });
+
+    // Keybinding to Quick Subtract Fate Point (GM only)
+    game.keybindings.register("cv-wicked-campaigns", "subtractFatePoint", {
+        name: "Quick Subtract Fate Point",
+        hint: "Instantly subtract 1 point from the Fate Pool (GM only).",
+        editable: [{ key: "KeyB", modifiers: ["ALT"] }],
+        onDown: () => {
+            if (!game.user.isGM) return;
+            updateFatePool(-1, "Quick Subtract (Hot Key)");
+        },
+        restricted: true
+    });
+
+    // Register the Wicked Character Sheet: a subclass of dnd5e's own sheet
+    // with our custom tabs added, registered as the default for PC actors
+    // so players can still opt back into the vanilla sheet via Configure Sheet.
+    const CharacterActorSheet = dnd5e?.applications?.actor?.CharacterActorSheet;
+    if (CharacterActorSheet) {
+        class WickedCharacterSheet extends CharacterActorSheet {
+            static DEFAULT_OPTIONS = {
+                ...super.DEFAULT_OPTIONS,
+                classes: [...(super.DEFAULT_OPTIONS.classes ?? []), "wicked-character-sheet"],
+                actions: {
+                    ...super.DEFAULT_OPTIONS.actions,
+                    "open-lifepath-wizard": function(event, target) {
+                        LifepathWizard.launch(this.actor);
+                    },
+                    "open-backstory-sheet": async function(event, target) {
+                        const backstory = findBackstoryForActorSync(this.actor);
+                        backstory?.sheet?.render(true);
+                    },
+                    "export-background-pdf": async function(event, target) {
+                        const backstory = findBackstoryForActorSync(this.actor);
+                        ui.notifications.info(`Building PDF for ${this.actor.name}…`);
+                        try {
+                            await exportBackgroundPdf(this.actor, backstory);
+                        } catch (err) {
+                            console.error("Wicked Campaigns | Failed to export background PDF", err);
+                            ui.notifications.error(`Failed to build PDF: ${err?.message ?? "Something went wrong."}`);
+                        }
+                    },
+                    "send-to-iname-thee": async function(event, target) {
+                        const backstory = findBackstoryForActorSync(this.actor);
+                        const { inameRole: role, inameName: name, inameConcept: concept } = target.dataset;
+                        await sendToINameThee({ backstory, actorName: this.actor.name, role, name, concept });
+                    },
+                    "initialize-traits": async function(event, target) {
+                        const defaultPairs = {};
+                        for (let i = 0; i < TRAIT_PAIRS.length; i++) {
+                            defaultPairs[i] = 10;
+                        }
+                        await this.actor.setFlag("cv-wicked-campaigns", "useTraitPairs", true);
+                        await this.actor.setFlag("cv-wicked-campaigns", "traitPairs", defaultPairs);
+                        ui.notifications.info("Personality Traits initialized with balanced starting values!");
+                    },
+                    "spend-fate-point": async function(event, target) {
+                        const current = getFatePoolSync();
+                        if (current <= 0 && !game.user.isGM) {
+                            ui.notifications.warn("The Fate Pool is empty!");
+                            return;
+                        }
+                        await updateFatePool(-1, `Spent Fate Point (${this.actor.name})`);
+                    },
+                    "roll-trait": async function(event, target) {
+                        const traitName = target.dataset.name;
+                        const value = parseInt(target.dataset.value, 10) ?? 10;
+
+                        const roll = await new Roll("1d20").evaluate({ async: true });
+
+                        let isCritical = false;
+                        let isFumble = false;
+                        let isSuccess = false;
+
+                        if (value >= 20) {
+                            isSuccess = true;
+                            if (roll.total === 20 || roll.total === value) {
+                                isCritical = true;
+                            }
+                        } else {
+                            if (roll.total === 20) {
+                                isFumble = true;
+                            } else if (roll.total === value) {
+                                isCritical = true;
+                                isSuccess = true;
+                            } else if (roll.total < value) {
+                                isSuccess = true;
+                            }
+                        }
+
+                        let resultText = "";
+                        let resultClass = "";
+                        if (isCritical) {
+                            resultText = "Critical Success!";
+                            resultClass = "critical";
+                        } else if (isFumble) {
+                            resultText = "Fumble!";
+                            resultClass = "fumble";
+                        } else if (isSuccess) {
+                            resultText = "Success";
+                            resultClass = "success";
+                        } else {
+                            resultText = "Failure";
+                            resultClass = "failure";
+                        }
+
+                        const content = `
+                            <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif;">
+                                <div class="card-content" style="padding: 0.5rem 0;">
+                                    <p style="margin: 0 0 0.5rem 0; font-size: 0.95rem; text-align: center;">
+                                        Rolling against <strong>${traitName}</strong> (Target: ${value})
+                                    </p>
+                                    <div class="wicked-trait-roll-box">
+                                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                            <i class="fa-solid fa-dice-d20" style="font-size: 1.35rem; color: #c9a054;"></i>
+                                            <span class="roll-value">${roll.total}</span>
+                                        </div>
+                                        <div class="wicked-trait-divider"></div>
+                                        <div class="wicked-trait-result ${resultClass}">
+                                            ${resultText}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        await roll.toMessage({
+                            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+                            flavor: `${this.actor.name} rolls their ${traitName} Trait`,
+                            content: content
+                        });
+                    }
+                }
+            };
+
+            static TABS = [
+                ...super.TABS,
+                { tab: "wicked-traits", label: "CV_WICKED_CAMPAIGNS.PersonalityTraits", icon: "fa-solid fa-yin-yang" },
+                { tab: "wicked-background", label: "CV_WICKED_CAMPAIGNS.BackgroundTitle", icon: "fa-solid fa-book-skull" },
+                { tab: "wicked-widgets", label: "CV_WICKED_CAMPAIGNS.WidgetsTitle", icon: "fa-solid fa-hexagon-nodes" }
+            ];
+
+            static PARTS = {
+                ...super.PARTS,
+                "wicked-traits": {
+                    template: "modules/cv-wicked-campaigns/templates/wicked-traits.hbs",
+                    container: { classes: ["tab-body"], id: "tabs" },
+                    scrollable: [""]
+                },
+                "wicked-background": {
+                    template: "modules/cv-wicked-campaigns/templates/wicked-background.hbs",
+                    container: { classes: ["tab-body"], id: "tabs" },
+                    scrollable: [""]
+                },
+                "wicked-widgets": {
+                    template: "modules/cv-wicked-campaigns/templates/wicked-widgets.hbs",
+                    container: { classes: ["tab-body"], id: "tabs" },
+                    scrollable: [""]
+                }
+            };
+        }
+
+        DocumentSheetConfig.registerSheet(Actor, "cv-wicked-campaigns", WickedCharacterSheet, {
+            types: ["character"],
+            label: "CV_WICKED_CAMPAIGNS.SheetLabel",
+            makeDefault: true
+        });
+
+        console.log('Wicked Campaigns | Registered Wicked Character Sheet');
+    } else {
+        console.warn('Wicked Campaigns | dnd5e CharacterActorSheet not found');
+    }
+});
+
+Hooks.on("dnd5e.prepareSheetContext", (sheet, partId, context, options) => {
+    if (partId === "wicked-background") {
+        // Read live from the backstory entry rather than a stored copy on the
+        // actor, so this can never show stale content if the backstory is
+        // edited directly (e.g. via its own sheet, or by re-running the wizard).
+        const backstory = findBackstoryForActorSync(sheet.actor);
+        context.lifepathHtml = backstory?.getFlag(CC_MODULE_ID, "data")?.description || "";
+        context.backstoryUuid = backstory?.uuid || "";
+    } else if (partId === "wicked-traits") {
+        context.useTraitPairs = sheet.actor.getFlag("cv-wicked-campaigns", "useTraitPairs") ?? false;
+        const savedPairs = sheet.actor.getFlag("cv-wicked-campaigns", "traitPairs") || {};
+        
+        context.traitPairs = TRAIT_PAIRS.map((pr, i) => {
+            const leftVal = savedPairs[i] ?? 10;
+            const rightVal = 20 - leftVal;
+            return {
+                index: i,
+                leftName: pr[0],
+                leftValue: leftVal,
+                rightName: pr[1],
+                rightValue: rightVal
+            };
+        });
+    } else if (partId === "wicked-widgets") {
+        context.fatePool = getFatePoolSync();
+        context.inPeril = getInPerilSync();
+    }
+});
+
+Hooks.once('ready', async function() {
+    console.log('Wicked Campaigns | Ready');
+    if (game.user.isGM) {
+        try {
+            await ensureWickedCampaignsFolders();
+        } catch (err) {
+            console.error("Wicked Campaigns | Failed to ensure/organize Wicked Campaigns folders.", err);
+        }
+
+        try {
+            await getOrCreateActivePartyRoster();
+        } catch (err) {
+            console.error("Wicked Campaigns | Failed to pre-create the active Party codex entry.", err);
+        }
+
+        if (isCCMActive()) {
+            Hooks.on("renderCardHud", onRenderCardHud);
+        }
+
+        if (isCampaignCodexActive() && !game.settings.get("cv-wicked-campaigns", "appliedDefaultCCTheme")) {
+            try {
+                await applyDefaultCampaignCodexTheme();
+            } catch (err) {
+                console.error("Wicked Campaigns | Failed to apply the default Campaign Codex theme.", err);
+            } finally {
+                await game.settings.set("cv-wicked-campaigns", "appliedDefaultCCTheme", true);
+            }
+        }
+
+        if (isCampaignCodexActive() && !game.settings.get("cv-wicked-campaigns", "appliedDefaultIncludedCompendium")) {
+            try {
+                await includeWickedLoreCompendium();
+            } catch (err) {
+                console.error("Wicked Campaigns | Failed to include the wicked-lore compendium.", err);
+            } finally {
+                await game.settings.set("cv-wicked-campaigns", "appliedDefaultIncludedCompendium", true);
+            }
+        }
+    }
+
+    // Registered for every client, not just the GM - the whole point is that players receive the
+    // broadcast and open OUR viewer on their own screen, even though only the GM ever sees the
+    // "Show Players" control that triggers it (that button is on our GM-only CardHud UI above).
+    if (isCCMActive()) {
+        game.socket.on(CARD_IMAGE_SHARE_CHANNEL, (payload) => {
+            if (payload?.type === "shareCardImage") {
+                CardImageViewerApp.open(payload.src, payload.title);
+            }
+        });
+    }
+});
+
+// Neither dnd5e's own body.dnd5e-theme-light/-dark class NOR the underlying "dnd5e.theme"/core
+// uiConfig settings are reliable signals here: the class can get stuck showing dark after a fresh
+// page load even though the setting correctly reads "light" (reproduced live - a dnd5e timing
+// quirk, worse when Foundry's own core theme differs from dnd5e's), and in that exact broken state
+// dnd5e's OWN rendered background stays genuinely dark too, not just its class attribute. Trusting
+// the setting in that case would make us apply light-mode TEXT colors on top of a background that
+// never actually went light - dark text on a dark backdrop, worse than doing nothing. Measuring
+// the sheet's actual computed background color instead is self-correcting by construction: if it
+// reads as light right now, applying our light-mode colors right now is always correct, regardless
+// of what any class or setting claims.
+function sheetBackgroundIsLight(el) {
+    const bg = getComputedStyle(el).backgroundColor;
+    const m = bg.match(/(\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return false;
+    const [r, g, b] = m.slice(1).map(Number);
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 128;
+}
+
+// dnd5e paints its stock skull/demon banner via a single custom property,
+// --dnd5e-character-background-image, consumed by a `.window-content::before` overlay (see
+// dnd5e.css: `.dnd5e2.sheet.actor.character:not(.minimized) .window-content::before { background:
+// var(--dnd5e-character-background-image) no-repeat top center / cover; ... }`, inside `@layer
+// system`). Un-layered author CSS always wins over layered CSS regardless of specificity, and
+// `background`/`background-image` happily accept a gradient() as their <image>, so redeclaring
+// this one variable on our sheet root is enough to replace the image outright - no selector
+// fighting, no !important. Color matches Campaign Codex's sidebar color when its own custom
+// theming is active, so the two modules read as one coordinated skin; falls back to our own
+// brand color otherwise.
+function wickedBannerGradientColor() {
+    if (isCampaignCodexActive() && game.settings.get(CC_MODULE_ID, "themeEnabled")) {
+        return game.settings.get(CC_MODULE_ID, "color-sidebarBg") || "#130b1d";
+    }
+    return "#130b1d";
+}
+
+// Sidebar/brand colors here tend to be very dark (near-black) by design, which is exactly why
+// mixing toward white doesn't read as "more purple" - it just pulls every channel toward 255
+// roughly equally, shrinking the gap between them and washing the hue out to grey/pastel. HSL is
+// the only space where "brighter but still clearly that color" is expressible: raise L (and back
+// off S slightly less than that) while leaving H untouched, so the hue stays intact and only the
+// lightness/vibrancy goes up.
+function brightenHexForBanner(hex, targetLightness = 0.2, minSaturation = 0.5) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+    if (!m) return hex;
+    const num = parseInt(m[1], 16);
+    const r = ((num >> 16) & 0xff) / 255, g = ((num >> 8) & 0xff) / 255, b = (num & 0xff) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min;
+    let h = 0;
+    if (delta !== 0) {
+        if (max === r) h = 60 * (((g - b) / delta) % 6);
+        else if (max === g) h = 60 * ((b - r) / delta + 2);
+        else h = 60 * ((r - g) / delta + 4);
+        if (h < 0) h += 360;
+    }
+    const l = (max + min) / 2;
+    const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+
+    const finalS = Math.max(s, minSaturation);
+    const finalL = Math.max(l, targetLightness);
+
+    const c = (1 - Math.abs(2 * finalL - 1)) * finalS;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const mAdj = finalL - c / 2;
+    let [r2, g2, b2] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x]
+        : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+    const toHex = (v) => Math.round((v + mAdj) * 255).toString(16).padStart(2, "0");
+    return `#${toHex(r2)}${toHex(g2)}${toHex(b2)}`;
+}
+
+function handleActorSheetRender(sheet, html, data) {
+    console.log("Wicked Campaigns | handleActorSheetRender fired", { sheet, html, data });
+
+    const el = html instanceof HTMLElement ? html : html[0];
+    if (!el) {
+        console.warn("Wicked Campaigns | handleActorSheetRender: No HTML element found.");
+        return;
+    }
+
+    // Applied directly to the sheet root based on its actual rendered background (see
+    // sheetBackgroundIsLight) rather than any dnd5e class or setting, both of which can be stale
+    // or self-contradictory right after a page load.
+    sheet.element?.classList.toggle("wicked-theme-light", sheetBackgroundIsLight(sheet.element));
+
+    // Only our own character sheet template gets the gradient swap - vanilla dnd5e actor sheets
+    // (NPCs, other systems' actors reusing this hook) keep the stock banner untouched.
+    if (sheet.element?.classList.contains("wicked-character-sheet")) {
+        sheet.element.style.setProperty(
+            "--dnd5e-character-background-image",
+            `linear-gradient(180deg, ${brightenHexForBanner(wickedBannerGradientColor())}, transparent)`
+        );
+    }
+
+    const isSheetEditable = !!(data?.editable ?? sheet.isEditable);
+    console.log("Wicked Campaigns | handleActorSheetRender | isSheetEditable:", isSheetEditable, "editable:", data?.editable);
+
+    // Creating NPCs is GM-only. These buttons are baked into the stored backstory HTML by
+    // whoever last ran the wizard (often the player), so they can't be conditionally omitted at
+    // save time - strip them from the DOM here instead, based on who's actually viewing right now.
+    if (!game.user.isGM) {
+        el.querySelectorAll(".wicked-iname-thee-btn").forEach((btn) => btn.remove());
+    }
+
+    // Find all sliders currently in the DOM
+    const sliders = el.querySelectorAll(".wicked-trait-slider");
+    console.log(`Wicked Campaigns | Found ${sliders.length} sliders in DOM.`);
+    
+    sliders.forEach(slider => {
+        // Sync disabled status
+        slider.disabled = !isSheetEditable;
+        
+        // Skip if we already bound listeners to this specific slider element instance
+        if (slider.dataset.listenersBound) return;
+        slider.dataset.listenersBound = "true";
+        
+        console.log(`Wicked Campaigns | Binding listeners directly to slider ${slider.dataset.pairIndex}`);
+        
+        // Bind change listener directly to slider to stop propagation before it reaches the form
+        slider.addEventListener("change", async (event) => {
+            event.stopPropagation();
+            
+            if (!isSheetEditable) {
+                slider.disabled = true;
+                return;
+            }
+            
+            const index = slider.dataset.pairIndex;
+            const val = parseInt(slider.value, 10);
+            const savedPairs = sheet.actor.getFlag("cv-wicked-campaigns", "traitPairs") || {};
+            savedPairs[index] = val;
+            await sheet.actor.setFlag("cv-wicked-campaigns", "traitPairs", savedPairs);
+            console.log(`Wicked Campaigns | Flag updated directly: traitPairs[${index}] = ${val}`);
+        });
+        
+        // Bind input listener directly to slider to stop propagation before it reaches the form
+        slider.addEventListener("input", (event) => {
+            event.stopPropagation();
+            
+            if (!isSheetEditable) {
+                slider.disabled = true;
+                return;
+            }
+            
+            const index = slider.dataset.pairIndex;
+            const val = parseInt(slider.value, 10);
+            const leftValEl = el.querySelector(`.wicked-left-value[data-pair-index="${index}"]`);
+            const rightValEl = el.querySelector(`.wicked-right-value[data-pair-index="${index}"]`);
+            const leftButton = el.querySelector(`.roll-trait-btn[data-pair-index="${index}"][data-side="left"]`);
+            const rightButton = el.querySelector(`.roll-trait-btn[data-pair-index="${index}"][data-side="right"]`);
+            
+            if (leftValEl) leftValEl.textContent = val;
+            if (rightValEl) rightValEl.textContent = 20 - val;
+            if (leftButton) leftButton.dataset.value = val;
+            if (rightButton) rightButton.dataset.value = 20 - val;
+        });
+    });
+}
+
+Hooks.on("renderActorSheet", handleActorSheetRender);
+Hooks.on("renderCharacterActorSheet", handleActorSheetRender);
+Hooks.on("renderBaseActorSheet", handleActorSheetRender);
+
+Hooks.on("updateJournalEntry", (journal, change, options, userId) => {
+    // Apps bound to the party state document itself (none currently exist)
+    // would auto-refresh via Foundry's document.apps tracking; this handles
+    // apps that read fate pool / peril state without being bound to it.
+    if (journal.getFlag("cv-wicked-campaigns", PARTY_STATE_FLAG) === true) {
+        // Character sheets and the Fate Pool Manager always show the *active*
+        // party's state, so only refresh them if that's the one that changed -
+        // a change to some other (inactive) party's state shouldn't touch them.
+        const activeRoster = findActivePartyRosterSync();
+        const isActiveState = activeRoster && findPartyStateForRoster(activeRoster)?.uuid === journal.uuid;
+        if (isActiveState) refreshFatePoolConsumers();
+
+        // A Party sheet shows its own party's state regardless of which party
+        // is active, so refresh any open one whose paired state just changed.
+        for (const app of foundry.applications.instances.values()) {
+            if (app instanceof PartySheet && findPartyStateForRoster(app.document)?.uuid === journal.uuid) {
+                app.render(true);
+            }
+        }
+    }
+
+    // The Reassign Turn Order panel stays open for the life of a Session Zero game and shows
+    // live tier-tracker counts derived from the summary's entries - refresh it whenever its
+    // linked summary changes (e.g. a new answer was just recorded).
+    const reassignApp = foundry.applications.instances.get("turn-order-reassign");
+    if (reassignApp?.summary?.uuid === journal.uuid) {
+        reassignApp.render();
+    }
+});
+
+// Fired by iName Thee (cv-iname-thee) after a GM commits a candidate that was seeded via
+// openWithSeed(). `context` is whatever we handed it in the "send-to-iname-thee" action above -
+// iName Thee never inspects it, just echoes it back - so this only reacts to seeds this module
+// created (context.backstoryUuid/role present); any other module's use of iName Thee is ignored.
+Hooks.on("cvINameTheeSeedCommitted", async ({ context, doc, mode }) => {
+    if (!context?.backstoryUuid || !context?.role || !doc) return;
+    const backstory = await fromUuid(context.backstoryUuid).catch(() => null);
+    if (!backstory) return;
+
+    const links = foundry.utils.deepClone(backstory.getFlag("cv-wicked-campaigns", "relatedActorLinks") || {});
+    links[context.role] = doc.uuid;
+    await backstory.setFlag("cv-wicked-campaigns", "relatedActorLinks", links);
+
+    // Plain confirmation, not a claim of integration - this flag is only ever read by our own
+    // "create vs. update" check above the next time this button is clicked for this role; the
+    // new actor isn't wired into Campaign Codex or the PC's sheet in any other way.
+    const linkedNpcUuid = backstory.getFlag("cv-wicked-campaigns", "linkedNpcUuid");
+    const npcJournal = linkedNpcUuid ? await fromUuid(linkedNpcUuid).catch(() => null) : null;
+    const actorUuid = npcJournal?.getFlag(CC_MODULE_ID, "data")?.linkedActor;
+    const pcActor = actorUuid ? await fromUuid(actorUuid).catch(() => null) : null;
+
+    const roleLabel = context.role.replace(/-\d+$/, "");
+    const verb = mode === "update" ? "updated" : "created";
+    ui.notifications.info(`${doc.name} ${verb} for ${pcActor?.name ?? "the player character"}'s ${roleLabel}.`);
+});
+
+function getFatePoolSync() {
+    return findPartyStateForRoster(findActivePartyRosterSync())?.getFlag("cv-wicked-campaigns", "fatePool") ?? 0;
+}
+
+function getInPerilSync() {
+    return findPartyStateForRoster(findActivePartyRosterSync())?.getFlag("cv-wicked-campaigns", "inPeril") ?? false;
+}
+
+function partyNameForState(state) {
+    const rosterUuid = state?.getFlag("cv-wicked-campaigns", "partyUuid");
+    return rosterUuid ? fromUuidSync(rosterUuid)?.name : null;
+}
+
+async function setInPerilForState(journal, value, userName = game.user.name) {
+    if (!journal) return;
+    const partyName = partyNameForState(journal);
+
+    const isPeril = !!value;
+    await journal.setFlag("cv-wicked-campaigns", "inPeril", isPeril);
+
+    const icon = isPeril ? "fa-skull-crossbones" : "fa-dove";
+    const headline = isPeril ? "The Party is In Peril!" : "The Party is Safe";
+    const flavorText = isPeril
+        ? "The stakes are high and death is on the line!"
+        : "For now, fortune favors you. The road ahead is steady.";
+    const badgeColor = isPeril ? "#f0c2c2" : "#c9a054";
+    const badgeBg = isPeril ? "rgba(190, 70, 70, 0.18)" : "rgba(201, 160, 84, 0.15)";
+    const badgeBorder = isPeril ? "rgba(190, 70, 70, 0.35)" : "rgba(201, 160, 84, 0.3)";
+
+    const content = `
+        <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif; background: #1c1c1c; border: 1px solid rgba(201, 160, 84, 0.25); border-radius: 6px; padding: 0.75rem 1rem;">
+            <div class="card-content" style="padding: 0.5rem 0; text-align: center;">
+                <h3 style="font-family: 'Cinzel', Georgia, serif; color: ${badgeColor}; margin: 0 0 0.5rem 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <i class="fa-solid ${icon}"></i> ${headline}
+                </h3>
+                <p style="margin: 0.25rem 0 0.75rem 0; font-size: 0.9rem; color: #d5d5d5;">
+                    ${flavorText}
+                </p>
+                <div style="display: inline-block; padding: 3px 14px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">
+                    ${isPeril ? "In Peril" : "Safe"}
+                </div>
+                <p style="margin: 0.75rem 0 0 0; font-size: 0.8rem; color: var(--color-text-dark-secondary, #888);">
+                    <strong>Updated By:</strong> ${userName}
+                </p>
+            </div>
+        </div>
+    `;
+
+    await ChatMessage.create({
+        content: content,
+        speaker: { alias: partyName ? `${partyName} - Standing` : "The Party's Standing" }
+    });
+}
+
+async function setInPeril(value, userName = game.user.name) {
+    return setInPerilForState(await getOrCreateActivePartyState(), value, userName);
+}
+
+async function updateFatePoolForState(journal, delta, reason = "Manual Update", userName = game.user.name) {
+    if (!journal) return 0;
+    const partyName = partyNameForState(journal);
+
+    const current = journal.getFlag("cv-wicked-campaigns", "fatePool") ?? 0;
+    const newTotal = current + delta;
+    await journal.setFlag("cv-wicked-campaigns", "fatePool", newTotal);
+    
+    // Create the chat message log
+    const changeText = delta >= 0 ? `+${delta}` : `${delta}`;
+    const badgeClass = delta >= 0 ? "success" : "failure";
+    const content = `
+        <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif; background: #1c1c1c; border: 1px solid rgba(201, 160, 84, 0.25); border-radius: 6px; padding: 0.75rem 1rem;">
+            <div class="card-content" style="padding: 0.5rem 0; text-align: center;">
+                <h3 style="font-family: 'Cinzel', Georgia, serif; color: #c9a054; margin: 0 0 0.5rem 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Fate Pool Updated
+                </h3>
+                <div class="wicked-trait-roll-box" style="margin: 0.5rem 0;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="fa-solid fa-yin-yang" style="font-size: 1.35rem; color: #c9a054;"></i>
+                        <span class="roll-value" style="font-size: 1.5rem;">${newTotal}</span>
+                    </div>
+                    <div class="wicked-trait-divider"></div>
+                    <div class="wicked-trait-result ${badgeClass}">
+                        ${changeText}
+                    </div>
+                </div>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--color-text-dark-secondary, #888);">
+                    <strong>Reason:</strong> ${reason}<br>
+                    <strong>Updated By:</strong> ${userName}
+                </p>
+            </div>
+        </div>
+    `;
+    
+    await ChatMessage.create({
+        content: content,
+        speaker: { alias: partyName ? `${partyName} - Fate Pool` : "Fate Pool" }
+    });
+
+    return newTotal;
+}
+
+async function updateFatePool(delta, reason = "Manual Update", userName = game.user.name) {
+    return updateFatePoolForState(await getOrCreateActivePartyState(), delta, reason, userName);
+}
+
+class FatePoolManager extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+  static DEFAULT_OPTIONS = {
+    id: "fate-pool-manager",
+    classes: ["wicked-campaigns", "fate-pool-manager-dialog"],
+    window: {
+      title: "Fate Pool Manager",
+      icon: "fa-solid fa-yin-yang"
+    },
+    position: {
+      width: 320,
+      height: "auto"
+    }
+  };
+
+  static PARTS = {
+    form: {
+      template: "modules/cv-wicked-campaigns/templates/fate-pool-manager.hbs"
+    }
+  };
+
+  async _prepareContext(options) {
+    const activeRoster = findActivePartyRosterSync();
+    const parties = getAllPartyRosters()
+      .map((roster) => ({ uuid: roster.uuid, name: roster.name, active: roster.uuid === activeRoster?.uuid }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    return {
+      fatePool: getFatePoolSync(),
+      inPeril: getInPerilSync(),
+      parties,
+    };
+  }
+
+  _onRender(context, options) {
+    const html = this.element;
+
+    html.querySelector(".active-party-select")?.addEventListener("change", async (event) => {
+      await setActivePartyRoster(event.target.value);
+    });
+
+    html.querySelector(".new-party")?.addEventListener("click", async () => {
+      const name = await foundry.applications.api.DialogV2.prompt({
+        window: { title: "Create New Party" },
+        content: `<div class="form-group"><label>Party Name</label><input type="text" name="partyName" value="New Party" autofocus></div>`,
+        ok: {
+          icon: "fas fa-check",
+          label: "Create",
+          callback: (event, button) => button.form.elements.partyName.value.trim(),
+        },
+        rejectClose: false,
+      }).catch(() => null);
+      if (!name) return;
+      const roster = await createPartyPair(name);
+      await setActivePartyRoster(roster.uuid);
+    });
+
+    html.querySelector(".in-peril-toggle")?.addEventListener("change", async (event) => {
+      await setInPeril(event.target.checked);
+      this.render(true);
+    });
+
+    html.querySelector(".add-fate")?.addEventListener("click", async () => {
+      const reason = html.querySelector(".fate-reason-input")?.value || "GM Action";
+      await updateFatePool(1, reason);
+      this.render(true);
+    });
+
+    html.querySelector(".sub-fate")?.addEventListener("click", async () => {
+      const reason = html.querySelector(".fate-reason-input")?.value || "GM Action";
+      await updateFatePool(-1, reason);
+      this.render(true);
+    });
+
+    html.querySelector(".save-fate")?.addEventListener("click", async () => {
+      const input = html.querySelector(".fate-value-input");
+      const newValue = parseInt(input?.value, 10);
+      if (isNaN(newValue)) return;
+      
+      const current = getFatePoolSync();
+      const delta = newValue - current;
+      if (delta === 0) {
+        this.close();
+        return;
+      }
+      
+      const reason = html.querySelector(".fate-reason-input")?.value || "GM Set Total";
+      await updateFatePool(delta, reason);
+      this.close();
+    });
+
+    html.querySelector(".sync-permissions")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      button.disabled = true;
+      try {
+        const count = await syncAllCampaignCodexOwnership();
+        ui.notifications.info(count > 0
+          ? `Synced player visibility on ${count} document${count === 1 ? "" : "s"}.`
+          : "Player visibility is already up to date.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+}
+
+// ---- Complete Card Management Integration ----------------------------------
+// Session Zero Q&A game: a GM right-clicks a placed deck on the CCM card layer to Start/End a
+// game (creating, then later detaching, a Session Zero Summary), and right-clicks individual
+// dealt cards while a game is active to record the answering player's response. All of this is
+// wired up only if Complete Card Management is active (see isCCMActive() gate in the ready hook);
+// entirely inert otherwise.
+
+const CCM_ACTIVE_SESSION_FLAG = "activeSessionZeroUuid";
+// Standard Foundry "module.<id>" socket namespace - the server relays anything emitted here to
+// every other connected client, which is exactly the broadcast "Show Players" needs.
+const CARD_IMAGE_SHARE_CHANNEL = "module.cv-wicked-campaigns";
+
+function findActiveSessionZeroForDeck(deck) {
+  const uuid = deck?.getFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG);
+  return uuid ? fromUuidSync(uuid) : null;
+}
+
+// A dealt Card's own `origin` field tracks the deck it was drawn from regardless of which
+// hand/pile currently holds it - that's "which deck does this card belong to" for our purposes,
+// not its current parent. Falls back to the current parent only if that parent is itself still a
+// deck (i.e. the card hasn't been dealt anywhere yet).
+function findOriginDeckForCard(card) {
+  return card?.origin ?? (card?.parent?.type === "deck" ? card.parent : null);
+}
+
+// Opened automatically after Start Session Zero rolls initiative and starts combat - not awaited
+// by the caller, so the summary/flag setup below still happens immediately regardless of how long
+// the GM spends dragging. Foundry has no native "manual reorder" concept: turn order is purely
+// derived from each combatant's initiative value, so every drop just rewrites everyone's
+// initiative (top of the list = highest) to match. Applies live; there's no separate Save step.
+const turnOrderReassignBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2);
+
+class TurnOrderReassignApp extends turnOrderReassignBase {
+  constructor(combat, summary, deck, options = {}) {
+    super(options);
+    this.combat = combat;
+    this.summary = summary;
+    this.deck = deck;
+    this.order = combat.turns.map((c) => c.id);
+  }
+
+  static DEFAULT_OPTIONS = {
+    id: "turn-order-reassign",
+    classes: ["wicked-campaigns", "turn-order-reassign-dialog"],
+    window: { title: "Session Zero Game Tracker", icon: "fa-solid fa-arrow-down-up-across-line" },
+    position: { width: 360, height: "auto" },
+    actions: {
+      endSession: TurnOrderReassignApp.#onEndSession,
+      nextTurn: TurnOrderReassignApp.#onNextTurn,
+      previousTurn: TurnOrderReassignApp.#onPreviousTurn,
+    },
+  };
+
+  static PARTS = {
+    main: { template: "modules/cv-wicked-campaigns/templates/turn-order-reassign.hbs" },
+  };
+
+  async _prepareContext(options) {
+    const combatants = this.order.map((id) => this.combat.combatants.get(id)).filter(Boolean);
+    const data = this.summary?.getFlag(CC_MODULE_ID, "data") || {};
+    const entries = data.entries || [];
+    const limits = this.summary?.getFlag("cv-wicked-campaigns", "sessionZeroLimits") || {};
+    const countSuit = (suit) => entries.filter((e) => e.suit?.toLowerCase() === suit).length;
+
+    return {
+      combatants: combatants.map((c) => {
+        const isPC = c.actor?.type === "character";
+        const name = c.actor?.name ?? c.name;
+        return {
+          id: c.id,
+          name: c.name,
+          img: c.img,
+          initiative: c.initiative,
+          isPC,
+          isCurrentTurn: c.id === this.combat.combatant?.id,
+          arcanaCount: isPC ? entries.filter((e) => e.suit?.toLowerCase() === "major arcana" && e.playerName === name).length : null,
+          arcanaMax: limits.arcanaPerPlayerMax ?? null,
+          rosesCount: isPC ? entries.filter((e) => e.suit?.toLowerCase() === "roses" && e.playerName === name).length : null,
+          rosesMax: limits.rosesPerPlayerMax ?? null,
+        };
+      }),
+      hasLimits: !!this.summary,
+      villainCount: countSuit("skulls"),
+      villainMax: limits.villainMax ?? null,
+      moonsCount: countSuit("moons"),
+      moonsMax: limits.moonsMax ?? null,
+      mobiusCount: countSuit("mobius"),
+      mobiusMax: limits.mobiusMax ?? null,
+    };
+  }
+
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    let dragId = null;
+    this.element.querySelectorAll(".turn-order-list li[data-combatant-id]").forEach((li) => {
+      li.addEventListener("dragstart", (event) => {
+        dragId = li.dataset.combatantId;
+        event.dataTransfer.effectAllowed = "move";
+      });
+      li.addEventListener("dragover", (event) => event.preventDefault());
+      li.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        const targetId = li.dataset.combatantId;
+        if (!dragId || dragId === targetId) return;
+        const from = this.order.indexOf(dragId);
+        const to = this.order.indexOf(targetId);
+        if (from === -1 || to === -1) return;
+        this.order.splice(from, 1);
+        this.order.splice(to, 0, dragId);
+        await this._applyOrder();
+      });
+    });
+  }
+
+  async _applyOrder() {
+    const count = this.order.length;
+    const updates = this.order.map((id, index) => ({ _id: id, initiative: count - index }));
+    await this.combat.updateEmbeddedDocuments("Combatant", updates);
+    this.render(true);
+  }
+
+  // Delegates entirely to endSessionZeroGame() - same confirmation dialog and chat-wipe warning
+  // as ending from the deck's own HUD button, just reachable without leaving this panel.
+  static async #onEndSession() {
+    await endSessionZeroGame(this.deck);
+  }
+
+  static async #onNextTurn() {
+    await this.combat.nextTurn();
+    this.render();
+  }
+
+  static async #onPreviousTurn() {
+    await this.combat.previousTurn();
+    this.render();
+  }
+
+  static open(combat, summary, deck) {
+    new TurnOrderReassignApp(combat, summary, deck).render(true);
+  }
+}
+
+// The scene's own "canvas pile" flag (set by Complete Card Management itself when a GM configures
+// a discard pile for the scene) is the only reliable way to find "the" discard pile for a deck -
+// there's no formal deck-to-pile link in Foundry's card system otherwise.
+function findDiscardPileForScene(scene = canvas.scene) {
+  const pileId = scene?.getFlag("complete-card-management", "canvasPile");
+  return pileId ? game.cards.get(pileId) : null;
+}
+
+// Villain/Moons/Mobius are deck-wide counts checked the same way; Major Arcana is handled
+// separately below since it's tracked per-player instead.
+const SESSION_ZERO_DECK_WIDE_TIERS = [
+  { key: "villain", suit: "skulls", label: "Villain" },
+  { key: "moons", suit: "moons", label: "Moons" },
+  { key: "mobius", suit: "mobius", label: "Mobius" },
+];
+
+// Shown once, the first time every *configured* tier (deck-wide + per-player) has hit its own
+// limit and already been offered its own discard prompt - a separate, softer nudge rather than
+// folding straight into endSessionZeroGame's own confirmation, so a GM who wants to keep playing
+// past "complete" isn't forced through a second dialog just to say no.
+async function promptEndSessionComplete(deck) {
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Session Zero Complete", icon: "fas fa-flag-checkered" },
+    content: `<p>Every card limit for "${esc(deck.name)}" has been reached. The Session Zero game is complete.</p><p>End the game session now?</p>`,
+    buttons: [
+      { action: "end", label: "End Session", icon: "fas fa-flag-checkered", callback: () => "end" },
+      { action: "later", label: "Not Yet", icon: "fas fa-times", callback: () => "later" },
+    ],
+    rejectClose: false,
+  }).catch(() => "later");
+  if (result === "end") await endSessionZeroGame(deck);
+}
+
+async function promptDiscardSuit(deck, suit, label) {
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: `Discard Remaining ${label} Cards?`, icon: "fas fa-trash" },
+    content: `<p>The ${label} card limit has been reached. Discard the rest of the ${label} cards from "${esc(deck.name)}" to the discard pile?</p>`,
+    buttons: [
+      { action: "discard", label: "Discard", icon: "fas fa-trash", callback: () => "discard" },
+      { action: "keep", label: "Keep in Deck", icon: "fas fa-times", callback: () => "keep" },
+    ],
+    rejectClose: false,
+  }).catch(() => "keep");
+  if (result !== "discard") return;
+
+  const pile = findDiscardPileForScene();
+  if (!pile) {
+    ui.notifications.warn(`No discard pile is configured for this scene (Complete Card Management's canvas pile isn't set).`);
+    return;
+  }
+  const remaining = deck.availableCards.filter((c) => c.suit?.toLowerCase() === suit);
+  if (remaining.length === 0) return;
+  await deck.pass(pile, remaining.map((c) => c.id), { action: "discard" });
+  ui.notifications.info(`Discarded ${remaining.length} remaining ${label} card${remaining.length === 1 ? "" : "s"} from "${deck.name}".`);
+}
+
+// Runs after every recorded answer - checks the deck-wide tiers plus the per-player Major Arcana
+// tier against their GM-set limits, and prompts to discard the remainder of a tier's cards the
+// first time (and only the first time) its limit is reached.
+async function checkSessionZeroThresholds(summary, deck) {
+  if (!summary || !deck) return;
+  const data = summary.getFlag(CC_MODULE_ID, "data") || {};
+  const entries = data.entries || [];
+  const limits = summary.getFlag("cv-wicked-campaigns", "sessionZeroLimits") || {};
+  const prompted = foundry.utils.deepClone(summary.getFlag("cv-wicked-campaigns", "sessionZeroDiscardPrompted") || {});
+
+  for (const tier of SESSION_ZERO_DECK_WIDE_TIERS) {
+    if (prompted[tier.key]) continue;
+    const max = limits[`${tier.key}Max`];
+    if (!max) continue;
+    const count = entries.filter((e) => e.suit?.toLowerCase() === tier.suit).length;
+    if (count < max) continue;
+    prompted[tier.key] = true;
+    await summary.setFlag("cv-wicked-campaigns", "sessionZeroDiscardPrompted", prompted);
+    await promptDiscardSuit(deck, tier.suit, tier.label);
+  }
+
+  // Major Arcana and Roses are both tracked per-player rather than deck-wide - "maxed" means every
+  // PC combatant individually has at least the limit, not just the deck total.
+  const perPlayerTiers = [
+    { key: "majorArcana", suit: "major arcana", label: "Major Arcana", max: limits.arcanaPerPlayerMax },
+    { key: "roses", suit: "roses", label: "Roses", max: limits.rosesPerPlayerMax },
+  ];
+  if (game.combat) {
+    const pcCombatants = game.combat.combatants.filter((c) => c.actor?.type === "character");
+    for (const tier of perPlayerTiers) {
+      if (prompted[tier.key] || !tier.max) continue;
+      const allMaxed = pcCombatants.length > 0 && pcCombatants.every((c) => {
+        const name = c.actor?.name ?? c.name;
+        const count = entries.filter((e) => e.suit?.toLowerCase() === tier.suit && e.playerName === name).length;
+        return count >= tier.max;
+      });
+      if (!allMaxed) continue;
+      prompted[tier.key] = true;
+      await summary.setFlag("cv-wicked-campaigns", "sessionZeroDiscardPrompted", prompted);
+      await promptDiscardSuit(deck, tier.suit, tier.label);
+    }
+  }
+
+  // Once every tier the GM actually configured (limit > 0) has fired its own discard prompt above,
+  // the whole game is "complete" - nudge the GM to wrap up, once, the first time that's true.
+  if (!prompted.sessionComplete) {
+    const configuredTierKeys = [
+      ...SESSION_ZERO_DECK_WIDE_TIERS.filter((t) => limits[`${t.key}Max`]).map((t) => t.key),
+      ...perPlayerTiers.filter((t) => t.max).map((t) => t.key),
+    ];
+    if (configuredTierKeys.length > 0 && configuredTierKeys.every((key) => prompted[key])) {
+      prompted.sessionComplete = true;
+      await summary.setFlag("cv-wicked-campaigns", "sessionZeroDiscardPrompted", prompted);
+      await promptEndSessionComplete(deck);
+    }
+  }
+}
+
+// Asked once per Start, right after the GM confirms the PC roster - these four limits get stored
+// on the summary and drive checkSessionZeroThresholds() for the rest of the game. Cancelling backs
+// out of the whole Start operation cleanly, since nothing has been touched yet at this point.
+async function promptSessionZeroLimits() {
+  const content = `
+    <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+      <div class="form-group">
+        <label>Max Villain card count</label>
+        <input type="number" name="villainMax" value="2" min="2">
+      </div>
+      <div class="form-group">
+        <label>Max Major Arcana cards per player</label>
+        <input type="number" name="arcanaPerPlayerMax" value="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>Max Moons cards</label>
+        <input type="number" name="moonsMax" value="3" min="3">
+      </div>
+      <div class="form-group">
+        <label>Max Mobius cards</label>
+        <input type="number" name="mobiusMax" value="3" min="3">
+      </div>
+      <div class="form-group">
+        <label>Max Rose cards per player</label>
+        <input type="number" name="rosesPerPlayerMax" value="2" min="2">
+      </div>
+    </div>
+  `;
+  return foundry.applications.api.DialogV2.wait({
+    window: { title: "Session Zero Setup", icon: "fa-solid fa-sliders" },
+    content,
+    buttons: [
+      {
+        action: "confirm",
+        label: "Continue",
+        icon: "fas fa-check",
+        callback: (event, button) => ({
+          villainMax: parseInt(button.form.elements.villainMax.value, 10) || 2,
+          arcanaPerPlayerMax: parseInt(button.form.elements.arcanaPerPlayerMax.value, 10) || 1,
+          moonsMax: parseInt(button.form.elements.moonsMax.value, 10) || 3,
+          mobiusMax: parseInt(button.form.elements.mobiusMax.value, 10) || 3,
+          rosesPerPlayerMax: parseInt(button.form.elements.rosesPerPlayerMax.value, 10) || 2,
+        }),
+      },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => null },
+    ],
+    rejectClose: false,
+  }).catch(() => null);
+}
+
+// Confirms the PC roster with the GM, then adds/rolls/starts combat exactly like the GM's own
+// tested macro before handing off to the summary/flag setup - find-or-create the scene's combat,
+// skip tokens/initiative already set so re-running this is harmless, then only start combat if it
+// hasn't already begun.
+async function startSessionZeroGame(deck) {
+  if (!game.user.isGM) return;
+  if (findActiveSessionZeroForDeck(deck)) {
+    ui.notifications.warn(`A Session Zero game is already running on "${deck.name}". End it before starting a new one.`);
+    return;
+  }
+
+  if (!canvas.scene) {
+    ui.notifications.warn("There is no active scene loaded on the canvas.");
+    return;
+  }
+
+  const pcTokens = canvas.scene.tokens.filter((t) => t.actor && t.actor.type === "character");
+  if (pcTokens.length === 0) {
+    ui.notifications.warn("No Player Character tokens found on this scene.");
+    return;
+  }
+
+  const content = `
+    <div style="margin-bottom: 10px;">
+      <p style="font-size: 1.1em; border-bottom: 1px solid var(--color-border-light); padding-bottom: 5px;">
+        Current Scene: <b>${esc(canvas.scene.name)}</b>
+      </p>
+      <p>Found <b>${pcTokens.length}</b> Player Character${pcTokens.length === 1 ? "" : "s"} here:</p>
+      <ul style="margin-top: 5px; margin-bottom: 15px;">
+        ${pcTokens.map((t) => `<li>${esc(t.name)}</li>`).join("")}
+      </ul>
+      <p>Add them to the combat tracker, roll initiative, and start the Session Zero game?</p>
+    </div>
+  `;
+
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Start Session Zero Card Game", icon: "fa-solid fa-user-group" },
+    content,
+    buttons: [
+      { action: "start", label: "Add, Roll, & Start", icon: "fas fa-bolt", callback: () => "start" },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => "cancel" },
+    ],
+    rejectClose: false,
+  }).catch(() => "cancel");
+  if (result !== "start") return;
+
+  const limits = await promptSessionZeroLimits();
+  if (!limits) return;
+
+  let combat = game.combats.find((c) => c.scene?.id === canvas.scene.id);
+  if (!combat) combat = await Combat.create({ scene: canvas.scene.id, active: true });
+
+  const existingTokenIds = new Set(combat.combatants.map((c) => c.tokenId));
+  const tokensToAdd = pcTokens.filter((t) => !existingTokenIds.has(t.id));
+  if (tokensToAdd.length > 0) {
+    await combat.createEmbeddedDocuments("Combatant", tokensToAdd.map((t) => ({
+      tokenId: t.id,
+      sceneId: canvas.scene.id,
+      actorId: t.actorId,
+      hidden: t.hidden,
+    })));
+  }
+
+  const pcCombatantsToRoll = combat.combatants.filter((c) => c.actor?.type === "character" && c.initiative === null);
+  if (pcCombatantsToRoll.length > 0) {
+    await combat.rollInitiative(pcCombatantsToRoll.map((c) => c.id));
+  }
+
+  if (!combat.started) await combat.startCombat();
+
+  // Summary needs to exist before the reorder panel opens, since that panel now reads the
+  // summary's limits/entries to show its live tier trackers.
+  const summary = await createSessionZeroSummary(`Session Zero Summary - ${formatSortableTimestamp()}`, limits);
+  await deck.setFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG, summary.uuid);
+
+  TurnOrderReassignApp.open(combat, summary, deck);
+
+  ui.notifications.info(`Session Zero game started on "${deck.name}". Recording to "${summary.name}".`);
+}
+
+// Confirms with the GM before doing anything destructive - this deletes the active combat AND
+// wipes every chat message in the world (not scoped to the card game), by explicit GM choice, so
+// the confirmation copy is deliberately blunt about that scope rather than downplaying it.
+// Shared by End Session Zero and Reset Deck (which implicitly ends any active game on that deck
+// too, since continuing to record answers against a summary tied to a just-reset deck wouldn't
+// make sense). Each caller handles its own confirmation dialog and chat wipe - this just performs
+// the actual teardown, leaving the summary itself untouched so it's still readable afterward.
+async function clearActiveSessionZero(deck) {
+  const summary = findActiveSessionZeroForDeck(deck);
+  if (!summary) return null;
+  // The reorder/tracker panel is meant to stay open for the life of the game - close it here now
+  // that the game is actually ending.
+  await foundry.applications.instances.get("turn-order-reassign")?.close();
+  if (game.combat) await game.combat.delete();
+  await deck.unsetFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG);
+  return summary;
+}
+
+async function endSessionZeroGame(deck) {
+  if (!game.user.isGM) return;
+  const content = `
+    <div style="margin-bottom: 10px;">
+      <p>Are you sure you want to end the current card game?</p>
+      <p style="color: var(--color-text-dark-warning); font-size: 0.9em; margin-top: 5px;">
+        <b>Warning:</b> This will end the active card game and completely clear the chat log for all players.
+      </p>
+    </div>
+  `;
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: "End Session Zero Card Game", icon: "fas fa-flag-checkered" },
+    content,
+    buttons: [
+      { action: "end", label: "End Game", icon: "fas fa-check", callback: () => "end" },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => "cancel" },
+    ],
+    rejectClose: false,
+  }).catch(() => "cancel");
+  if (result !== "end") return;
+
+  const summary = await clearActiveSessionZero(deck);
+  await ChatMessage.deleteDocuments([], { deleteAll: true });
+  ui.notifications.info(`The card game has been ended and the chat log cleared.${summary ? ` "${summary.name}" is preserved for reading back.` : ""}`);
+}
+
+// A lightweight, dependency-free replacement for relying on the world's configured image viewer
+// (e.g. Gambit's) for just this one button - a resizable window (ApplicationV2 already gives us
+// that for free) plus mouse-wheel zoom, which vanilla ImagePopout doesn't have.
+const cardImageViewerBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2);
+
+class CardImageViewerApp extends cardImageViewerBase {
+  constructor(src, imgTitle, options = {}) {
+    super(options);
+    this.src = src;
+    this.imgTitle = imgTitle;
+    // Mirrors Gambit's viewer: scale/tx/ty driven by a CSS transform (not width%/scroll), so zoom
+    // can be anchored to the cursor and "fit to window" has a real meaning as the zoomed-out floor.
+    this.panZoom = { scale: 1, baseScale: 1, minScale: 1, maxScale: 10, tx: 0, ty: 0, natW: 0, natH: 0, userHasZoomed: false };
+  }
+
+  static DEFAULT_OPTIONS = {
+    id: "card-image-viewer",
+    classes: ["wicked-campaigns", "card-image-viewer"],
+    window: {
+      icon: "fa-solid fa-magnifying-glass",
+      resizable: true,
+      controls: [{
+        icon: "fa-solid fa-eye",
+        label: "JOURNAL.ActionShow",
+        action: "shareImage",
+        visible: () => game.user.isGM,
+      }],
+    },
+    position: { width: 420, height: 560 },
+    actions: {
+      shareImage: CardImageViewerApp.#onShareImage,
+    },
+  };
+
+  static PARTS = {
+    main: { template: "modules/cv-wicked-campaigns/templates/card-image-viewer.hbs" },
+  };
+
+  get title() {
+    return this.imgTitle;
+  }
+
+  async _prepareContext(options) {
+    return { src: this.src };
+  }
+
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    const img = this.element.querySelector("img");
+    const wrapper = this.element.querySelector(".card-image-viewer-wrapper");
+    if (!img || !wrapper) return;
+    if (this._panZoomListenersAttached) return; // _onRender could in principle fire more than once
+    this._panZoomListenersAttached = true;
+
+    img.draggable = false; // don't fight our own pan handling with the browser's native image drag-ghost
+    if (!img.complete || !img.naturalWidth) {
+      await new Promise((resolve) => img.addEventListener("load", resolve, { once: true }));
+    }
+    this.panZoom.natW = img.naturalWidth;
+    this.panZoom.natH = img.naturalHeight;
+    img.style.width = `${this.panZoom.natW}px`;
+    img.style.height = `${this.panZoom.natH}px`;
+
+    // Foundry's automatic post-_onRender setPosition() call doesn't reliably land before we need
+    // to measure the wrapper, so force it ourselves - re-applying the already-known position is
+    // enough to make the window's real size available for the fit-to-window calculation below.
+    this.setPosition();
+
+    this._fitAndCenter(wrapper, img);
+
+    wrapper.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      const rect = wrapper.getBoundingClientRect();
+      const factor = event.deltaY < 0 ? 1.1 : 1 / 1.1;
+      this._zoomAt(wrapper, img, factor, event.clientX - rect.left, event.clientY - rect.top);
+    }, { passive: false });
+
+    wrapper.addEventListener("dblclick", () => this._fitAndCenter(wrapper, img));
+
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let startTx = 0;
+    let startTy = 0;
+
+    const onMouseDown = (event) => {
+      if (event.button !== 0) return;
+      if (this.panZoom.scale <= this.panZoom.minScale + 1e-6) return; // fully fit - nothing to pan
+      dragging = true;
+      startX = event.clientX;
+      startY = event.clientY;
+      startTx = this.panZoom.tx;
+      startTy = this.panZoom.ty;
+      wrapper.style.cursor = "grabbing";
+      event.preventDefault();
+    };
+    const onMouseMove = (event) => {
+      if (!dragging) return;
+      this.panZoom.tx = startTx + (event.clientX - startX);
+      this.panZoom.ty = startTy + (event.clientY - startY);
+      this._applyTransform(img);
+    };
+    const onMouseUp = () => {
+      if (!dragging) return;
+      dragging = false;
+      this._constrainPan(wrapper);
+      this._applyTransform(img);
+      this._updateCursor(wrapper);
+    };
+
+    wrapper.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    // mousemove/mouseup are on window (dragging can continue past the wrapper's edge) so they
+    // must be explicitly removed on close, or they'd linger and pile up across repeated opens.
+    this._panCleanup = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    // Refit on window resize unless the user has manually zoomed, matching Gambit's behavior.
+    this._resizeObserver = new ResizeObserver(() => {
+      if (this.panZoom.userHasZoomed) {
+        this._constrainPan(wrapper);
+        this._applyTransform(img);
+      } else {
+        this._fitAndCenter(wrapper, img);
+      }
+    });
+    this._resizeObserver.observe(wrapper);
+  }
+
+  async _onClose(options) {
+    this._panCleanup?.();
+    this._resizeObserver?.disconnect();
+    await super._onClose(options);
+  }
+
+  _applyTransform(img) {
+    img.style.transform = `translate(${this.panZoom.tx}px, ${this.panZoom.ty}px) scale(${this.panZoom.scale})`;
+  }
+
+  _updateCursor(wrapper) {
+    wrapper.style.cursor = this.panZoom.scale > this.panZoom.minScale + 1e-6 ? "grab" : "default";
+  }
+
+  // Scale that fits the whole image inside the wrapper - also the zoomed-out floor, so you can
+  // never zoom out past "the whole image is visible."
+  _computeBaseScale(wrapper) {
+    const rect = wrapper.getBoundingClientRect();
+    const { natW, natH } = this.panZoom;
+    if (!rect.width || !rect.height || !natW || !natH) {
+      this.panZoom.baseScale = this.panZoom.minScale = 1;
+      return;
+    }
+    const fit = Math.min(rect.width / natW, rect.height / natH) * 0.995;
+    this.panZoom.baseScale = Math.max(0.0001, fit);
+    this.panZoom.minScale = this.panZoom.baseScale;
+  }
+
+  _centerAtCurrentScale(wrapper) {
+    const rect = wrapper.getBoundingClientRect();
+    const { natW, natH, scale } = this.panZoom;
+    this.panZoom.tx = (rect.width - natW * scale) / 2;
+    this.panZoom.ty = (rect.height - natH * scale) / 2;
+  }
+
+  _fitAndCenter(wrapper, img) {
+    this._computeBaseScale(wrapper);
+    this.panZoom.scale = this.panZoom.baseScale;
+    this.panZoom.userHasZoomed = false;
+    this._centerAtCurrentScale(wrapper);
+    this._applyTransform(img);
+    this._updateCursor(wrapper);
+  }
+
+  // Clamp pan so the image can't be dragged fully off-screen; centers it on any axis where it's
+  // smaller than the wrapper.
+  _constrainPan(wrapper) {
+    const rect = wrapper.getBoundingClientRect();
+    const { natW, natH, scale } = this.panZoom;
+    const rw = natW * scale;
+    const rh = natH * scale;
+    this.panZoom.tx = rw <= rect.width ? (rect.width - rw) / 2 : Math.min(0, Math.max(rect.width - rw, this.panZoom.tx));
+    this.panZoom.ty = rh <= rect.height ? (rect.height - rh) / 2 : Math.min(0, Math.max(rect.height - rh, this.panZoom.ty));
+  }
+
+  // Zoom by `factor`, keeping the content under (cx, cy) - wrapper-relative coordinates - fixed
+  // on screen, the way Gambit's viewer anchors zoom to the cursor instead of a fixed point.
+  _zoomAt(wrapper, img, factor, cx, cy) {
+    this.panZoom.userHasZoomed = true;
+    const { tx, ty, scale } = this.panZoom;
+    const preX = (cx - tx) / scale;
+    const preY = (cy - ty) / scale;
+    const next = Math.min(this.panZoom.maxScale, Math.max(this.panZoom.minScale, scale * factor));
+
+    if (next <= this.panZoom.minScale + 1e-6) {
+      this.panZoom.scale = this.panZoom.minScale;
+      this.panZoom.userHasZoomed = false;
+      this._centerAtCurrentScale(wrapper);
+    } else {
+      this.panZoom.scale = next;
+      this.panZoom.tx = cx - preX * next;
+      this.panZoom.ty = cy - preY * next;
+      this._constrainPan(wrapper);
+    }
+    this._applyTransform(img);
+    this._updateCursor(wrapper);
+  }
+
+  // Broadcasts to every other connected client, whose own socket listener (registered once at
+  // ready time, for players too) opens this same custom viewer on their screen - not Foundry's
+  // native ImagePopout, since ours is meant to fully replace it.
+  static #onShareImage() {
+    game.socket.emit(CARD_IMAGE_SHARE_CHANNEL, {
+      type: "shareCardImage",
+      src: this.src,
+      title: this.imgTitle,
+    });
+  }
+
+  // Fixed id (see DEFAULT_OPTIONS) means only one instance can sanely exist at a time - close
+  // whatever's already open first rather than leaving a stale window behind.
+  static async open(src, imgTitle) {
+    await foundry.applications.instances.get("card-image-viewer")?.close();
+    new CardImageViewerApp(src, imgTitle).render(true);
+  }
+}
+
+// Common raster/video extensions ImagePopout might be asked to show that our viewer can't
+// (video) or that aren't really "an image" in the sense our viewer cares about.
+const IMAGE_VIEWER_UNSUPPORTED_EXT = /\.(webm|mp4|m4v|ogv)$/i;
+
+// Mirrors Gambit's own approach: intercept every place Foundry would open the native
+// ImagePopout (actor portraits, item art, journal images, etc) and open our viewer instead, so
+// ours is the image viewer used everywhere - not just from our own "View Card Image" button.
+Hooks.once("init", () => {
+  if (!game.modules.get("lib-wrapper")?.active) {
+    console.warn("Wicked Campaigns | lib-wrapper is not active - our custom image viewer will only open from our own buttons, not as a replacement for Foundry's native image popout elsewhere.");
+    return;
+  }
+
+  libWrapper.register(
+    "cv-wicked-campaigns",
+    "foundry.applications.apps.ImagePopout.prototype.render",
+    function (wrapped, ...args) {
+      const src = this.options?.src;
+      if (!src || IMAGE_VIEWER_UNSUPPORTED_EXT.test(src)) return wrapped(...args);
+      CardImageViewerApp.open(src, this.options?.window?.title ?? this.title);
+      return this;
+    },
+    "MIXED",
+  );
+});
+
+// Two-column dialog: the card's currently-showing face on the left, a title field and a
+// ProseMirror answer editor on the right. Opened only once a valid combatant has been confirmed
+// (see #open below) - the combat tracker's current turn is how we know who's answering.
+const sessionZeroAnswerBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2);
+
+class SessionZeroAnswerApp extends sessionZeroAnswerBase {
+  constructor(card, summary, combatant, options = {}) {
+    super(options);
+    this.card = card;
+    this.summary = summary;
+    this.combatant = combatant;
+  }
+
+  static DEFAULT_OPTIONS = {
+    id: "session-zero-answer",
+    classes: ["wicked-campaigns", "session-zero-answer-dialog"],
+    window: { title: "Record Answer", icon: "fa-solid fa-clipboard-question" },
+    position: { width: 640, height: "auto" },
+    actions: {
+      submit: SessionZeroAnswerApp.#onSubmit,
+      cancel: SessionZeroAnswerApp.#onCancel,
+    },
+  };
+
+  static PARTS = {
+    main: { template: "modules/cv-wicked-campaigns/templates/session-zero-answer.hbs" },
+  };
+
+  async _prepareContext(options) {
+    return {
+      cardImage: this.card.img,
+      cardName: this.card.name,
+      playerName: this.combatant.actor?.name ?? this.combatant.name,
+      playerImg: this.combatant.actor?.img ?? this.combatant.img,
+    };
+  }
+
+  static async #onSubmit(event, target) {
+    const form = target.form;
+    const title = form.elements.title.value.trim();
+    if (!title) {
+      ui.notifications.warn("Give the entry a title before recording it.");
+      return;
+    }
+    await addSessionZeroEntry(this.summary, {
+      title,
+      answerHtml: form.elements.answerHtml.value,
+      cardImage: this.card.img,
+      suit: this.card.suit ?? null,
+      playerName: this.combatant.actor?.name ?? this.combatant.name,
+      playerImg: this.combatant.actor?.img ?? this.combatant.img,
+      timestamp: Date.now(),
+    });
+    ui.notifications.info(`Recorded "${title}" in "${this.summary.name}".`);
+    await checkSessionZeroThresholds(this.summary, findOriginDeckForCard(this.card));
+    this.close();
+  }
+
+  static #onCancel() {
+    this.close();
+  }
+
+  // The only entry point - always resolves the current combatant itself rather than trusting a
+  // stale one handed in from elsewhere, and blocks with a warning instead of opening the dialog
+  // at all if there's nobody whose turn it currently is.
+  static async open(card, summary) {
+    const combatant = game.combat?.combatant;
+    if (!combatant) {
+      ui.notifications.warn("No active combatant - start combat and set whose turn it is before recording an answer.");
+      return;
+    }
+    new SessionZeroAnswerApp(card, summary, combatant).render(true);
+  }
+}
+
+// Rolls 1d8 for every PC combatant except whoever's turn it currently is (e.g. a "how do the rest
+// of the table feel about this" check while one player answers a card). Results go to a dialog
+// instead of the chat log, per spec, since this is meant for a quick private GM read rather than a
+// permanent table record.
+async function rollForOtherPlayers(combat) {
+  if (!combat) {
+    ui.notifications.warn("There is no active combat encounter.");
+    return;
+  }
+  const currentCombatantId = combat.combatant?.id;
+  const pcCombatants = combat.combatants.filter((c) => c.actor?.type === "character" && c.id !== currentCombatantId);
+  if (pcCombatants.length === 0) {
+    ui.notifications.warn("No other player characters found in the combat tracker.");
+    return;
+  }
+
+  const confirmContent = `
+    <div style="margin-bottom: 10px;">
+      <p>You are about to roll a <b>1d8</b> for the following actors:</p>
+      <ul style="margin-top: 5px;">
+        ${pcCombatants.map((c) => `<li>${esc(c.actor.name)}</li>`).join("")}
+      </ul>
+      <p>Proceed with the roll?</p>
+    </div>
+  `;
+  const confirmed = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Relationship d8 Check", icon: "fas fa-dice-d8" },
+    content: confirmContent,
+    buttons: [
+      { action: "roll", label: "Roll Dice", icon: "fas fa-dice", callback: () => "roll" },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => "cancel" },
+    ],
+    rejectClose: false,
+  }).catch(() => "cancel");
+  if (confirmed !== "roll") return;
+
+  const results = await Promise.all(pcCombatants.map(async (c) => {
+    const roll = await new Roll("1d8").evaluate();
+    return { name: c.actor.name, total: roll.total };
+  }));
+  results.sort((a, b) => b.total - a.total);
+
+  const resultsContent = `
+    <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 5px;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--color-border-dark);">
+          <th style="padding-bottom: 5px;">Character</th>
+          <th style="text-align: right; padding-bottom: 5px;">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${results.map((r) => `
+          <tr style="border-bottom: 1px solid var(--color-border-light);">
+            <td style="padding: 3px 0;"><b>${esc(r.name)}</b></td>
+            <td style="text-align: right; font-weight: bold; font-size: 1.2em; padding: 3px 0;">${r.total}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+  await foundry.applications.api.DialogV2.wait({
+    window: { title: "Roll Results", icon: "fas fa-dice-d8" },
+    content: resultsContent,
+    buttons: [{ action: "close", label: "Close", icon: "fas fa-check", default: true, callback: () => null }],
+    rejectClose: false,
+  }).catch(() => null);
+}
+
+// Cards with a numeric `value` go to the top of the deck in ascending order (lowest sort = drawn
+// first, per core Cards#_drawCards's TOP/FIRST mode); everything else is randomized the same way
+// core's own shuffle() does and placed after. Independent of Session Zero state - this is deck
+// prep, not part of the recording flow, so it's always available on any deck.
+// Three tiers, top to bottom: "theme" suit cards sorted ascending by value, then "major arcana"
+// suit cards shuffled among themselves, then everything else shuffled normally. Suit match is
+// case-insensitive since it's free text on the card, not an enum.
+function shuffleGroup(group) {
+  return group
+    .map((c) => [foundry.dice.MersenneTwister.random(), c])
+    .sort((a, b) => a[0] - b[0])
+    .map(([, c]) => c);
+}
+
+// Recalls every dealt-out card (discard piles, hands, etc.) back into the deck, then applies the
+// custom tier sort - confirmed with the GM first since forcibly pulling cards out of hands/piles
+// mid-game is disruptive enough to warrant a prompt, unlike a plain re-sort.
+async function resetDeck(deck) {
+  if (!game.user.isGM) return;
+  const activeSummary = findActiveSessionZeroForDeck(deck);
+
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Reset Deck?", icon: "fas fa-rotate-left" },
+    content: `
+      <p>This will recall every dealt card in "${esc(deck.name)}" back into the deck (including anything in hands or piles) and re-sort it: theme cards on top in order, then major arcana and skulls shuffled, then everything else shuffled.</p>
+      <p style="color: var(--color-text-dark-warning); font-size: 0.9em; margin-top: 5px;">
+        <b>Warning:</b> This will also completely clear the chat log for all players${activeSummary ? " and end the active Session Zero game on this deck" : ""}.
+      </p>
+    `,
+    buttons: [
+      { action: "reset", label: "Reset", icon: "fas fa-rotate-left", callback: () => "reset" },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => "cancel" },
+    ],
+    rejectClose: false,
+  }).catch(() => "cancel");
+  if (result !== "reset") return;
+
+  if (activeSummary) await clearActiveSessionZero(deck);
+
+  await deck.recall({ chatNotification: false });
+  const cards = deck.cards.contents;
+
+  const theme = cards
+    .filter((c) => c.suit?.toLowerCase() === "theme")
+    .sort((a, b) => (a.value ?? 0) - (b.value ?? 0));
+  const majorArcana = shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "major arcana"));
+  const skulls = shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "skulls"));
+  const rest = shuffleGroup(cards.filter((c) => !["theme", "major arcana", "skulls"].includes(c.suit?.toLowerCase())));
+
+  const updates = [...theme, ...majorArcana, ...skulls, ...rest].map((c, index) => ({ _id: c.id, sort: index }));
+  await deck.updateEmbeddedDocuments("Card", updates);
+  await ChatMessage.deleteDocuments([], { deleteAll: true });
+  ui.notifications.info(`"${deck.name}" has been reset and the chat log cleared.${activeSummary ? ` The Session Zero game has ended; "${activeSummary.name}" is preserved for reading back.` : ""}`);
+}
+
+// The CardHud's own template (card-hud.hbs) has an empty `.col.middle` div, deliberately unused
+// by Complete Card Management - the same extension point core Foundry's TokenHUD uses for status
+// effects. CardHud is a normal ApplicationV2/HandlebarsApplicationMixin app, so Foundry fires a
+// "renderCardHud" hook automatically; nothing here touches CCM's own code.
+function onRenderCardHud(hud, html) {
+  if (!game.user.isGM) return;
+  const root = html instanceof HTMLElement ? html : html?.[0];
+  const middle = root?.querySelector(".col.middle");
+  if (!middle) return;
+
+  const card = hud.card;
+
+  if (card instanceof Cards && card.type === "deck") {
+    const active = findActiveSessionZeroForDeck(card);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "control-icon";
+    if (active) {
+      button.dataset.tooltip = `End Session Zero Game (${active.name})`;
+      button.innerHTML = `<i class="fa-solid fa-flag-checkered"></i>`;
+      button.addEventListener("click", () => endSessionZeroGame(card));
+    } else {
+      button.dataset.tooltip = "Start Session Zero Game";
+      button.innerHTML = `<i class="fa-solid fa-clipboard-question"></i>`;
+      button.addEventListener("click", () => startSessionZeroGame(card));
+    }
+    middle.appendChild(button);
+
+    const resetButton = document.createElement("button");
+    resetButton.type = "button";
+    resetButton.className = "control-icon";
+    resetButton.dataset.tooltip = "Reset Deck (recall all cards, then theme on top, major arcana/skulls shuffled next, rest shuffled)";
+    resetButton.innerHTML = `<i class="fa-solid fa-rotate-left"></i>`;
+    resetButton.addEventListener("click", () => resetDeck(card));
+    middle.appendChild(resetButton);
+    return;
+  }
+
+  if (card instanceof Card) {
+    // Always available, independent of Session Zero state - same reasoning as the deck's Sort
+    // button. Uses our own CardImageViewerApp rather than the world's configured image viewer, so
+    // this doesn't depend on any third-party module (e.g. Gambit's) being installed.
+    const viewButton = document.createElement("button");
+    viewButton.type = "button";
+    viewButton.className = "control-icon";
+    viewButton.dataset.tooltip = "View Card Image";
+    viewButton.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i>`;
+    viewButton.addEventListener("click", () => CardImageViewerApp.open(card.img, card.name));
+    middle.appendChild(viewButton);
+
+    const summary = findActiveSessionZeroForDeck(findOriginDeckForCard(card));
+    if (!summary) return; // No active Session Zero game on this card's deck - no further buttons.
+
+    const recordButton = document.createElement("button");
+    recordButton.type = "button";
+    recordButton.className = "control-icon";
+    recordButton.dataset.tooltip = "Record Answer";
+    recordButton.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
+    recordButton.addEventListener("click", () => SessionZeroAnswerApp.open(card, summary));
+    middle.appendChild(recordButton);
+
+    const rollButton = document.createElement("button");
+    rollButton.type = "button";
+    rollButton.className = "control-icon";
+    rollButton.dataset.tooltip = "Roll d8 for Other Players";
+    rollButton.innerHTML = `<i class="fa-solid fa-dice-d8"></i>`;
+    rollButton.addEventListener("click", () => rollForOtherPlayers(game.combat));
+    middle.appendChild(rollButton);
+  }
+}

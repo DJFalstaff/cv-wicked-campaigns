@@ -1,0 +1,32 @@
+<form class="wicked-lifepath-table-config-form" autocomplete="off">
+  <p class="hint">For each lifepath category, select a custom roll table from your world. If left set to "Default Compendium Table", the wizard will automatically search for a world table matching the default name, or use the copy from the compendium adventure pack.</p>
+
+  <div class="config-body">
+    {{#each sections}}
+      <fieldset>
+        <legend>{{this.group}}</legend>
+        {{#each this.items}}
+          <div class="form-group">
+            <label for="table-{{this.key}}" data-tooltip="Default table: {{this.defaultName}}">
+              {{this.label}}{{#if this.code}} <span class="table-code">{{this.code}}</span>{{/if}}
+            </label>
+            <div class="form-fields">
+              <select name="{{this.key}}" id="table-{{this.key}}">
+                <option value="">— Use Default Compendium Table —</option>
+                {{#each this.worldTables}}
+                  <option value="{{this.id}}" {{#if (eq this.id ../selected)}}selected{{/if}}>{{this.name}}</option>
+                {{/each}}
+              </select>
+            </div>
+          </div>
+        {{/each}}
+      </fieldset>
+    {{/each}}
+  </div>
+
+  <footer class="form-footer">
+    <button type="submit" name="submit">
+      <i class="fas fa-save"></i> Save Mappings
+    </button>
+  </footer>
+</form>

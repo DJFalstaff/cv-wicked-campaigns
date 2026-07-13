@@ -1,0 +1,1023 @@
+/**
+ * Queen of Storms — Lifepath Wizard
+ * Foundry VTT V14 · dnd5e 5.3.3 · ApplicationV2
+ *
+ * Implements John Wick's "Backstory" lifepath. Select one token, run the macro,
+ * walk the six parts (+ optional trait pairs), and write the assembled result
+ * into the character's Biography (system.details.biography.value).
+ *
+ * Option pools live in the compendium pack
+ *   cv-queen-of-storms-compendiums.qos-lifepath-tables   (one RollTable per pool).
+ * Run the companion "Seed Lifepath Tables" macro once to build/refresh them.
+ * Branch routing (1B / 1E / Table 3) stays in this macro; only leaf pools are tables.
+ */
+(async () => {
+  // ---- 0. Preconditions --------------------------------------------------
+  const AppV2 = foundry.applications?.api?.ApplicationV2;
+  if (!AppV2) {
+    ui.notifications.error("Lifepath Wizard requires Foundry's ApplicationV2 API (V12+).");
+    return;
+  }
+  const controlled = canvas?.tokens?.controlled ?? [];
+  if (controlled.length !== 1) {
+    ui.notifications.warn("Select exactly one token, then run the Lifepath Wizard.");
+    return;
+  }
+  const actor = controlled[0].actor;
+  if (!actor) { ui.notifications.warn("The selected token has no actor."); return; }
+  if (actor.type !== "character") {
+    ui.notifications.warn("The Lifepath Wizard targets player-character actors.");
+    return;
+  }
+
+  // ---- 1. Load option pools from the compendium --------------------------
+  // Each leaf pool is one RollTable in the module pack, tagged with a stable
+  // flag key (so tables can be freely renamed in the UI). Branch routing
+  // (1B / 1E / Table 3) stays in this macro — only content pools are tables.
+  const MODULE_ID = "cv-queen-of-storms-compendiums";
+  const PACK_ID = `${MODULE_ID}.qos-lifepath-tables`;
+  const REQUIRED_KEYS = [
+    "status", "childhood", "parentalDisaster", "familySecret", "familyCrisis",
+    "familyGoal", "siblings", "familyBond", "friendSituation", "enemySituation", "feRace",
+    "feProfession", "romanceHealthy", "romanceLookout", "romanceTragic",
+    "romanceProblematic", "loverRace", "loverProfession", "loverAppearance",
+    "hairColor", "hairStyle", "eyeColor", "personalStyle", "trait", "values",
+    "valuedObject", "lostIt", "fear", "valuedPerson", "quirk", "unlucky", "lucky",
+  ];
+  const pack = game.packs?.get(PACK_ID);
+  if (!pack) {
+    ui.notifications.error(`Lifepath Wizard: compendium "${PACK_ID}" not found. Enable the Queen of Storms module, then run "Seed Lifepath Tables".`);
+    return;
+  }
+  let tableDocs;
+  try {
+    const docs = await pack.getDocuments();
+    tableDocs = {};
+    for (const t of docs) {
+      const key = t.getFlag(MODULE_ID, "key");
+      if (key) tableDocs[key] = t;
+    }
+  } catch (err) {
+    console.error("Lifepath Wizard | failed to load tables", err);
+    ui.notifications.error("Lifepath Wizard: could not read the lifepath tables compendium (see console).");
+    return;
+  }
+  const missing = REQUIRED_KEYS.filter((k) => !tableDocs[k]);
+  if (missing.length) {
+    ui.notifications.error(`Lifepath Wizard: ${missing.length} table(s) missing from the compendium — re-run "Seed Lifepath Tables". Missing: ${missing.join(", ")}`);
+    return;
+  }
+  // Flatten each RollTable into parallel text/weight arrays. The option text is
+  // the result's description (what the table View shows and what you edit in the
+  // result config); fall back to name for hand-made rows. Weight = range span,
+  // so a re-weighted or widened row is picked more often, like RollTable#roll.
+  const stripHtml = (s) => { const d = document.createElement("div"); d.innerHTML = String(s ?? ""); return (d.textContent || d.innerText || "").trim(); };
+  const tableText = {};
+  const tableWeights = {};
+  for (const key of Object.keys(tableDocs)) {
+    const rows = [...tableDocs[key].results].sort((a, b) => (a.range?.[0] ?? 0) - (b.range?.[0] ?? 0));
+    tableText[key] = rows.map((r) => stripHtml(r.description || r.name || ""));
+    tableWeights[key] = rows.map((r) => Math.max(1, (r.range?.[1] ?? 1) - (r.range?.[0] ?? 1) + 1));
+  }
+
+  // ---- 2. Branch / config ------------------------------------------------
+  const STEP_COUNT = 7;
+  const STEP_TITLES = {
+    1: "Part 1 · Family",
+    2: "Part 2 · Friends & Enemies",
+    3: "Part 3 · Romance",
+    4: "Part 4 · Appearance",
+    5: "Part 5 · Personality",
+    6: "Part 6 · Life Events",
+    7: "Optional · Trait Pairs",
+  };
+
+  const BRANCH = {
+    parents: { die: 20, options: [
+      { value: "disaster", label: "Something happened to a parent",          lo: 1,  hi: 8 },
+      { value: "alive",    label: "Both parents are alive and well",          lo: 9,  hi: 19 },
+      { value: "special",  label: "Something special about your parents",     lo: 20, hi: 20 },
+    ]},
+    standing: { die: 20, options: [
+      { value: "good", label: "Good standing",                                lo: 1,  hi: 10 },
+      { value: "bad",  label: "Bad standing — at risk of losing everything",  lo: 11, hi: 20 },
+    ]},
+    romance: { die: 10, options: [
+      { value: "healthy",     label: "In a healthy romance",                  lo: 1, hi: 2 },
+      { value: "lookout",     label: "On the lookout",                        lo: 3, hi: 6 },
+      { value: "tragic",      label: "Recovering from a romantic disaster",   lo: 7, hi: 8 },
+      { value: "problematic", label: "In a love affair, but with problems",   lo: 9, hi: 10 },
+    ]},
+  };
+  // Birth order: weighted 1d100 -> the character's position among their siblings.
+  const BIRTH_ORDER = [
+    { n: 1, lo: 1,  hi: 25 },
+    { n: 2, lo: 26, hi: 50 },
+    { n: 3, lo: 51, hi: 70 },
+    { n: 4, lo: 71, hi: 85 },
+    { n: 5, lo: 86, hi: 95 },
+    { n: 6, lo: 96, hi: 100 },
+  ];
+  // Sibling structure odds — all rolled on 1d100, thresholds per the lifepath tables.
+  const SIBLING_DEATH_PCT = 15;         // a sibling is deceased if roll <= this
+  const SIBLINGS_NONE_RANGE = [76, 90]; // "No siblings" (only child); outside this you have some
+  const SIBLINGS_UNKNOWN_MIN = 91;      // 91-100: you have siblings "...as far as you know"
+  const TWIN_FRATERNAL_MIN = 96;        // 96-98: fraternal twin (adjacent siblings only)
+  const TWIN_IDENTICAL_MIN = 99;        // 99-100: identical twin
+  const HALF_SIBLING_MIN = 91;          // 91-100: half-sibling (non-adjacent siblings only)
+  const ROMANCE_LABEL = {
+    healthy: "Currently in a healthy romance",
+    lookout: "On the lookout for love",
+    tragic: "Recovering from a romantic disaster",
+    problematic: "In a love affair, but there are problems",
+  };
+  const ROMANCE_DETAIL = {
+    healthy:     { table: "romanceHealthy",     label: "How it began" },
+    lookout:     { table: "romanceLookout",     label: "What you seek" },
+    tragic:      { table: "romanceTragic",      label: "The tragedy" },
+    problematic: { table: "romanceProblematic", label: "The complication" },
+  };
+  const TRAIT_PAIRS = [
+    ["Amorous", "Chaste"], ["Forgiving", "Vengeful"], ["Generous", "Selfish"],
+    ["Honest", "Deceitful"], ["Just", "Arbitrary"], ["Merciful", "Cruel"],
+    ["Modest", "Proud"], ["Prudent", "Reckless"], ["Temperate", "Indulgent"],
+    ["Trusting", "Suspicious"],
+  ];
+
+  // ---- 3. Helpers --------------------------------------------------------
+  const esc = (s) => String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const randInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const trunc = (s, n) => { s = String(s || ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+  const ordinal = (n) => { const s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+
+  // ---- 4. Styles (base reused from the Biography Wizard + additions) ------
+  const STYLE_ID = "qos-lifepath-styles";
+  const STYLE_VERSION = "6";
+  function injectStyles() {
+    // Re-inject when the stylesheet version changes, so re-running the macro in a
+    // live session refreshes the CSS instead of keeping a stale <style> element.
+    let style = document.getElementById(STYLE_ID);
+    if (style && style.dataset.qbwVersion === STYLE_VERSION) return;
+    if (!style) { style = document.createElement("style"); style.id = STYLE_ID; document.head.appendChild(style); }
+    style.dataset.qbwVersion = STYLE_VERSION;
+    style.textContent = `
+      .qos-lifepath-wizard .window-content { padding: 0; background: #0c111d; }
+      .qbw { --gold:#d8b24a; --gold-dim:#9a7d2e; --ink:#e8e1cd; --ink-dim:#a59c83;
+             --panel:#131a2b; --panel-2:#0e1320; --line:rgba(216,178,74,.22);
+             color:var(--ink); font-size:13px; line-height:1.5; }
+      .qbw-header { padding:14px 18px 10px; background:linear-gradient(180deg,#10182a,#0c111d);
+                    border-bottom:1px solid var(--line); }
+      .qbw-step-no { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-dim); }
+      .qbw-title { margin:2px 0 10px; font-family:"Cinzel","Trajan Pro",Georgia,serif;
+                   font-weight:600; font-size:21px; letter-spacing:.04em; color:var(--gold);
+                   text-shadow:0 1px 0 #000; }
+      .qbw-progress { height:4px; background:var(--panel-2); border-radius:3px; overflow:hidden;
+                      border:1px solid rgba(0,0,0,.5); }
+      .qbw-progress-bar { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold));
+                          transition:width .25s ease; }
+      .qbw-main { display:flex; flex-direction:row; align-items:stretch; height:60vh; }
+      .qbw-body { flex:3 1 0; min-height:0; padding:16px 18px; overflow-y:auto; }
+      .qbw-aside { flex:2 1 0; min-height:0; padding:14px 16px; overflow-y:auto;
+                   background:#0a0e18; border-left:1px solid var(--line); }
+      .qbw-aside-head { font-family:"Cinzel","Trajan Pro",Georgia,serif; color:var(--gold-dim);
+                        font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+                        margin:0 0 12px; padding-bottom:7px; border-bottom:1px solid var(--line); }
+      .qbw-aside-head i { margin-right:6px; }
+      .qbw-label { display:block; font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+                   color:var(--ink-dim); margin:0 0 6px; }
+      .qbw-hint { font-size:11.5px; color:var(--ink-dim); margin:6px 0 0; font-style:italic; }
+      .qbw-row { display:flex; gap:8px; align-items:stretch; margin-bottom:12px; }
+      .qbw-select, .qbw-num {
+        width:100%; background:var(--panel-2); color:var(--ink);
+        border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:13px; }
+      .qbw-num { width:70px; flex:0 0 auto; }
+      .qbw-select:focus, .qbw-num:focus { outline:none; border-color:var(--gold);
+        box-shadow:0 0 0 2px rgba(216,178,74,.18); }
+      .qbw-select option { background:#0e1320; color:var(--ink); }
+      .qbw-btn { display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+        background:var(--panel); color:var(--ink); border:1px solid var(--line);
+        border-radius:6px; padding:8px 12px; font-size:12.5px; cursor:pointer; transition:all .12s; }
+      .qbw-btn:hover { border-color:var(--gold); color:#fff; background:#1a2236; }
+      .qbw-btn:disabled { opacity:.4; cursor:default; border-color:var(--line); background:var(--panel); color:var(--ink-dim); }
+      .qbw-btn i { font-size:11px; }
+      .qbw-primary { background:linear-gradient(180deg,#e6c25a,#c89a2c); color:#1a1408;
+        border-color:#8a6c1e; font-weight:600; text-shadow:none; }
+      .qbw-primary:hover { background:linear-gradient(180deg,#f0cf6e,#d4a634); color:#1a1408; }
+      .qbw-divider { height:1px; background:var(--line); margin:14px 0; }
+      /* sections + cards */
+      .qbw-section-title { font-family:"Cinzel","Trajan Pro",Georgia,serif; color:var(--gold);
+        font-size:15px; letter-spacing:.04em; margin:20px 0 10px; padding-bottom:5px;
+        border-bottom:1px solid var(--line); }
+      .qbw-section-title:first-child { margin-top:0; }
+      .qbw-sub { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-dim); margin:14px 0 8px; }
+      .qbw-card { background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin:8px 0; }
+      .qbw-card-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+      .qbw-card-title { font-weight:600; color:var(--ink); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; flex:1 1 auto; }
+      .qbw-card.is-deceased { opacity:.72; border-style:dashed; }
+      .qbw-tag { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:9.5px;
+        letter-spacing:.06em; background:rgba(216,178,74,.14); color:var(--gold-dim); vertical-align:middle; }
+      .qbw-tag-dead { background:rgba(190,70,70,.18); color:#f0c2c2; }
+      .qbw-tag-fraternal, .qbw-tag-identical { background:rgba(90,150,210,.20); color:#bcd8f2; }
+      .qbw-tag-half { background:rgba(160,110,200,.20); color:#dcc2f0; }
+      .qbw-sib-order { font-size:13px; color:var(--ink); margin:4px 0 10px; }
+      .qbw-card-attrs { display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-top:8px; }
+      .qbw-mini { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink); }
+      .qbw-mini-note { font-size:11px; color:var(--gold-dim); font-style:italic; }
+      .qbw-inline { display:inline-block; width:auto; min-width:88px; margin:0 2px; padding:3px 8px; vertical-align:baseline; }
+      .qbw-iconbtn { background:none; border:1px solid var(--line); color:var(--ink-dim); border-radius:5px; padding:4px 8px; cursor:pointer; font-size:11px; }
+      .qbw-iconbtn:hover { color:var(--gold); border-color:var(--gold); }
+      .qbw-count { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+      .qbw-check { display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink); margin:6px 0; cursor:pointer; }
+      .qbw-check input { accent-color:var(--gold); width:16px; height:16px; }
+      .qbw-modes { display:flex; gap:6px; margin:10px 0; }
+      /* trait pairs */
+      .qbw-pair { display:grid; grid-template-columns:1fr 24px 1fr; align-items:center; gap:6px 10px;
+        padding:9px 0; border-bottom:1px dashed rgba(216,178,74,.12); }
+      .qbw-pair-l { text-align:right; font-size:12.5px; }
+      .qbw-pair-r { text-align:left; font-size:12.5px; }
+      .qbw-pair-mid { text-align:center; color:var(--ink-dim); }
+      .qbw-pair-name { color:var(--ink); }
+      .qbw-pair-val { color:var(--gold); font-weight:600; font-variant-numeric:tabular-nums; }
+      .qbw-slider { grid-column:1 / -1; width:100%; accent-color:var(--gold); cursor:pointer; }
+      .qbw-budget { font-size:11.5px; color:var(--ink-dim); margin-top:10px; font-style:italic; }
+      /* live preview pane */
+      .qbw-preview { font-size:12.5px; color:var(--ink-dim); }
+      .qbw-empty-note { color:var(--ink-dim); font-style:italic; }
+      .qbw-preview h1 { font-size:16px; color:var(--gold); font-family:"Cinzel",Georgia,serif; margin:0 0 8px; }
+      .qbw-preview h2 { font-size:12px; color:var(--gold-dim); margin:12px 0 4px; text-transform:uppercase; letter-spacing:.08em; }
+      .qbw-preview h3 { font-size:12px; color:var(--ink); margin:8px 0 3px; }
+      .qbw-preview p { margin:3px 0; }
+      .qbw-preview ul { margin:3px 0 3px 18px; padding:0; }
+      .qbw-preview li { margin:2px 0; }
+      .qbw-preview strong { color:var(--ink); }
+      .qbw-foot-check { font-size:11.5px; color:var(--ink-dim); margin:0; }
+      .qbw-foot-status { display:inline-flex; align-items:center; gap:5px; font-size:11.5px;
+        padding:3px 9px; border-radius:5px; white-space:nowrap; }
+      .qbw-foot-status.is-ok  { color:#bfe6c6; background:rgba(76,160,90,.16); }
+      .qbw-foot-status.is-err { color:#f0c2c2; background:rgba(190,70,70,.16); }
+      .qbw-footer { display:flex; align-items:center; gap:8px; padding:12px 18px; background:#0e1320; border-top:1px solid var(--line); }
+      .qbw-spacer { flex:1 1 auto; }
+    `;
+  }
+
+  // ---- 5. The wizard -----------------------------------------------------
+  class LifepathWizard extends AppV2 {
+    constructor(targetActor, tables, options = {}) {
+      super({ id: `qos-lifepath-${targetActor.id}`, ...options });
+      this.actor = targetActor;
+      this.tableText = tables.text;
+      this.tableWeights = tables.weights;
+      this.tableDocs = tables.docs;
+      this.step = 1;
+      this.saveResult = null;
+      const existing = (targetActor.system?.details?.biography?.value || "").trim();
+      this.data = {
+        // Part 1
+        status: "", childhood: "",
+        parentsBranch: "", parentalDisaster: "", familySecret: "",
+        standingBranch: "", familyCrisis: "",
+        familyGoal: "", siblings: [], birthOrder: 0, siblingsUnknown: false,
+        motherBond: "", fatherBond: "",
+        // Part 2
+        friends: [], enemies: [],
+        // Part 3
+        romanceStatus: "", romanceDetail: "",
+        loverRace: "", loverProfession: "", loverAppearance: "",
+        // Part 4
+        hairColor: "", hairStyle: "", eyeColor: "", personalStyle: "",
+        // Part 5
+        trait: "", values: "", valuedObject: "", lostIt: "", fear: "", valuedPerson: "", quirk: "",
+        // Optional trait pairs
+        useTraitPairs: false, traitMode: "selected", traitPairs: {},
+        // Part 6
+        lifeEvents: [],
+        // Save behaviour
+        appendBio: !!existing,
+      };
+      for (let i = 0; i < TRAIT_PAIRS.length; i++) this.data.traitPairs[i] = 10;
+    }
+
+    static DEFAULT_OPTIONS = {
+      id: "qos-lifepath",
+      classes: ["qos-lifepath-wizard"],
+      tag: "div",
+      window: { title: "Lifepath Wizard", icon: "fa-solid fa-scroll", resizable: true },
+      position: { width: 900, height: "auto" },
+    };
+
+    get title() { return `Lifepath Wizard — ${this.actor?.name ?? ""}`; }
+
+    // ===== render =====
+    async _renderHTML() {
+      injectStyles();
+      const s = this.step;
+      const pct = Math.round((s / STEP_COUNT) * 100);
+      const header = `
+        <header class="qbw-header">
+          <div class="qbw-step-no">Step ${s} of ${STEP_COUNT}</div>
+          <h2 class="qbw-title">${STEP_TITLES[s]}</h2>
+          <div class="qbw-progress"><div class="qbw-progress-bar" style="width:${pct}%"></div></div>
+        </header>`;
+      return `<div class="qbw">${header}
+        <div class="qbw-main">
+          <section class="qbw-body">${this._renderBody()}</section>
+          <aside class="qbw-aside">${this._renderAside()}</aside>
+        </div>
+        ${this._renderFooter()}</div>`;
+    }
+    _replaceHTML(result, content) {
+      // Preserve scroll position of both panes across full re-renders (Roll
+      // buttons, branch changes, etc. rebuild innerHTML, which would reset them).
+      const SCROLLERS = [".qbw-body", ".qbw-aside"];
+      const tops = {};
+      for (const sel of SCROLLERS) { const p = content.querySelector(sel); if (p) tops[sel] = p.scrollTop; }
+      content.innerHTML = result;
+      for (const sel of SCROLLERS) { const n = content.querySelector(sel); if (n && tops[sel]) n.scrollTop = tops[sel]; }
+    }
+
+    // --- generic field renderers ---
+    _tableRow(field, label, table) {
+      const list = this.tableText[table] || [];
+      const cur = this.data[field];
+      const opts = ['<option value="">— choose or roll —</option>'].concat(
+        list.map((txt, i) => `<option value="${esc(txt)}" ${txt === cur ? "selected" : ""}>${i + 1}. ${esc(txt)}</option>`)
+      ).join("");
+      return `<label class="qbw-label">${esc(label)}</label>
+        <div class="qbw-row">
+          <select class="qbw-select" data-field="${field}">${opts}</select>
+          <button type="button" class="qbw-btn" data-act="roll" data-field="${field}" data-table="${table}"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+        </div>`;
+    }
+    _branchRow(field, name, label) {
+      const b = BRANCH[name];
+      const cur = this.data[field];
+      const opts = ['<option value="">— choose or roll —</option>'].concat(
+        b.options.map((o) => `<option value="${o.value}" ${o.value === cur ? "selected" : ""}>${esc(o.label)}</option>`)
+      ).join("");
+      return `<label class="qbw-label">${esc(label)}</label>
+        <div class="qbw-row">
+          <select class="qbw-select" data-field="${field}" data-rerender="1">${opts}</select>
+          <button type="button" class="qbw-btn" data-act="rollbranch" data-field="${field}" data-branch="${name}"><i class="fa-solid fa-dice-d20"></i> Roll d${b.die}</button>
+        </div>`;
+    }
+
+    _renderBody() {
+      switch (this.step) {
+        case 1: return this._renderFamily();
+        case 2: return this._renderFriendsEnemies();
+        case 3: return this._renderRomance();
+        case 4: return this._renderAppearance();
+        case 5: return this._renderPersonality();
+        case 6: return this._renderLifeEvents();
+        case 7: return this._renderTraitPairs();
+        default: return "";
+      }
+    }
+
+    _renderFamily() {
+      const d = this.data;
+      let h = `<div class="qbw-section-title">Family &amp; Money</div>`;
+      h += this._tableRow("status", "Social standing (Table 1)", "status");
+      h += this._tableRow("childhood", "Childhood event (1A)", "childhood");
+      h += `<div class="qbw-section-title">Parents</div>`;
+      h += this._branchRow("parentsBranch", "parents", "Family situation (1B)");
+      if (d.parentsBranch === "disaster") h += this._tableRow("parentalDisaster", "What happened to your parents? (1C)", "parentalDisaster");
+      else if (d.parentsBranch === "special") h += this._tableRow("familySecret", "Your family's secret (1D)", "familySecret");
+      else if (d.parentsBranch === "alive") h += `<div class="qbw-hint">Both parents are alive and well — no further roll.</div>`;
+      h += this._tableRow("motherBond", "Bond with your mother (0R)", "familyBond");
+      h += this._tableRow("fatherBond", "Bond with your father (0R)", "familyBond");
+      h += `<div class="qbw-hint">A bond is kept for each parent whether they are living or not.</div>`;
+      h += `<div class="qbw-section-title">Standing &amp; Legacy</div>`;
+      h += this._branchRow("standingBranch", "standing", "Family standing (1E)");
+      if (d.standingBranch === "bad") h += this._tableRow("familyCrisis", "Current family crisis (1F)", "familyCrisis");
+      else if (d.standingBranch === "good") h += `<div class="qbw-hint">Your family status is good — no crisis.</div>`;
+      h += this._tableRow("familyGoal", "Family goal (1G)", "familyGoal");
+      h += this._renderSiblings();
+      return h;
+    }
+
+    _listCard(listKey, idx, title, fields) {
+      const entry = this.data[listKey][idx];
+      let body = "";
+      for (const [sub, label, table] of fields) {
+        const list = this.tableText[table] || [];
+        const cur = entry[sub] || "";
+        const opts = ['<option value="">— choose —</option>'].concat(
+          list.map((txt, i) => `<option value="${esc(txt)}" ${txt === cur ? "selected" : ""}>${i + 1}. ${esc(txt)}</option>`)
+        ).join("");
+        body += `<label class="qbw-label" style="margin-top:6px">${esc(label)}</label>
+          <select class="qbw-select" data-list="${listKey}" data-idx="${idx}" data-sub="${sub}">${opts}</select>`;
+      }
+      return `<div class="qbw-card">
+        <div class="qbw-card-head">
+          <span class="qbw-card-title">${esc(title)} ${idx + 1}</span>
+          <button type="button" class="qbw-iconbtn" data-act="reroll-entry" data-list="${listKey}" data-idx="${idx}"><i class="fa-solid fa-rotate"></i> Reroll</button>
+          <button type="button" class="qbw-iconbtn" data-act="remove-entry" data-list="${listKey}" data-idx="${idx}"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        ${body}
+      </div>`;
+    }
+
+    _renderFriendsEnemies() {
+      const d = this.data;
+      const friendFields = [["situation", "Situation (Table 2)", "friendSituation"], ["race", "Identity (2B)", "feRace"], ["profession", "Profession (2C)", "feProfession"]];
+      const enemyFields  = [["situation", "Situation (2A)", "enemySituation"], ["race", "Identity (2B)", "feRace"], ["profession", "Profession (2C)", "feProfession"]];
+      let h = `<div class="qbw-section-title">Friends</div>
+        <div class="qbw-count">
+          <span class="qbw-label" style="margin:0">Count</span>
+          <input type="number" class="qbw-num" min="0" max="20" value="${d.friends.length}" data-countfield="friends">
+          <button type="button" class="qbw-btn" data-act="rollcount" data-list="friends" data-die="6"><i class="fa-solid fa-dice-d6"></i> Roll 1d6</button>
+          <button type="button" class="qbw-btn" data-act="gen" data-list="friends"><i class="fa-solid fa-arrows-rotate"></i> Generate</button>
+          <button type="button" class="qbw-btn" data-act="add" data-list="friends"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>`;
+      if (!d.friends.length) h += `<div class="qbw-hint">Roll 1d6 (or set a count) to generate friends.</div>`;
+      h += d.friends.map((_, i) => this._listCard("friends", i, "Friend", friendFields)).join("");
+      h += `<div class="qbw-section-title">Enemies</div>
+        <div class="qbw-count">
+          <span class="qbw-label" style="margin:0">Count</span>
+          <input type="number" class="qbw-num" min="0" max="20" value="${d.enemies.length}" data-countfield="enemies">
+          <button type="button" class="qbw-btn" data-act="rollcount" data-list="enemies" data-die="4"><i class="fa-solid fa-dice-d4"></i> Roll 1d4</button>
+          <button type="button" class="qbw-btn" data-act="gen" data-list="enemies"><i class="fa-solid fa-arrows-rotate"></i> Generate</button>
+          <button type="button" class="qbw-btn" data-act="add" data-list="enemies"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>`;
+      if (!d.enemies.length) h += `<div class="qbw-hint">Roll 1d4 (or set a count) to generate enemies.</div>`;
+      h += d.enemies.map((_, i) => this._listCard("enemies", i, "Enemy", enemyFields)).join("");
+      return h;
+    }
+
+    // ===== siblings (birth order + per-sibling cards) =====
+    _renderSiblings() {
+      const d = this.data;
+      const Y = d.siblings.length + 1;
+      let X = Number(d.birthOrder) || 0;
+      if (X > Y) { X = Y; d.birthOrder = X; }            // keep position within the family
+      const rolled = X >= 1;
+      const onlyChild = rolled && d.siblings.length === 0;
+      let h = `<div class="qbw-section-title">Siblings</div>`;
+
+      if (d.siblingsUnknown) {
+        h += `<div class="qbw-sib-order">You may have siblings — <strong>as far as you know</strong> — but none are known to you.</div>`;
+      } else if (!rolled) {
+        h += `<div class="qbw-hint">Roll to see whether you have siblings, your birth order, and your family.</div>`;
+      } else if (onlyChild) {
+        h += `<div class="qbw-sib-order">You are an <strong>only child</strong>.</div>`;
+      } else {
+        const xOpts = [];
+        for (let p = 1; p <= Y; p++) xOpts.push(`<option value="${p}" ${p === X ? "selected" : ""}>${ordinal(p)}</option>`);
+        h += `<div class="qbw-sib-order">You are the
+          <select class="qbw-select qbw-inline" data-field="birthOrder" data-rerender="1">${xOpts.join("")}</select>
+          of <strong>${Y}</strong> children.</div>`;
+      }
+
+      h += `<div class="qbw-count">
+        <button type="button" class="qbw-btn" data-act="roll-family"><i class="fa-solid fa-dice-d20"></i> Roll Siblings &amp; Family</button>
+        ${rolled ? `<button type="button" class="qbw-btn" data-act="add" data-list="siblings"><i class="fa-solid fa-plus"></i> Add younger sibling</button>` : ""}
+      </div>`;
+
+      if (rolled && d.siblings.length) {
+        const positions = [];
+        for (let p = 1; p <= Y; p++) if (p !== X) positions.push(p);
+        h += d.siblings.map((_, i) => this._siblingCard(i, positions[i], X)).join("");
+      }
+      return h;
+    }
+    _siblingCard(idx, position, X) {
+      const s = this.data.siblings[idx];
+      const older = position < X;
+      const dead = s.alive === false;
+      const kind = this._siblingKind(s, position, X);
+      const idTwin = kind.key === "identical";
+      const sexVal = idTwin ? this._pcSex() : (s.sex || "");
+      const rowFor = (sub, label, table) => {
+        const list = this.tableText[table] || [];
+        const cur = s[sub] || "";
+        const opts = ['<option value="">— choose or roll —</option>'].concat(
+          list.map((txt, i) => `<option value="${esc(txt)}" ${txt === cur ? "selected" : ""}>${i + 1}. ${esc(txt)}</option>`)
+        ).join("");
+        return `<label class="qbw-label" style="margin-top:6px">${esc(label)}</label>
+          <div class="qbw-row">
+            <select class="qbw-select" data-list="siblings" data-idx="${idx}" data-sub="${sub}">${opts}</select>
+            <button type="button" class="qbw-btn" data-act="roll-sib" data-idx="${idx}" data-sub="${sub}" data-table="${table}"><i class="fa-solid fa-dice-d20"></i> Roll</button>
+          </div>`;
+      };
+      return `<div class="qbw-card${dead ? " is-deceased" : ""}">
+        <div class="qbw-card-head">
+          <span class="qbw-card-title">${ordinal(position)} child <span class="qbw-tag">${older ? "older" : "younger"}</span>${kind.label ? `<span class="qbw-tag qbw-tag-${kind.key}">${esc(kind.label)}</span>` : ""}${dead ? '<span class="qbw-tag qbw-tag-dead">deceased</span>' : ""}</span>
+          <button type="button" class="qbw-iconbtn" data-act="reroll-entry" data-list="siblings" data-idx="${idx}"><i class="fa-solid fa-rotate"></i> Reroll</button>
+          <button type="button" class="qbw-iconbtn" data-act="remove-entry" data-list="siblings" data-idx="${idx}"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        ${rowFor("relation", "Sibling (1H)", "siblings")}
+        ${rowFor("bond", "Relationship bond (0R)", "familyBond")}
+        <div class="qbw-card-attrs">
+          <label class="qbw-mini">Sex
+            <select class="qbw-select qbw-inline" data-list="siblings" data-idx="${idx}" data-sub="sex" ${idTwin ? "disabled" : ""}>
+              <option value="male" ${sexVal === "male" ? "selected" : ""}>Male</option>
+              <option value="female" ${sexVal === "female" ? "selected" : ""}>Female</option>
+            </select>
+          </label>
+          ${idTwin ? `<span class="qbw-mini-note">matches you — identical twin</span>` : ""}
+          <label class="qbw-check" style="margin:0">
+            <input type="checkbox" data-list="siblings" data-idx="${idx}" data-sub="alive" data-rerender="1" ${dead ? "" : "checked"}>
+            Living (1d100 &gt; ${SIBLING_DEATH_PCT})
+          </label>
+        </div>
+      </div>`;
+    }
+
+    _renderRomance() {
+      const d = this.data;
+      let h = this._branchRow("romanceStatus", "romance", "Romance status (Table 3)");
+      if (d.romanceStatus && ROMANCE_DETAIL[d.romanceStatus]) {
+        const cfg = ROMANCE_DETAIL[d.romanceStatus];
+        h += this._tableRow("romanceDetail", cfg.label, cfg.table);
+      }
+      if (d.romanceStatus && d.romanceStatus !== "lookout") {
+        h += `<div class="qbw-section-title">${d.romanceStatus === "tragic" ? "Their Lost Lover" : "Their Lover"}</div>`;
+        h += this._tableRow("loverRace", "Cultural background (3E)", "loverRace");
+        h += this._tableRow("loverProfession", "Profession (3F)", "loverProfession");
+        h += this._tableRow("loverAppearance", "Appearance (3G)", "loverAppearance");
+      } else if (d.romanceStatus === "lookout") {
+        h += `<div class="qbw-hint">No current partner — nothing more to detail here.</div>`;
+      }
+      return h;
+    }
+
+    _renderAppearance() {
+      let h = this._tableRow("hairColor", "Hair colour (Table 4)", "hairColor");
+      h += this._tableRow("hairStyle", "Hair style (4A)", "hairStyle");
+      h += this._tableRow("eyeColor", "Eye colour (4B)", "eyeColor");
+      h += this._tableRow("personalStyle", "Personal style (4C)", "personalStyle");
+      return h;
+    }
+
+    _renderPersonality() {
+      let h = this._tableRow("trait", "Defining personality trait (Table 5)", "trait");
+      h += this._tableRow("values", "What you value most (5A)", "values");
+      h += this._tableRow("valuedObject", "Most valued object (5B)", "valuedObject");
+      h += this._tableRow("lostIt", "If you lost it… (5C)", "lostIt");
+      h += this._tableRow("fear", "Greatest fear (5D)", "fear");
+      h += this._tableRow("valuedPerson", "Person you value most (5E)", "valuedPerson");
+      h += this._tableRow("quirk", "Personality quirk (5F → 5G/5H)", "quirk");
+      return h;
+    }
+
+    _pairBudget() {
+      let s = 0;
+      for (let i = 0; i < TRAIT_PAIRS.length; i++) s += Math.abs((this.data.traitPairs[i] ?? 10) - 10);
+      return s;
+    }
+    _renderTraitPairs() {
+      const d = this.data;
+      let h = `<label class="qbw-check">
+          <input type="checkbox" data-field="useTraitPairs" data-rerender="1" ${d.useTraitPairs ? "checked" : ""}>
+          Use the detailed Trait Pairs system
+        </label>
+        <div class="qbw-hint">Optional, more demanding alternative to the single Personality Trait. Each pair sums to 20.</div>`;
+      if (!d.useTraitPairs) return h;
+      h += `<div class="qbw-modes">
+          <button type="button" class="qbw-btn ${d.traitMode === "random" ? "qbw-primary" : ""}" data-act="pairs-mode" data-mode="random">Random</button>
+          <button type="button" class="qbw-btn ${d.traitMode === "selected" ? "qbw-primary" : ""}" data-act="pairs-mode" data-mode="selected">Selected</button>
+        </div>`;
+      if (d.traitMode === "random") {
+        h += `<div class="qbw-count">
+            <button type="button" class="qbw-btn qbw-primary" data-act="pairs-roll"><i class="fa-solid fa-dice"></i> Roll all (3d6 each)</button>
+            <button type="button" class="qbw-btn" data-act="pairs-reset"><i class="fa-solid fa-rotate-left"></i> Reset to 10/10</button>
+          </div>
+          <div class="qbw-hint">Rolls 3d6 for the left trait of each pair; the right trait is 20 minus that.</div>`;
+      } else {
+        h += `<div class="qbw-count">
+            <button type="button" class="qbw-btn" data-act="pairs-reset"><i class="fa-solid fa-rotate-left"></i> Reset to 10/10</button>
+          </div>
+          <div class="qbw-hint">Suggested budget: +3 to five traits, then distribute 15 more (raising one side lowers its opposite).</div>`;
+      }
+      h += TRAIT_PAIRS.map((pr, i) => {
+        const l = d.traitPairs[i] ?? 10;
+        return `<div class="qbw-pair">
+            <div class="qbw-pair-l"><span class="qbw-pair-name">${pr[0]}</span> <span class="qbw-pair-val" data-pairleft="${i}">${l}</span></div>
+            <div class="qbw-pair-mid">/</div>
+            <div class="qbw-pair-r"><span class="qbw-pair-val" data-pairright="${i}">${20 - l}</span> <span class="qbw-pair-name">${pr[1]}</span></div>
+            <input type="range" class="qbw-slider" min="0" max="20" value="${l}" data-pair="${i}">
+          </div>`;
+      }).join("");
+      h += `<div class="qbw-budget">Points allocated: <span data-pairbudget>${this._pairBudget()}</span> / 30 (suggested)</div>`;
+      return h;
+    }
+
+    _renderLifeEvents() {
+      const d = this.data;
+      let h = `<div class="qbw-hint">Ask your GM how many life events to roll. Each is Lucky (Table 6B) or Unlucky (6A).</div>
+        <div class="qbw-count">
+          <span class="qbw-label" style="margin:0">Count</span>
+          <input type="number" class="qbw-num" min="0" max="20" value="${d.lifeEvents.length}" data-countfield="lifeEvents">
+          <button type="button" class="qbw-btn" data-act="gen" data-list="lifeEvents"><i class="fa-solid fa-arrows-rotate"></i> Generate</button>
+          <button type="button" class="qbw-btn" data-act="add" data-list="lifeEvents"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>`;
+      if (!d.lifeEvents.length) h += `<div class="qbw-hint">Set a count and Generate, or add events one at a time.</div>`;
+      h += d.lifeEvents.map((e, i) => {
+        const luckOpts = ['<option value="">— luck —</option>',
+          `<option value="unlucky" ${e.luck === "unlucky" ? "selected" : ""}>Unlucky (6A)</option>`,
+          `<option value="lucky" ${e.luck === "lucky" ? "selected" : ""}>Lucky (6B)</option>`].join("");
+        const tbl = e.luck === "lucky" ? "lucky" : (e.luck === "unlucky" ? "unlucky" : null);
+        let textSel;
+        if (tbl) {
+          const list = this.tableText[tbl] || [];
+          const opts = ['<option value="">— choose —</option>'].concat(
+            list.map((txt, k) => `<option value="${esc(txt)}" ${txt === e.text ? "selected" : ""}>${k + 1}. ${esc(txt)}</option>`)
+          ).join("");
+          textSel = `<select class="qbw-select" data-list="lifeEvents" data-idx="${i}" data-sub="text">${opts}</select>`;
+        } else {
+          textSel = `<select class="qbw-select" disabled><option>Pick a luck type first</option></select>`;
+        }
+        return `<div class="qbw-card">
+          <div class="qbw-card-head">
+            <span class="qbw-card-title">Event ${i + 1}</span>
+            <button type="button" class="qbw-iconbtn" data-act="reroll-entry" data-list="lifeEvents" data-idx="${i}"><i class="fa-solid fa-rotate"></i> Reroll</button>
+            <button type="button" class="qbw-iconbtn" data-act="remove-entry" data-list="lifeEvents" data-idx="${i}"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="qbw-row" style="margin-bottom:6px">
+            <select class="qbw-select" data-list="lifeEvents" data-idx="${i}" data-sub="luck" data-rerender="1" style="flex:0 0 150px">${luckOpts}</select>
+          </div>
+          ${textSel}
+        </div>`;
+      }).join("");
+      return h;
+    }
+
+    // ===== live preview (right pane) =====
+    _renderAside() {
+      return `<div class="qbw-aside-head"><i class="fa-solid fa-feather"></i> Manuscript</div>
+        <div class="qbw-preview" data-preview>${this._previewInner()}</div>`;
+    }
+    _previewInner() {
+      const html = this._buildBiographyHtml();
+      return html || '<span class="qbw-empty-note">Nothing yet — choose or roll on the left and the lifepath takes shape here.</span>';
+    }
+    _refreshPreview() {
+      const el = this.element; if (!el) return;
+      const p = el.querySelector("[data-preview]");
+      if (p) p.innerHTML = this._previewInner();
+    }
+
+    _renderFooter() {
+      const s = this.step;
+      const existing = (this.actor.system?.details?.biography?.value || "").trim();
+      const status = this.saveResult
+        ? `<span class="qbw-foot-status ${this.saveResult.ok ? "is-ok" : "is-err"}"><i class="fa-solid ${this.saveResult.ok ? "fa-circle-check" : "fa-circle-exclamation"}"></i> ${esc(trunc(this.saveResult.msg, 64))}</span>`
+        : "";
+      return `<footer class="qbw-footer">
+        <button type="button" class="qbw-btn" data-act="back" ${s === 1 ? "disabled" : ""}><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button type="button" class="qbw-btn" data-act="next" ${s === STEP_COUNT ? "disabled" : ""}>Next <i class="fa-solid fa-arrow-right"></i></button>
+        <div class="qbw-spacer"></div>
+        ${status}
+        <label class="qbw-check qbw-foot-check" title="Append below the existing biography instead of replacing it">
+          <input type="checkbox" data-field="appendBio" ${this.data.appendBio ? "checked" : ""}>
+          Append${existing ? "" : " (no bio yet)"}
+        </label>
+        <button type="button" class="qbw-btn qbw-primary" data-act="save"><i class="fa-solid fa-floppy-disk"></i> Save to Biography</button>
+        <button type="button" class="qbw-btn" data-act="close"><i class="fa-solid fa-xmark"></i> Close</button>
+      </footer>`;
+    }
+
+    // ===== listeners (delegated) =====
+    // Bound on EVERY render via _onRender, guarded so we attach exactly once
+    // per root element. AppV2 can replace this.element on re-render (e.g. when
+    // position height is "auto"); binding only in _onFirstRender would leave
+    // later roots without listeners, so user input would stop reaching state
+    // and the next render would blank every field. Re-binding fixes that.
+    _onRender(context, options) {
+      super._onRender?.(context, options);
+      const el = this.element;
+      if (!el || el.__qbwBound) return;
+      el.__qbwBound = true;
+      el.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-act]");
+        if (!btn || !el.contains(btn)) return;
+        ev.preventDefault();
+        this._handleAction(btn.dataset.act, btn);
+      });
+      el.addEventListener("change", (ev) => {
+        const t = ev.target;
+        // Capture every visible control into state first, so a re-render never
+        // discards selections whose change events we might otherwise miss.
+        this._syncFromDom();
+        if (t.dataset.list && t.dataset.idx !== undefined && t.dataset.sub) {
+          const list = this.data[t.dataset.list]; const i = +t.dataset.idx;
+          if (list && list[i]) {
+            this._touch();
+            if (t.dataset.sub === "luck") { list[i].text = ""; this.render(); return; }
+            if (t.dataset.rerender) { this.render(); return; }
+          }
+          this._refreshPreview();
+          return;
+        }
+        if (t.dataset.field) {
+          this._touch();
+          if (t.dataset.field === "romanceStatus") this.data.romanceDetail = "";
+          if (t.dataset.rerender) { this.render(); return; }
+        }
+        this._refreshPreview();
+      });
+      el.addEventListener("input", (ev) => {
+        const t = ev.target;
+        if (t.dataset.pair !== undefined) {
+          const i = +t.dataset.pair;
+          const left = Math.max(0, Math.min(20, parseInt(t.value, 10) || 0));
+          this.data.traitPairs[i] = left;
+          this._touch();
+          const ls = el.querySelector(`[data-pairleft="${i}"]`); if (ls) ls.textContent = left;
+          const rs = el.querySelector(`[data-pairright="${i}"]`); if (rs) rs.textContent = 20 - left;
+          const bd = el.querySelector("[data-pairbudget]"); if (bd) bd.textContent = this._pairBudget();
+          if (this.data.useTraitPairs) this._refreshPreview();
+        }
+      });
+    }
+
+    // ===== state mutation =====
+    _touch() { this.saveResult = null; }
+    _setField(field, value) { this.data[field] = value; this._touch(); }
+
+    _syncFromDom() {
+      const el = this.element; if (!el) return;
+      // Only value-bearing controls. Roll buttons also carry data-field (for the
+      // roll handler), but a button's value is "" and would clobber its select.
+      el.querySelectorAll("select[data-field], input[data-field]").forEach((f) => {
+        if (f.type === "checkbox") this.data[f.dataset.field] = f.checked;
+        else this.data[f.dataset.field] = f.value;
+      });
+      el.querySelectorAll("[data-list][data-idx][data-sub]").forEach((f) => {
+        const list = this.data[f.dataset.list]; const i = +f.dataset.idx;
+        if (list && list[i]) list[i][f.dataset.sub] = (f.type === "checkbox") ? f.checked : f.value;
+      });
+      el.querySelectorAll("[data-pair]").forEach((f) => {
+        this.data.traitPairs[+f.dataset.pair] = Math.max(0, Math.min(20, parseInt(f.value, 10) || 0));
+      });
+    }
+
+    _goStep(n) {
+      this._syncFromDom();
+      this.step = Math.max(1, Math.min(STEP_COUNT, n));
+      this.render();
+    }
+
+    _rollBranch(name) {
+      const b = BRANCH[name];
+      const r = randInt(1, b.die);
+      return (b.options.find((o) => r >= o.lo && r <= o.hi) ?? b.options[0]).value;
+    }
+    // 1d100 -> the character's birth position (1 = eldest ... 6 = sixth child).
+    _rollBirthOrder() {
+      const r = randInt(1, 100);
+      return (BIRTH_ORDER.find((o) => r >= o.lo && r <= o.hi) ?? BIRTH_ORDER[0]).n;
+    }
+    // 1d100 -> whether the character has siblings, and whether that is certain.
+    _rollHaveSiblings() {
+      const r = randInt(1, 100);
+      const none = r >= SIBLINGS_NONE_RANGE[0] && r <= SIBLINGS_NONE_RANGE[1];
+      return { has: !none, unknown: r >= SIBLINGS_UNKNOWN_MIN };
+    }
+    // Derive a sibling's kind from its current position: the siblings immediately
+    // before/after the character roll for twin (of the character); everyone else
+    // rolls for half-sibling. Using the stored rolls keeps this consistent if the
+    // character's position changes, and never marks a twin as a half-sibling.
+    _siblingKind(s, position, X) {
+      const adjacent = position === X - 1 || position === X + 1;
+      if (adjacent) {
+        const r = s.twinRoll || 0;
+        if (r >= TWIN_IDENTICAL_MIN) return { key: "identical", label: "identical twin" };
+        if (r >= TWIN_FRATERNAL_MIN) return { key: "fraternal", label: "fraternal twin" };
+        return { key: "full", label: "" };
+      }
+      return (s.halfRoll || 0) >= HALF_SIBLING_MIN ? { key: "half", label: "half-sibling" } : { key: "full", label: "" };
+    }
+    // The character's sex from the sheet's free-text gender field; anything that
+    // isn't clearly male/female defaults to female. Used to keep an identical
+    // twin the same sex as the character.
+    _pcSex() {
+      const g = String(this.actor?.system?.details?.gender || "").trim().toLowerCase();
+      if (g === "male") return "male";
+      if (g === "female") return "female";
+      return "female";
+    }
+    // Weighted pick over a cached pool (weight = range span). Resolves the same
+    // distribution RollTable#roll would, but synchronously and silently — no
+    // chat card, no Dice So Nice — to keep the biographical, instant feel.
+    _rollKey(key) {
+      const names = this.tableText[key] || [];
+      if (!names.length) return "";
+      const weights = this.tableWeights[key] || [];
+      let total = 0;
+      for (let i = 0; i < names.length; i++) total += weights[i] || 1;
+      let roll = Math.random() * total;
+      for (let i = 0; i < names.length; i++) { roll -= (weights[i] || 1); if (roll < 0) return names[i]; }
+      return names[names.length - 1];
+    }
+    _randEntry(list) {
+      if (list === "friends") return { situation: this._rollKey("friendSituation"), race: this._rollKey("feRace"), profession: this._rollKey("feProfession") };
+      if (list === "enemies") return { situation: this._rollKey("enemySituation"), race: this._rollKey("feRace"), profession: this._rollKey("feProfession") };
+      if (list === "siblings") return { relation: this._rollKey("siblings"), bond: this._rollKey("familyBond"), sex: randInt(1, 2) === 1 ? "male" : "female", alive: randInt(1, 100) > SIBLING_DEATH_PCT, twinRoll: randInt(1, 100), halfRoll: randInt(1, 100) };
+      if (list === "lifeEvents") { const luck = randInt(1, 6) <= 3 ? "unlucky" : "lucky"; return { luck, text: this._rollKey(luck) }; }
+      return {};
+    }
+    _regenList(list, n) {
+      this._syncFromDom();
+      const arr = [];
+      for (let k = 0; k < n; k++) arr.push(this._randEntry(list));
+      this.data[list] = arr;
+      this._touch();
+    }
+
+    _handleAction(act, btn) {
+      switch (act) {
+        case "next": this._goStep(this.step + 1); break;
+        case "back": this._goStep(this.step - 1); break;
+        case "close": this.close(); break;
+        case "save": this._save(); break;
+
+        case "roll": {
+          this._syncFromDom();
+          const v = this._rollKey(btn.dataset.table);
+          if (v) this._setField(btn.dataset.field, v);
+          this.render(); break;
+        }
+        case "rollbranch": {
+          this._syncFromDom();
+          const field = btn.dataset.field;
+          this._setField(field, this._rollBranch(btn.dataset.branch));
+          if (field === "romanceStatus") this.data.romanceDetail = "";
+          this.render(); break;
+        }
+        case "rollcount": this._regenList(btn.dataset.list, randInt(1, +btn.dataset.die)); this.render(); break;
+        case "roll-family": {
+          this._syncFromDom();
+          const { has, unknown } = this._rollHaveSiblings();
+          if (!has) {                                    // 76-90: only child
+            this.data.birthOrder = 1;
+            this.data.siblings = [];
+            this.data.siblingsUnknown = false;
+          } else if (unknown) {                          // 91-100: "...as far as you know" — none detailed
+            this.data.birthOrder = 0;
+            this.data.siblings = [];
+            this.data.siblingsUnknown = true;
+          } else {                                       // 01-75: known siblings
+            const X = this._rollBirthOrder();
+            let younger = randInt(1, 6) - 1;            // 0-5 younger siblings
+            if (X === 1 && younger === 0) younger = 1;   // guarantee at least one
+            const Y = X + younger;
+            this.data.birthOrder = X;
+            this.data.siblingsUnknown = false;
+            const arr = [];
+            for (let k = 0; k < Y - 1; k++) arr.push(this._randEntry("siblings"));
+            this.data.siblings = arr;
+          }
+          this._touch(); this.render(); break;
+        }
+        case "roll-sib": {
+          this._syncFromDom();
+          const i = +btn.dataset.idx;
+          const sub = btn.dataset.sub || "relation";
+          const table = btn.dataset.table || "siblings";
+          if (this.data.siblings[i]) this.data.siblings[i][sub] = this._rollKey(table);
+          this._touch(); this.render(); break;
+        }
+        case "gen": {
+          const list = btn.dataset.list;
+          const input = this.element.querySelector(`[data-countfield="${list}"]`);
+          let n = parseInt(input?.value, 10);
+          if (!Number.isFinite(n) || n < 0) n = this.data[list].length;
+          this._regenList(list, Math.max(0, Math.min(20, n)));
+          this.render(); break;
+        }
+        case "add": this._syncFromDom(); this.data[btn.dataset.list].push(this._randEntry(btn.dataset.list)); this._touch(); this.render(); break;
+        case "reroll-entry": this._syncFromDom(); this.data[btn.dataset.list][+btn.dataset.idx] = this._randEntry(btn.dataset.list); this._touch(); this.render(); break;
+        case "remove-entry": this._syncFromDom(); this.data[btn.dataset.list].splice(+btn.dataset.idx, 1); this._touch(); this.render(); break;
+
+        case "pairs-mode": this._syncFromDom(); this.data.traitMode = btn.dataset.mode; this.render(); break;
+        case "pairs-roll": for (let i = 0; i < TRAIT_PAIRS.length; i++) this.data.traitPairs[i] = randInt(1, 6) + randInt(1, 6) + randInt(1, 6); this._touch(); this.render(); break;
+        case "pairs-reset": for (let i = 0; i < TRAIT_PAIRS.length; i++) this.data.traitPairs[i] = 10; this._touch(); this.render(); break;
+      }
+    }
+
+    // ===== output =====
+    _buildBiographyHtml() {
+      const d = this.data;
+      const P = (label, val) => val ? `<p><strong>${label}:</strong> ${esc(val)}</p>` : "";
+      let out = "";
+
+      // Family
+      let fam = P("Social standing", d.status) + P("Childhood", d.childhood);
+      if (d.parentsBranch === "disaster") fam += `<p><strong>Parents:</strong> ${d.parentalDisaster ? esc(d.parentalDisaster) : "A disaster befell one or both parents."}</p>`;
+      else if (d.parentsBranch === "special") fam += `<p><strong>Parents:</strong> ${d.familySecret ? "Family secret — " + esc(d.familySecret) : "There is something special about them."}</p>`;
+      else if (d.parentsBranch === "alive") fam += `<p><strong>Parents:</strong> Both alive and well.</p>`;
+      if (d.standingBranch === "bad") fam += `<p><strong>Family standing:</strong> At risk — ${d.familyCrisis ? esc(d.familyCrisis) : "a crisis looms."}</p>`;
+      else if (d.standingBranch === "good") fam += `<p><strong>Family standing:</strong> Secure, even amid hardship.</p>`;
+      fam += P("Family goal", d.familyGoal);
+      const bo = Number(d.birthOrder) || 0;
+      if (d.siblingsUnknown && d.siblings.length === 0) {
+        fam += `<p><strong>Siblings:</strong> Uncertain — you may have siblings, as far as you know.</p>`;
+      } else if (bo >= 1) {
+        const Y = d.siblings.length + 1;
+        if (Y === 1) {
+          fam += `<p><strong>Siblings:</strong> An only child.</p>`;
+        } else {
+          fam += `<p><strong>Birth order:</strong> ${ordinal(Math.min(bo, Y))} of ${Y} children.</p>`;
+          const positions = [];
+          for (let p = 1; p <= Y; p++) if (p !== Math.min(bo, Y)) positions.push(p);
+          const X = Math.min(bo, Y);
+          const pcSex = this._pcSex();
+          const items = d.siblings.map((s, i) => {
+            const pos = positions[i];
+            const ord = pos < X ? "older" : "younger";
+            const kind = this._siblingKind(s, pos, X);
+            const sex = kind.key === "identical" ? pcSex : s.sex;
+            const noun = sex === "male" ? "brother" : sex === "female" ? "sister" : "";
+            const who = noun ? `${ord} ${noun}` : ord;
+            const kindStr = kind.label ? `, ${kind.label}` : "";
+            const rel = s.relation ? `: ${esc(s.relation)}` : "";
+            const bond = s.bond ? ` (${esc(s.bond)})` : "";
+            const dead = s.alive === false ? " — <em>deceased</em>" : "";
+            return `<li>${ordinal(pos)} child (${who}${kindStr})${rel}${bond}${dead}</li>`;
+          }).join("");
+          fam += `<ul>${items}</ul>`;
+        }
+      }
+      fam += P("Bond with mother", d.motherBond) + P("Bond with father", d.fatherBond);
+      if (fam) out += "<h2>Family</h2>" + fam;
+
+      // Friends & Enemies
+      const liEntry = (e) => {
+        const tail = [e.race, e.profession].filter(Boolean).join(", ");
+        return `<li>${esc(e.situation || "")}${tail ? ` <em>(${esc(tail)})</em>` : ""}</li>`;
+      };
+      let fe = "";
+      if (d.friends.length) fe += "<h3>Friends</h3><ul>" + d.friends.map(liEntry).join("") + "</ul>";
+      if (d.enemies.length) fe += "<h3>Enemies</h3><ul>" + d.enemies.map(liEntry).join("") + "</ul>";
+      if (fe) out += "<h2>Friends &amp; Enemies</h2>" + fe;
+
+      // Romance
+      if (d.romanceStatus) {
+        let rom = `<p><strong>Romance:</strong> ${esc(ROMANCE_LABEL[d.romanceStatus])}.</p>`;
+        if (d.romanceDetail) rom += `<p>${esc(d.romanceDetail)}</p>`;
+        if (d.romanceStatus !== "lookout") {
+          const tail = [d.loverRace, d.loverProfession].filter(Boolean).join(", ");
+          if (tail || d.loverAppearance) {
+            const who = d.romanceStatus === "tragic" ? "Lost lover" : "Lover";
+            rom += `<p><strong>${who}:</strong> ${esc(tail)}${tail && d.loverAppearance ? ". " : ""}${esc(d.loverAppearance || "")}</p>`;
+          }
+        }
+        out += "<h2>Romance</h2>" + rom;
+      }
+
+      // Appearance
+      let app = P("Hair", [d.hairColor, d.hairStyle].filter(Boolean).join(", ")) + P("Eyes", d.eyeColor) + P("Personal style", d.personalStyle);
+      if (app) out += "<h2>Appearance</h2>" + app;
+
+      // Personality
+      let per = P("Defining trait", d.trait) + P("Values most", d.values) + P("Most valued object", d.valuedObject)
+        + P("If it were lost", d.lostIt) + P("Greatest fear", d.fear) + P("Person they value most", d.valuedPerson) + P("Quirk", d.quirk);
+      if (d.useTraitPairs) {
+        per += "<h3>Trait pairs</h3><ul>" + TRAIT_PAIRS.map((pr, i) => {
+          const l = d.traitPairs[i] ?? 10; return `<li>${pr[0]} ${l} / ${pr[1]} ${20 - l}</li>`;
+        }).join("") + "</ul>";
+      }
+      if (per) out += "<h2>Personality</h2>" + per;
+
+      // Life events
+      const evLines = d.lifeEvents.map((e) => e.text ? `<li><strong>${e.luck === "lucky" ? "Lucky" : "Unlucky"}:</strong> ${esc(e.text)}</li>` : "").join("");
+      if (evLines) out += "<h2>Life Events</h2><ul>" + evLines + "</ul>";
+
+      return out ? "<h1>Lifepath</h1>" + out : "";
+    }
+
+    async _save() {
+      this._syncFromDom();
+      const html = this._buildBiographyHtml();
+      if (!html) {
+        this.saveResult = { ok: false, msg: "Nothing to save yet — fill in at least one section." };
+        ui.notifications.warn("Lifepath Wizard: nothing to save yet.");
+        this.render(); return;
+      }
+      try {
+        const existing = this.actor.system?.details?.biography?.value || "";
+        const value = (this.data.appendBio && existing.trim())
+          ? `${existing}\n<hr>\n${html}`
+          : html;
+        await this.actor.update({ "system.details.biography.value": value });
+        this.saveResult = { ok: true, msg: `Lifepath written to ${this.actor.name}'s biography.` };
+        ui.notifications.info(`Lifepath written to ${this.actor.name}'s biography.`);
+      } catch (err) {
+        console.error("Lifepath Wizard | save failed", err);
+        this.saveResult = { ok: false, msg: `Save failed: ${err.message}` };
+        ui.notifications.error(`Lifepath Wizard save failed: ${err.message}`);
+      }
+      this.render();
+    }
+  }
+
+  // ---- 6. Launch ---------------------------------------------------------
+  const id = `qos-lifepath-${actor.id}`;
+  const existing = foundry.applications?.instances?.get?.(id);
+  if (existing) existing.close();
+  new LifepathWizard(actor, { text: tableText, weights: tableWeights, docs: tableDocs }).render({ force: true });
+})();

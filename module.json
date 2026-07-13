@@ -1,0 +1,130 @@
+{
+  "id": "cv-wicked-campaigns",
+  "title": "Wicked Campaigns",
+  "description": "<p>A campaign management and helper module for Foundry VTT V14.</p>",
+  "version": "14.0.0",
+  "authors": [
+    {
+      "name": "Maleister",
+      "url": "https://discord.gg/cartoon-villains",
+      "email": "dev@cartoonvillains.com",
+      "discord": "maleister",
+      "flags": {}
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14",
+        "maximum": "14"
+  },
+  "relationships": {
+    "requires": [
+      {
+        "id": "campaign-codex",
+        "type": "module",
+        "reason": "Backstories saved from the Lifepath Wizard are stored as Campaign Codex journal entries."
+      }
+    ],
+    "recommends": [
+      {
+        "id": "lib-wrapper",
+        "type": "module",
+        "reason": "Lets our own image viewer replace Foundry's native image popout everywhere (actor portraits, item art, journal images, etc), not just from our own card button."
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/cv-wicked-campaigns.mjs"
+  ],
+  "styles": [
+    {
+      "src": "styles/cv-wicked-campaigns.css"
+    }
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "hotReload": true
+  },
+  "socket": true,
+  "packs": [
+    {
+      "name": "wicked-adventures",
+      "label": "Wicked Adventures",
+      "path": "packs/wicked-adventures",
+      "type": "Adventure",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "name": "wicked-roll-tables",
+      "label": "Wicked Roll Tables",
+      "path": "packs/wicked-roll-tables",
+      "type": "RollTable",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "name": "wicked-macros",
+      "label": "Wicked Macros",
+      "path": "packs/wicked-macros",
+      "type": "Macro",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "name": "wicked-lore",
+      "label": "Wicked Lore",
+      "path": "packs/wicked-lore",
+      "type": "JournalEntry",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "NONE",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "name": "wicked-example-characters",
+      "label": "Wicked Example Characters",
+      "path": "packs/wicked-example-characters",
+      "type": "Actor",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "NONE",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    }
+  ],
+  "packFolders": [
+    {
+      "name": "Wicked Campaigns",
+      "sorting": "m",
+      "color": "#000000",
+      "packs": [
+        "wicked-adventures",
+        "wicked-roll-tables",
+        "wicked-macros",
+        "wicked-lore",
+        "wicked-example-characters"
+      ]
+    }
+  ]
+}

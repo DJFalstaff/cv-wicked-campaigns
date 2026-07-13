@@ -5,12 +5,31 @@
     </p>
     {{/unless}}
 
+    {{#if hasPresets}}
+    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Load Preset</label>
+        <div style="display: flex; gap: 0.4rem;">
+            <select name="presetId" style="flex: 1; font-size: 0.85rem; padding: 4px 6px; background: rgba(0, 0, 0, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;">
+                <option value="">— Select —</option>
+                {{#each presets}}
+                <option value="{{this.id}}" {{#if this.isLoaded}}selected{{/if}}>{{this.name}}</option>
+                {{/each}}
+            </select>
+            <button type="button" data-action="loadPreset" style="padding: 4px 10px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Load</button>
+            <button type="button" data-action="deletePreset" style="padding: 4px 10px; background: rgba(163, 74, 58, 0.12); border: 1px solid rgba(163, 74, 58, 0.35); border-radius: 4px; color: #e08a75; cursor: pointer;">Delete</button>
+        </div>
+        {{#if unmatchedCount}}
+        <span style="font-size: 0.75rem; color: #e08a75;">{{unmatchedCount}} of {{presetParticipantCount}} preset participants not on this scene.</span>
+        {{/if}}
+    </div>
+    {{/if}}
+
     <div style="display: flex; flex-direction: column; gap: 0.25rem;">
         <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Complication Table</label>
         <select name="tableUuid" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0, 0, 0, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;">
             <option value="">None</option>
             {{#each tables}}
-            <option value="{{this.uuid}}">{{this.label}}</option>
+            <option value="{{this.uuid}}" {{#if this.isSelected}}selected{{/if}}>{{this.label}}</option>
             {{/each}}
         </select>
         {{#unless hasTables}}
@@ -24,11 +43,11 @@
             {{#each participants}}
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.3rem 0.5rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.15); border-radius: 4px;">
                 <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #fff;">
-                    <input type="checkbox" name="include" value="{{this.id}}" checked>
+                    <input type="checkbox" name="include" value="{{this.id}}" {{#if this.included}}checked{{/if}}>
                     {{this.name}}
                 </label>
                 <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #c9a054; text-transform: uppercase; white-space: nowrap;">
-                    <input type="radio" name="quarry" value="{{this.id}}" {{#if this.isFirst}}checked{{/if}}>
+                    <input type="radio" name="quarry" value="{{this.id}}" {{#if this.isQuarry}}checked{{/if}}>
                     Quarry
                 </label>
             </div>
@@ -38,5 +57,9 @@
 
     <button type="button" class="qbw-btn qbw-primary" data-action="start" style="width: 100%; font-weight: bold; padding: 6px 12px; font-size: 0.9rem; cursor: pointer; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.3); border-radius: 4px; color: #c9a054;">
         <i class="fa-solid fa-person-running"></i> Start Chase
+    </button>
+
+    <button type="button" data-action="saveAsPreset" style="width: 100%; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #a89a82;">
+        <i class="fa-solid fa-bookmark"></i> Save as Preset
     </button>
 </form>

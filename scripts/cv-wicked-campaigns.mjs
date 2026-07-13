@@ -4246,6 +4246,15 @@ Hooks.once('init', async function() {
       default: false
     });
 
+    // Saved chase setups: [{ id, name, tableUuid, participants: [{ actorUuid, role }] }].
+    // References actors (not tokens) so a preset can be launched on any future scene.
+    game.settings.register("cv-wicked-campaigns", "chasePresets", {
+      scope: "world",
+      config: false,
+      type: Array,
+      default: []
+    });
+
     DocumentSheetConfig.registerSheet(JournalEntry, "cv-wicked-campaigns", PartySheet, {
       types: ["base"],
       label: "CV_WICKED_CAMPAIGNS.PartySheetLabel"
@@ -4797,6 +4806,11 @@ async function resolveChaseRound(combat) {
 }
 
 class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    constructor(options = {}) {
+        super(options);
+        this.loadedPresetId = null;
+    }
+
     static DEFAULT_OPTIONS = {
         id: "chase-setup-dialog",
         classes: ["wicked-campaigns", "chase-setup-dialog"],
@@ -4804,6 +4818,9 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
         position: { width: 380, height: "auto" },
         actions: {
             start: ChaseSetupDialog.#onStart,
+            loadPreset: ChaseSetupDialog.#onLoadPreset,
+            deletePreset: ChaseSetupDialog.#onDeletePreset,
+            saveAsPreset: ChaseSetupDialog.#onSaveAsPreset,
         },
     };
 
@@ -4814,20 +4831,42 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
     async _prepareContext(options) {
         const tokens = getChaseCandidateTokens().filter((t) => t.actor);
         const registry = game.settings.get("cv-wicked-campaigns", "chaseComplicationTables") || [];
+        const presets = game.settings.get("cv-wicked-campaigns", "chasePresets") || [];
+        const preset = presets.find((p) => p.id === this.loadedPresetId) ?? null;
+
+        const presetActorUuids = new Set((preset?.participants ?? []).map((p) => p.actorUuid));
+        const quarryActorUuid = preset?.participants.find((p) => p.role === "quarry")?.actorUuid ?? null;
+        const unmatchedCount = preset
+            ? preset.participants.filter((p) => !tokens.some((t) => t.actor.uuid === p.actorUuid)).length
+            : 0;
+
         return {
-            participants: tokens.map((t, i) => ({ id: t.id, name: t.actor.name, isFirst: i === 0 })),
-            tables: registry,
+            participants: tokens.map((t, i) => ({
+                id: t.id,
+                name: t.actor.name,
+                included: preset ? presetActorUuids.has(t.actor.uuid) : true,
+                isQuarry: preset ? t.actor.uuid === quarryActorUuid : i === 0,
+            })),
+            tables: registry.map((t) => ({ ...t, isSelected: preset ? t.uuid === preset.tableUuid : false })),
+            presets: presets.map((p) => ({ id: p.id, name: p.name, isLoaded: p.id === this.loadedPresetId })),
             hasParticipants: tokens.length > 0,
             hasTables: registry.length > 0,
+            hasPresets: presets.length > 0,
+            unmatchedCount,
+            presetParticipantCount: preset?.participants.length ?? 0,
+        };
+    }
+
+    _readFormSelections(form) {
+        return {
+            tokenIds: Array.from(form.querySelectorAll('input[name="include"]:checked')).map((el) => el.value),
+            quarryTokenId: form.querySelector('input[name="quarry"]:checked')?.value ?? null,
+            tableUuid: form.querySelector('select[name="tableUuid"]')?.value || null,
         };
     }
 
     static async #onStart(event, target) {
-        const form = target.closest("form");
-        const tokenIds = Array.from(form.querySelectorAll('input[name="include"]:checked')).map((el) => el.value);
-        const quarryTokenId = form.querySelector('input[name="quarry"]:checked')?.value ?? null;
-        const tableUuid = form.querySelector('select[name="tableUuid"]')?.value || null;
-
+        const { tokenIds, quarryTokenId, tableUuid } = this._readFormSelections(target.closest("form"));
         if (!quarryTokenId) {
             ui.notifications.warn("Mark one participant as the quarry.");
             return;
@@ -4835,6 +4874,66 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
 
         const combat = await startChase({ tokenIds, quarryTokenId, tableUuid });
         if (combat) this.close();
+    }
+
+    static #onLoadPreset(event, target) {
+        const id = target.closest("form").querySelector('select[name="presetId"]')?.value || null;
+        if (!id) return;
+        this.loadedPresetId = id;
+        this.render();
+    }
+
+    static async #onDeletePreset(event, target) {
+        const id = target.closest("form").querySelector('select[name="presetId"]')?.value || null;
+        if (!id) return;
+
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: "Delete Preset" },
+            content: "<p>Delete this saved chase preset? This cannot be undone.</p>",
+            rejectClose: false,
+        }).catch(() => false);
+        if (!confirmed) return;
+
+        const presets = (game.settings.get("cv-wicked-campaigns", "chasePresets") || []).filter((p) => p.id !== id);
+        await game.settings.set("cv-wicked-campaigns", "chasePresets", presets);
+        if (this.loadedPresetId === id) this.loadedPresetId = null;
+        this.render();
+    }
+
+    static async #onSaveAsPreset(event, target) {
+        const form = target.closest("form");
+        const { tokenIds, quarryTokenId, tableUuid } = this._readFormSelections(form);
+
+        if (!quarryTokenId || !tokenIds.length) {
+            ui.notifications.warn("Include at least one participant and mark a quarry before saving a preset.");
+            return;
+        }
+
+        const name = await foundry.applications.api.DialogV2.prompt({
+            window: { title: "Save Chase Preset" },
+            content: `<div class="form-group"><label>Preset Name</label><input type="text" name="presetName" value="New Chase Preset" autofocus></div>`,
+            ok: {
+                icon: "fas fa-check",
+                label: "Save",
+                callback: (event, button) => button.form.elements.presetName.value.trim(),
+            },
+            rejectClose: false,
+        }).catch(() => null);
+        if (!name) return;
+
+        const participants = tokenIds.map((id) => {
+            const token = canvas.tokens.get(id);
+            return { actorUuid: token.actor.uuid, role: id === quarryTokenId ? "quarry" : "pursuer" };
+        });
+
+        const presets = foundry.utils.deepClone(game.settings.get("cv-wicked-campaigns", "chasePresets") || []);
+        const preset = { id: foundry.utils.randomID(), name, tableUuid, participants };
+        presets.push(preset);
+        await game.settings.set("cv-wicked-campaigns", "chasePresets", presets);
+
+        this.loadedPresetId = preset.id;
+        ui.notifications.info(`Saved chase preset "${name}".`);
+        this.render();
     }
 }
 

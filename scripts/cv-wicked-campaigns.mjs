@@ -831,9 +831,27 @@ function isCampaignCodexActive() {
 // tray alongside their built-in widgets - see registerVideoPlayerWidget() in the
 // ready hook. Playback is independent per viewer (no cross-client sync) and never
 // autoplays, matching how a plain <video>/YouTube embed behaves by default.
-function extractYouTubeId(url) {
-  const match = String(url || "").match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : null;
+// Handles a single video, a bare playlist link (youtube.com/playlist?list=... has no v= at all),
+// and a video-within-a-playlist link (watch?v=X&list=Y) - returns null only if neither a video
+// nor a playlist id could be found.
+function parseYouTubeUrl(url) {
+  const str = String(url || "").trim();
+  if (!str) return null;
+
+  const videoMatch = str.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  const listMatch = str.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+  const videoId = videoMatch ? videoMatch[1] : null;
+  const playlistId = listMatch ? listMatch[1] : null;
+
+  if (!videoId && !playlistId) return null;
+  return { videoId, playlistId };
+}
+
+function buildYouTubeEmbedUrl({ videoId, playlistId } = {}) {
+  if (videoId && playlistId) return `https://www.youtube-nocookie.com/embed/${videoId}?list=${playlistId}`;
+  if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
+  if (playlistId) return `https://www.youtube-nocookie.com/embed/videoseries?list=${playlistId}`;
+  return null;
 }
 
 function buildVideoPlayerWidgetClass(CampaignCodexWidgetBase) {
@@ -842,12 +860,12 @@ function buildVideoPlayerWidgetClass(CampaignCodexWidgetBase) {
       const data = (await this.getData()) || {};
       const sourceType = data.sourceType === "youtube" ? "youtube" : "local";
       const src = String(data.src || "").trim();
-      const youtubeId = sourceType === "youtube" ? extractYouTubeId(src) : null;
+      const youtube = sourceType === "youtube" ? parseYouTubeUrl(src) : null;
       return {
         sourceType,
         src,
-        youtubeId,
-        hasVideo: sourceType === "youtube" ? !!youtubeId : !!src,
+        youtubeEmbedUrl: youtube ? buildYouTubeEmbedUrl(youtube) : null,
+        hasVideo: sourceType === "youtube" ? !!youtube : !!src,
       };
     }
 
@@ -862,13 +880,13 @@ function buildVideoPlayerWidgetClass(CampaignCodexWidgetBase) {
               <span>No video set</span>
               <div class="cc-video-choose-actions">
                 <button type="button" data-action="choose-local"><i class="fa-solid fa-folder-open"></i> Local File</button>
-                <button type="button" data-action="choose-youtube"><i class="fa-brands fa-youtube"></i> YouTube Link</button>
+                <button type="button" data-action="choose-youtube" title="Video, playlist, or a video-within-a-playlist link"><i class="fa-brands fa-youtube"></i> YouTube Link</button>
               </div>
             </div>`
           : `<div class="cc-video-empty"><span>No video available.</span></div>`;
       } else if (data.sourceType === "youtube") {
         bodyHtml = `<div class="cc-video-embed-wrap">
-            <iframe src="https://www.youtube-nocookie.com/embed/${data.youtubeId}" title="YouTube video" frameborder="0"
+            <iframe src="${data.youtubeEmbedUrl}" title="YouTube video" frameborder="0"
               allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
           </div>`;
       } else {
@@ -906,8 +924,8 @@ function buildVideoPlayerWidgetClass(CampaignCodexWidgetBase) {
 
     async _chooseYoutubeLink(htmlElement) {
       const url = await foundry.applications.api.DialogV2.prompt({
-        window: { title: "YouTube Video Link" },
-        content: `<div class="form-group"><label>YouTube URL</label><input type="text" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." autofocus></div>`,
+        window: { title: "YouTube Video or Playlist Link" },
+        content: `<div class="form-group"><label>YouTube URL</label><input type="text" name="youtubeUrl" placeholder="Video, playlist, or a video-within-a-playlist link" autofocus></div>`,
         ok: {
           icon: "fas fa-check",
           label: "Save",
@@ -917,9 +935,8 @@ function buildVideoPlayerWidgetClass(CampaignCodexWidgetBase) {
       }).catch(() => null);
       if (!url) return;
 
-      const youtubeId = extractYouTubeId(url);
-      if (!youtubeId) {
-        ui.notifications.warn("That doesn't look like a valid YouTube link.");
+      if (!parseYouTubeUrl(url)) {
+        ui.notifications.warn("That doesn't look like a valid YouTube video or playlist link.");
         return;
       }
 

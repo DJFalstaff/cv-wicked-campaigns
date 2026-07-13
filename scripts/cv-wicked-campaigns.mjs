@@ -4674,9 +4674,18 @@ async function startChase({ tokenIds, quarryTokenId, tableUuid }) {
         return null;
     }
 
-    const combat = await Combat.create({ scene: canvas.scene?.id ?? null });
-    await combat.setFlag("cv-wicked-campaigns", "isChase", true);
-    await combat.setFlag("cv-wicked-campaigns", "complicationTableUuid", tableUuid ?? null);
+    // The isChase/complicationTableUuid flags must be present in the CREATE data itself, not set
+    // via a follow-up setFlag() - the createCombat hook (which every client uses to decide whether
+    // to auto-open its chase window) fires at creation time, before any later update would land.
+    const combat = await Combat.create({
+        scene: canvas.scene?.id ?? null,
+        flags: {
+            "cv-wicked-campaigns": {
+                isChase: true,
+                complicationTableUuid: tableUuid ?? null,
+            },
+        },
+    });
 
     const combatantData = tokens.map((token) => {
         const actor = token.actor;
@@ -5007,6 +5016,14 @@ class ChasePlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
         const flags = ownCombatant?.flags?.["cv-wicked-campaigns"] ?? {};
         const threshold = chaseDashThreshold(flags.conMod);
 
+        // The stored complication text carries the DMG-style [[/save ...]] / &Reference[...]
+        // markup - enrich it the same way chat messages do, so it renders as clickable
+        // roll/reference buttons instead of raw text.
+        const rawComplication = this.combat.getFlag("cv-wicked-campaigns", "lastComplicationText") || null;
+        const lastComplication = rawComplication
+            ? await foundry.applications.ux.TextEditor.enrichHTML(rawComplication, { async: true })
+            : null;
+
         return {
             round: this.combat.round,
             turns: this.combat.turns.map((c) => {
@@ -5024,7 +5041,7 @@ class ChasePlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
             isQuarry: flags.chaseRole === "quarry",
             dashesUsed: flags.dashesUsed ?? 0,
             dashThreshold: threshold,
-            lastComplication: this.combat.getFlag("cv-wicked-campaigns", "lastComplicationText") || null,
+            lastComplication,
         };
     }
 
@@ -5059,11 +5076,17 @@ function refreshOpenChaseApps(combat) {
 
 Hooks.on("createCombat", (combat) => {
     if (!game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled") || !isChaseCombat(combat)) return;
-    if (game.user.isGM) {
-        ChaseGMPanel.open(combat);
-    } else if (combat.combatants.some((c) => c.actor?.isOwner)) {
-        ChasePlayerHUD.open(combat);
-    }
+    // GM-only here: combatants (and therefore ownership) don't exist yet at this point, since
+    // they're added via a separate createEmbeddedDocuments call after Combat.create() resolves -
+    // see the createCombatant hook below for the player side of auto-open.
+    if (game.user.isGM) ChaseGMPanel.open(combat);
+});
+
+Hooks.on("createCombatant", (combatant) => {
+    const combat = combatant.parent;
+    if (!game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled") || !isChaseCombat(combat)) return;
+    if (!game.user.isGM && combatant.actor?.isOwner) ChasePlayerHUD.open(combat);
+    refreshOpenChaseApps(combat);
 });
 
 Hooks.on("updateCombat", (combat, changes) => {

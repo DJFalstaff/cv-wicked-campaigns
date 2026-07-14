@@ -30,6 +30,11 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-size: 0.8rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">Description</label>
+        <input type="text" name="description" value="{{description}}" maxlength="100" placeholder="A short one-liner - shown on the scene's opening banner" style="width: 100%; font-size: 0.9rem; padding: 5px 7px; background: rgba(0, 0, 0, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;">
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
         <label style="font-size: 0.8rem; font-weight: bold; color: #6fae7c; text-transform: uppercase;">Player Characters</label>
         <div style="display: flex; flex-direction: column; gap: 0.25rem; max-height: 150px; overflow-y: auto;">
             {{#unless hasPcs}}

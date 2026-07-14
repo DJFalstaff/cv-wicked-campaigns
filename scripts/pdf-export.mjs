@@ -78,25 +78,39 @@ const WICKED_DARK_THEME = {
 // Thin wrapper around jsPDF handling page-break tracking and consistent text styling, so the two
 // render functions below can just describe content without worrying about pagination or fonts.
 class PdfLayout {
-  constructor(doc, theme = null) {
+  constructor(doc, theme = null, footerText = null) {
     // `theme` is { background, heading, text, muted, rule } RGB triplets ([r,g,b]) - painted as a
     // full-page fill plus default text/rule colors on every page, including ones added later via
     // ensureSpace's page breaks. Both exports pass WICKED_DARK_THEME today; theme=null (plain
     // black-on-white, every color call skipped below) is kept as a fallback rather than deleted,
     // in case a future export wants the light/printable look instead.
+    //
+    // `footerText`, if given, is stamped once per page (here for page 1, and again inside
+    // ensureSpace whenever a new page starts) - every page gets exactly one "start", so this is
+    // the only place the stamp needs to happen for it to appear on every page including the last.
     this.doc = doc;
     this.theme = theme;
+    this.footerText = footerText;
     this.margin = 40;
     this.pageWidth = doc.internal.pageSize.getWidth();
     this.pageHeight = doc.internal.pageSize.getHeight();
     this.contentWidth = this.pageWidth - this.margin * 2;
     this.y = this.margin;
     this._paintPageBackground();
+    this._stampFooter();
   }
   _paintPageBackground() {
     if (!this.theme?.background) return;
     this.doc.setFillColor(...this.theme.background);
     this.doc.rect(0, 0, this.pageWidth, this.pageHeight, "F");
+  }
+  _stampFooter() {
+    if (!this.footerText) return;
+    this.doc.setFont(undefined, "italic");
+    this.doc.setFontSize(8);
+    this._setTextColor(this.theme?.muted || [140, 140, 140]);
+    this.doc.text(this.footerText, this.pageWidth / 2, this.pageHeight - this.margin / 2, { align: "center" });
+    this.doc.setFont(undefined, "normal");
   }
   _setTextColor(rgb) {
     if (this.theme || rgb) this.doc.setTextColor(...(rgb || [0, 0, 0]));
@@ -106,6 +120,7 @@ class PdfLayout {
       this.doc.addPage();
       this.y = this.margin;
       this._paintPageBackground();
+      this._stampFooter();
     }
   }
   heading(text, { size = 14, gapBefore = 10, gapAfter = 6, color } = {}) {
@@ -215,6 +230,194 @@ function gatherCharacterStats(actor) {
     skills,
     currency,
   };
+}
+
+// Some damage formulas (unarmed strike, natural weapons) come with unresolved roll-data
+// variables like "1 + @mod" - dnd5e only resolves those at actual roll time. Resolved by hand
+// here with the weapon's own roll data (includes the "mod" alias dnd5e already computes for it),
+// same technique GG Sheet Export uses for the same problem.
+function resolveFormula(formula, item, actor) {
+  if (!formula || !String(formula).includes("@")) return formula;
+  try {
+    const rollData = item.getRollData?.() ?? actor.getRollData();
+    return Roll.replaceFormulaData(formula, rollData, { missing: "0" });
+  } catch (err) {
+    return formula;
+  }
+}
+
+// to-hit/damage labels moved from a flat `labels` object to per-activity data at some point in
+// dnd5e's item schema - checked in that order, falling back to activities only when labels come
+// back empty, so this keeps working across the versions this module has actually been run on.
+function gatherAttacks(actor) {
+  return actor.items
+    .filter((i) => i.type === "weapon")
+    .map((w) => {
+      let toHit = w.labels?.toHit ?? "";
+      let damage = w.labels?.damage ?? "";
+      if (!damage && Array.isArray(w.labels?.derivedDamage)) {
+        damage = w.labels.derivedDamage.map((d) => `${d.formula} ${d.damageType ?? ""}`.trim()).join(" + ");
+      }
+      if ((!toHit || !damage) && w.system?.activities) {
+        try {
+          for (const act of w.system.activities) {
+            toHit ||= act.labels?.toHit ?? "";
+            damage ||= act.labels?.damage ?? "";
+          }
+        } catch (err) {
+          // structure differs by dnd5e version - fall through with whatever we already have
+        }
+      }
+      return {
+        name: w.name,
+        equipped: !!w.system?.equipped,
+        toHit: toHit || "-",
+        damage: resolveFormula(damage, w, actor) || "-",
+      };
+    })
+    .sort((a, b) => (a.equipped === b.equipped ? 0 : a.equipped ? -1 : 1));
+}
+
+const FEATURE_ORIGIN_LABELS = { race: "Race", class: "Class", subclass: "Class", background: "Background", feat: "Feat" };
+
+function gatherFeatureGroups(actor) {
+  const groups = new Map();
+  for (const item of actor.items.filter((i) => i.type === "feat")) {
+    const label = FEATURE_ORIGIN_LABELS[item.system?.type?.value] || "Other";
+    if (!groups.has(label)) groups.set(label, []);
+    const uses = item.system?.uses;
+    groups.get(label).push({ name: item.name, uses: uses?.max ? `${uses.value ?? 0}/${uses.max}` : "" });
+  }
+  return [...groups.entries()].map(([label, feats]) => ({ label, feats }));
+}
+
+// Spell preparation moved from system.preparation.{mode,prepared} to system.{method,prepared} in
+// dnd5e 5.1 - checked in that order so this keeps working on either shape.
+function gatherSpells(actor) {
+  const s = actor.system;
+  const spellItems = actor.items.filter((i) => i.type === "spell");
+  const levels = [];
+  for (let lvl = 0; lvl <= 9; lvl++) {
+    const spells = spellItems
+      .filter((sp) => (sp.system?.level ?? 0) === lvl)
+      .map((sp) => {
+        const sd = sp.system ?? {};
+        let method, isPrepared;
+        if (sd.method !== undefined) {
+          method = sd.method;
+          isPrepared = sd.prepared;
+        } else {
+          const prep = sd.preparation ?? {};
+          method = prep.mode;
+          isPrepared = prep.prepared;
+        }
+        const usesPrep = method === "prepared" || method === "spell" || method === undefined;
+        const rawProps = sd.properties;
+        const props = rawProps instanceof Set ? [...rawProps] : (Array.isArray(rawProps) ? rawProps : []);
+        return {
+          name: sp.name,
+          prepared: usesPrep ? !!isPrepared : true,
+          concentration: props.includes("concentration"),
+          ritual: props.includes("ritual"),
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+    if (spells.length) {
+      const slot = s.spells?.[`spell${lvl}`];
+      const max = slot?.max ?? 0;
+      levels.push({
+        level: lvl,
+        label: lvl === 0 ? "Cantrips" : `Level ${lvl}`,
+        slots: lvl > 0 && max ? `${slot.value ?? 0}/${max}` : "",
+        spells,
+      });
+    }
+  }
+  const pact = s.spells?.pact;
+  return {
+    levels,
+    pactSlots: pact?.max ? `${pact.value ?? 0}/${pact.max} (Level ${pact.level ?? "?"})` : "",
+  };
+}
+
+const INVENTORY_TYPES = ["weapon", "equipment", "consumable", "tool", "loot", "container"];
+const INVENTORY_TYPE_LABELS = { weapon: "Weapons", equipment: "Equipment", consumable: "Consumables", tool: "Tools", container: "Containers", loot: "Loot" };
+
+function gatherInventory(actor) {
+  const items = actor.items
+    .filter((i) => INVENTORY_TYPES.includes(i.type))
+    .map((i) => ({
+      name: i.name,
+      type: i.type,
+      qty: i.system?.quantity ?? 1,
+      weight: Number(i.system?.weight?.value) || 0,
+      equipped: !!i.system?.equipped,
+    }));
+  const groups = INVENTORY_TYPES
+    .map((type) => ({
+      label: INVENTORY_TYPE_LABELS[type],
+      rows: items
+        .filter((i) => i.type === type)
+        .sort((a, b) => (a.equipped === b.equipped ? a.name.localeCompare(b.name) : a.equipped ? -1 : 1)),
+    }))
+    .filter((g) => g.rows.length);
+  const totalWeight = items.reduce((n, i) => n + i.weight * i.qty, 0);
+  return { groups, totalWeight };
+}
+
+function renderAttacks(layout, attacks) {
+  if (!attacks.length) return;
+  layout.heading("Attacks", { size: 12 });
+  for (const a of attacks) {
+    const marker = a.equipped ? "●" : "○";
+    layout.text(`${marker} ${a.name} — ${a.toHit} to hit, ${a.damage}`, { size: 9.5, gap: 2 });
+  }
+}
+
+function renderFeatures(layout, featureGroups) {
+  if (!featureGroups.length) return;
+  layout.heading("Features", { size: 12 });
+  for (const g of featureGroups) {
+    const line = g.feats.map((f) => (f.uses ? `${f.name} (${f.uses})` : f.name)).join("   •   ");
+    layout.labeledText(g.label, line, { size: 9.5 });
+  }
+}
+
+function renderSpells(layout, spellData) {
+  if (!spellData.levels.length) return;
+  layout.heading("Spells", { size: 12 });
+  if (spellData.pactSlots) layout.text(`Pact Slots: ${spellData.pactSlots}`, { size: 9, color: layout.theme?.muted, gap: 4 });
+  for (const lvl of spellData.levels) {
+    const heading = lvl.slots ? `${lvl.label} (${lvl.slots})` : lvl.label;
+    layout.text(heading, { bold: true, size: 10, gap: 2 });
+    const line = lvl.spells
+      .map((sp) => {
+        const marker = sp.prepared ? "●" : "○";
+        const tags = [sp.concentration && "C", sp.ritual && "R"].filter(Boolean).join("");
+        return `${marker} ${sp.name}${tags ? ` (${tags})` : ""}`;
+      })
+      .join("   ");
+    layout.text(line, { size: 9, gap: 6 });
+  }
+}
+
+function renderInventory(layout, invData) {
+  if (!invData.groups.length) return;
+  layout.heading("Inventory", { size: 12 });
+  for (const g of invData.groups) {
+    layout.text(g.label, { bold: true, size: 10, gap: 2 });
+    const line = g.rows
+      .map((i) => {
+        const marker = i.equipped ? "●" : "○";
+        const w = i.weight ? ` (${Math.round(i.weight * i.qty * 100) / 100} lb)` : "";
+        return `${marker} ${i.qty}x ${i.name}${w}`;
+      })
+      .join("   ");
+    layout.text(line, { size: 9, gap: 6 });
+  }
+  if (invData.totalWeight) {
+    layout.text(`Total Weight: ${Math.round(invData.totalWeight * 100) / 100} lb`, { size: 9.5, bold: true, gap: 6 });
+  }
 }
 
 async function renderHeader(layout, stats, actorImg) {
@@ -368,11 +571,16 @@ function renderBackgroundSection(layout, backstoryFlags) {
 export async function exportBackgroundPdf(actor, backstoryDoc) {
   const jsPDF = await loadJsPDF();
   const doc = new jsPDF({ unit: "pt", format: "letter" });
-  const layout = new PdfLayout(doc, WICKED_DARK_THEME);
+  const footerText = `${actor.name} - Exported with Wicked Campaigns - ${new Date().toLocaleDateString()}`;
+  const layout = new PdfLayout(doc, WICKED_DARK_THEME, footerText);
 
   const stats = gatherCharacterStats(actor);
   await renderHeader(layout, stats, actor.img);
   renderCharacterStats(layout, stats);
+  renderAttacks(layout, gatherAttacks(actor));
+  renderFeatures(layout, gatherFeatureGroups(actor));
+  renderSpells(layout, gatherSpells(actor));
+  renderInventory(layout, gatherInventory(actor));
 
   const backstoryFlags = backstoryDoc ? {
     family: backstoryDoc.getFlag("cv-wicked-campaigns", "lifepathFamily") || [],
@@ -401,7 +609,8 @@ function stripHtml(html) {
 export async function exportSessionZeroSummaryPdf(summary) {
   const jsPDF = await loadJsPDF();
   const doc = new jsPDF({ unit: "pt", format: "letter" });
-  const layout = new PdfLayout(doc, WICKED_DARK_THEME);
+  const footerText = `${summary.name} - Exported with Wicked Campaigns - ${new Date().toLocaleDateString()}`;
+  const layout = new PdfLayout(doc, WICKED_DARK_THEME, footerText);
 
   const data = summary.getFlag("campaign-codex", "data") || {};
   const entries = data.entries || [];

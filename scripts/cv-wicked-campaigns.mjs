@@ -6259,7 +6259,7 @@ function cycleMotiveRevealTier(current) {
   return "hidden";
 }
 
-async function startDrama({ pcTokenIds, npcActorUuids, name }) {
+async function startDrama({ pcTokenIds, npcActorUuids, name, description }) {
   const pcTokens = pcTokenIds.map((id) => canvas.tokens.get(id)).filter((t) => t?.actor);
   if (!pcTokens.length) {
     ui.notifications.warn("Select at least one PC to start a drama scene.");
@@ -6277,16 +6277,17 @@ async function startDrama({ pcTokenIds, npcActorUuids, name }) {
     npcs[actor.id] = { actorUuid, successes: 0, failures: 0 };
   }
 
-  // isDrama/sceneName/npcs must be present in the CREATE data itself, not set via a
+  // isDrama/sceneName/description/npcs must be present in the CREATE data itself, not set via a
   // follow-up setFlag() - the createCombat hook (which every client uses to decide whether to
-  // auto-open its window) fires at creation time, before any later update would land. Same
-  // requirement as startChase above.
+  // auto-open its window, and now also to show the opening banner) fires at creation time, before
+  // any later update would land. Same requirement as startChase above.
   const combat = await Combat.create({
     scene: canvas.scene?.id ?? null,
     flags: {
       "cv-wicked-campaigns": {
         isDrama: true,
         sceneName: name || "Drama Scene",
+        description: description || "",
         npcs,
       },
     },
@@ -6304,6 +6305,29 @@ async function startDrama({ pcTokenIds, npcActorUuids, name }) {
 
   DramaGMPanel.open(combat);
   return combat;
+}
+
+// Full-viewport "curtain rises" announcement shown to every connected client (GM and all players,
+// not just scene participants - it's for the whole table) when a Drama Scene starts. Uses the
+// same gradient recipe as the character sheet's own header banner
+// (brightenHexForBanner(wickedBannerGradientColor()), see handleActorSheetRender below) so it
+// reads as part of the same visual system, just faded to a darker shade of that color instead of
+// to fully transparent - the sheet's version is a decorative wash behind portrait art, this one
+// has to stay legible with text over it. Fades out on its own after ~4 seconds.
+function showDramaSceneBanner(sceneName, description) {
+  const baseColor = brightenHexForBanner(wickedBannerGradientColor());
+  const banner = document.createElement("div");
+  banner.className = "drama-scene-banner";
+  banner.style.setProperty("--drama-banner-color", baseColor);
+  banner.innerHTML = `
+    <i class="fa-solid fa-masks-theater"></i>
+    <div class="drama-scene-banner-text">
+      <div class="drama-scene-banner-title">${foundry.utils.escapeHTML(sceneName)}</div>
+      ${description ? `<div class="drama-scene-banner-desc">${foundry.utils.escapeHTML(description)}</div>` : ""}
+    </div>
+  `;
+  document.body.appendChild(banner);
+  banner.addEventListener("animationend", () => banner.remove());
 }
 
 // A plain, non-interactive log message announcing the request - not dnd5e's own roll-request
@@ -6376,6 +6400,7 @@ class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
 
         return {
             sceneName: preset?.name ?? "",
+            description: "",
             pcs: pcTokens.map((t) => ({ id: t.id, name: t.actor.name, included: preset ? pcUuids.has(getBaseActorUuid(t)) : true })),
             npcs: npcTokens.map((t) => ({ id: t.id, name: t.actor.name, included: preset ? npcUuids.has(getBaseActorUuid(t)) : true })),
             presets: presets.map((p) => ({ id: p.id, name: p.name, isLoaded: p.id === this.loadedPresetId })),
@@ -6390,16 +6415,17 @@ class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
 
     _readFormSelections(form) {
         const name = form.querySelector('input[name="sceneName"]')?.value.trim() || "";
+        const description = form.querySelector('input[name="description"]')?.value.trim() || "";
         const pcTokenIds = Array.from(form.querySelectorAll('input[name="pc"]:checked')).map((el) => el.value);
         const npcTokenIds = Array.from(form.querySelectorAll('input[name="npc"]:checked')).map((el) => el.value);
-        return { name, pcTokenIds, npcTokenIds };
+        return { name, description, pcTokenIds, npcTokenIds };
     }
 
     static async #onStart(event, target) {
-        const { name, pcTokenIds, npcTokenIds } = this._readFormSelections(target.closest("form"));
+        const { name, description, pcTokenIds, npcTokenIds } = this._readFormSelections(target.closest("form"));
         const npcActorUuids = npcTokenIds.map((id) => getBaseActorUuid(canvas.tokens.get(id))).filter(Boolean);
 
-        const combat = await startDrama({ pcTokenIds, npcActorUuids, name });
+        const combat = await startDrama({ pcTokenIds, npcActorUuids, name, description });
         if (combat) this.close();
     }
 
@@ -7053,6 +7079,14 @@ function refreshOpenDramaApps(combat) {
 Hooks.on("createCombat", (combat) => {
     if (!game.settings.get("cv-wicked-campaigns", "dramaEnabled") || !isDramaCombat(combat)) return;
     if (game.user.isGM) DramaGMPanel.open(combat);
+
+    // For the whole table, not just scene participants - combatants don't even exist yet at this
+    // point (added via a separate createEmbeddedDocuments call after Combat.create() resolves), so
+    // there's no "does this player have a PC in the scene" check to make even if we wanted one.
+    showDramaSceneBanner(
+        combat.getFlag("cv-wicked-campaigns", "sceneName") || "Drama Scene",
+        combat.getFlag("cv-wicked-campaigns", "description") || "",
+    );
 });
 
 Hooks.on("createCombatant", (combatant) => {

@@ -459,30 +459,43 @@
 
         <!-- Section 3: Social Modifier -->
         <section>
-            <h2><i class="fa-solid fa-comments"></i> 3. Social Interaction (DC Modifier)</h2>
-            <p>When players target a discovered motive in their roleplay, the motive value modifies the base check difficulty:</p>
-            
-            <div class="math-block">
-                $$\text{Final DC} = \text{Base DC} - \text{Motive Value}$$
-            </div>
-            
+            <h2><i class="fa-solid fa-comments"></i> 3. Social Interaction (Persuading a Motive)</h2>
+            <p>When players target a discovered motive in their roleplay, its strength determines how the check is modified - weak motives only nudge the difficulty, but strong motives swing Advantage or Disadvantage instead of the DC. This keeps any single motive from making a check trivially easy or effectively impossible on its own (a straight DC subtraction could do both, since motive values range far wider than typical DCs).</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Absolute Value (|Value|)</th>
+                        <th>Effect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>10 to 20</strong></td>
+                        <td>DC stays at the standard <strong>12</strong>. Positive (Attraction) grants <strong>Advantage</strong>; negative (Aversion) imposes <strong>Disadvantage</strong>.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>1 to 9</strong></td>
+                        <td>Small nudge off the standard DC: <strong>&minus;2</strong> for positive (Attraction), <strong>+2</strong> for negative (Aversion). Rolled normally.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>0</strong></td>
+                        <td>No effect - standard DC 12, rolled normally.</td>
+                    </tr>
+                </tbody>
+            </table>
+
             <ul>
-                <li><strong>Appealing to Attraction (Positive Value)</strong>: Decreases the check DC (making the task easier).</li>
-                <li><strong>Threatening Aversion (Negative Value)</strong>: Increases the check DC (making the task harder).</li>
+                <li><strong>Appealing to Attraction (Positive Value)</strong>: Makes the task easier - Advantage at strong values, a small DC discount at weak ones.</li>
+                <li><strong>Threatening Aversion (Negative Value)</strong>: Makes the task harder - Disadvantage at strong values, a small DC penalty at weak ones.</li>
+                <li>DC 12 is a starting point, not a hard rule - the GM can still adjust it up or down for an unusually easy or difficult ask.</li>
             </ul>
 
             <!-- Calculator Widget -->
             <div class="calc-widget">
-                <div class="calc-title"><i class="fa-solid fa-calculator"></i> Interactive DC Modifier Calculator</div>
+                <div class="calc-title"><i class="fa-solid fa-calculator"></i> Interactive DC/Advantage Calculator</div>
                 <div class="calc-grid">
-                    <div class="calc-control">
-                        <label for="base-dc">Base Social Check DC</label>
-                        <div class="calc-input-row">
-                            <input type="range" id="base-dc" class="calc-slider" min="5" max="30" value="15">
-                            <div class="calc-val-box" id="base-dc-val">15</div>
-                        </div>
-                    </div>
-                    <div class="calc-control">
+                    <div class="calc-control" style="grid-column: span 2;">
                         <label for="motive-val">Motive Value (-20 to 20)</label>
                         <div class="calc-input-row">
                             <input type="range" id="motive-val" class="calc-slider" min="-20" max="20" value="0">
@@ -490,10 +503,10 @@
                         </div>
                     </div>
                     <div class="calc-result-panel">
-                        <div class="calc-explanation" id="calc-explain">No motive applied. Base DC remains unchanged.</div>
+                        <div class="calc-explanation" id="calc-explain">No motive applied. Standard DC, rolled normally.</div>
                         <div style="display: flex; align-items: center; gap: 0.8rem;">
-                            <span style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase; color: var(--gold);">Final DC:</span>
-                            <div class="calc-dc-badge" id="calc-result">15</div>
+                            <span style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase; color: var(--gold);">Suggested:</span>
+                            <div class="calc-dc-badge" id="calc-result">DC 12</div>
                         </div>
                     </div>
                 </div>
@@ -561,46 +574,60 @@
         document.documentElement.setAttribute('data-theme', newTheme);
     });
 
-    // DC Calculator Logic
-    const baseDcSlider = document.getElementById('base-dc');
-    const baseDcVal = document.getElementById('base-dc-val');
+    // DC/Advantage Calculator Logic
     const motiveSlider = document.getElementById('motive-val');
     const motiveVal = document.getElementById('motive-val-val');
     const calcResult = document.getElementById('calc-result');
     const calcExplain = document.getElementById('calc-explain');
 
-    // Calculate dynamic DC on change
+    // Calculate the suggested DC/roll mode on change - mirrors suggestDramaCheckDC() in
+    // scripts/cv-wicked-campaigns.mjs, which is what the Drama Tracker actually pre-fills into
+    // its Persuade dialog.
     function calculateDC() {
-        const base = parseInt(baseDcSlider.value);
         const motive = parseInt(motiveSlider.value);
-        
-        baseDcVal.textContent = base;
         motiveVal.textContent = motive > 0 ? `+${motive}` : motive;
-        
-        const finalDc = Math.max(0, base - motive);
-        calcResult.textContent = finalDc;
 
-        let explanation = "";
-        if (motive > 0) {
-            explanation = `Appealing to Attraction (reduces DC by ${motive}).`;
+        const absValue = Math.abs(motive);
+        let dc, rollMode, explanation;
+
+        if (absValue >= 10) {
+            dc = 12;
+            rollMode = motive > 0 ? 'Advantage' : 'Disadvantage';
+            explanation = motive > 0
+                ? 'Strong Attraction: standard DC, rolled with Advantage.'
+                : 'Strong Aversion: standard DC, rolled with Disadvantage.';
+        } else if (motive > 0) {
+            dc = 10;
+            rollMode = 'Normal';
+            explanation = 'Weak Attraction: DC reduced by 2.';
+        } else if (motive < 0) {
+            dc = 14;
+            rollMode = 'Normal';
+            explanation = 'Weak Aversion: DC increased by 2.';
+        } else {
+            dc = 12;
+            rollMode = 'Normal';
+            explanation = 'No motive applied. Standard DC, rolled normally.';
+        }
+
+        calcResult.textContent = rollMode === 'Normal' ? `DC ${dc}` : `DC ${dc} (${rollMode})`;
+        calcExplain.textContent = explanation;
+
+        if (rollMode === 'Advantage') {
             calcResult.style.background = 'var(--green)';
             calcResult.style.color = '#fff';
             calcResult.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.4)';
-        } else if (motive < 0) {
-            explanation = `Threatening Aversion (increases DC by ${Math.abs(motive)}).`;
+        } else if (rollMode === 'Disadvantage') {
             calcResult.style.background = 'var(--red)';
             calcResult.style.color = '#fff';
             calcResult.style.boxShadow = '0 0 10px rgba(244, 67, 54, 0.4)';
         } else {
-            explanation = "No motive applied. Base DC remains unchanged.";
             calcResult.style.background = 'var(--gold)';
             calcResult.style.color = 'var(--bg-color)';
             calcResult.style.boxShadow = '0 0 10px var(--gold-glow)';
         }
-        calcExplain.textContent = explanation;
     }
 
-    baseDcSlider.addEventListener('input', calculateDC);
     motiveSlider.addEventListener('input', calculateDC);
     calculateDC();
 </script>

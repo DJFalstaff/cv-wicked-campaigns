@@ -80,30 +80,13 @@
                     <span style="font-family: monospace; font-size: 0.75rem; color: #a89a82;">{{this.value}}</span>
 
                     <span style="flex: 1;"></span>
-                    <span style="font-size: 0.68rem; color: #a89a82;">Temptation</span>
-                    <i class="fa-solid fa-dice-d20" data-action="rollTemptation" data-motive-id="{{this.id}}" data-roll-type="advantage" title="Roll with Advantage (2d20kl)" style="color: #4caf50; font-size: 0.8rem; cursor: pointer;"></i>
-                    <i class="fa-solid fa-dice-d20" data-action="rollTemptation" data-motive-id="{{this.id}}" data-roll-type="normal" title="Roll (1d20)" style="color: #c9a054; font-size: 0.8rem; cursor: pointer;"></i>
-                    <i class="fa-solid fa-dice-d20" data-action="rollTemptation" data-motive-id="{{this.id}}" data-roll-type="disadvantage" title="Roll with Disadvantage (2d20kh)" style="color: #f44336; font-size: 0.8rem; cursor: pointer;"></i>
+                    {{#if this.canTarget}}
+                    <button type="button" data-action="openMotiveCheckDialog" data-motive-id="{{this.id}}" title="Send a persuasion-style check to the current PC" style="padding: 1px 8px; font-size: 0.68rem; background: rgba(201,160,84,0.1); border: 1px solid rgba(201,160,84,0.3); border-radius: 3px; color: #c9a054; cursor: pointer;">
+                        <i class="fa-solid fa-comments"></i> Persuade
+                    </button>
+                    {{/if}}
                 </div>
                 {{/each}}
-            </div>
-            {{/if}}
-
-            {{#if this.hasTargetable}}
-            <div class="drama-dc-calc" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.4rem; background: rgba(0,0,0,0.2); border: 1px dashed rgba(201,160,84,0.2); border-radius: 4px; flex-wrap: wrap;">
-                <span style="font-size: 0.7rem; color: #a89a82; text-transform: uppercase;">DC Calc</span>
-                <select data-role="motive-select" style="font-size: 0.75rem; padding: 2px 4px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">
-                    <option value="" data-value="0">(Blind Roll)</option>
-                    {{#each this.motives}}
-                    {{#if this.canTarget}}
-                    <option value="{{this.id}}" data-value="{{this.value}}">{{this.label}} ({{this.value}})</option>
-                    {{/if}}
-                    {{/each}}
-                </select>
-                <span style="font-size: 0.72rem; color: #a89a82;">Base DC</span>
-                <input type="number" data-role="base-dc" value="15" style="width: 44px; font-size: 0.75rem; padding: 2px 4px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
-                <span style="font-size: 0.72rem; color: #a89a82;">Final DC</span>
-                <span data-role="final-dc" style="font-family: monospace; font-weight: bold; font-size: 0.95rem; color: #c9a054;">15</span>
             </div>
             {{/if}}
         </div>

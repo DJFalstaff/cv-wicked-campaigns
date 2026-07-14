@@ -22,8 +22,7 @@
 
     {{#if hasPendingCheck}}
     <button type="button" data-action="rollPendingCheck" style="width: 100%; padding: 8px 12px; font-size: 0.9rem; font-weight: bold; cursor: pointer; background: rgba(201, 160, 84, 0.15); border: 1px solid rgba(201, 160, 84, 0.5); border-radius: 4px; color: #c9a054; animation: drama-pending-pulse 2s ease-in-out infinite;">
-        <i class="fa-solid fa-dice-d20"></i> Roll {{pendingCheck.skillLabel}} (DC {{pendingCheck.dc}})
-        <div style="font-size: 0.72rem; font-weight: normal; color: #a89a82; margin-top: 2px;">{{pendingCheck.modeLabel}} - what do you make of {{pendingCheck.npcName}}?</div>
+        <i class="fa-solid fa-dice-d20"></i> Roll {{pendingCheck.skillLabel}} (DC {{pendingCheck.dc}}, {{pendingCheck.modeLabel}})
     </button>
     {{/if}}
 

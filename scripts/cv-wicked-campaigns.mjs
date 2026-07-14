@@ -6306,68 +6306,31 @@ async function startDrama({ pcTokenIds, npcActorUuids, name }) {
   return combat;
 }
 
-// Shared chat-card renderer for a Temptation Save roll, reusing the exact roll-under-value logic
-// and card styling already established by the NPC sheet's own "roll-motive" action, so a
-// Temptation Save triggered from the conflict tracker looks identical to one triggered from the
-// sheet directly.
-async function rollDramaTemptation(actor, motiveId, rollType) {
-  const motives = actor.getFlag("cv-wicked-campaigns", "motives") || {};
-  const data = motives[motiveId];
-  if (!data) return;
-
-  const name = data.label || "Motive";
-  const targetValue = Math.abs(Number(data.value) || 0);
-
-  let formula = "1d20";
-  let typeLabel = "";
-  if (rollType === "advantage") {
-    formula = "2d20kl";
-    typeLabel = " (Advantage)";
-  } else if (rollType === "disadvantage") {
-    formula = "2d20kh";
-    typeLabel = " (Disadvantage)";
-  }
-
-  const roll = await new Roll(formula).evaluate({ async: true });
-  const isSuccess = roll.total <= targetValue;
-  const resultText = isSuccess ? "Driven to Act!" : "Indifferent / Resisted";
-
-  const content = `
-      <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif;">
-          <div class="card-content" style="padding: 0.5rem 0;">
-              <p style="margin: 0 0 0.5rem 0; font-size: 0.95rem; text-align: center;">
-                  ${actor.name} checking <strong>${name}</strong>${typeLabel} (Target: ${targetValue})
-              </p>
-              <div class="wicked-trait-roll-box" style="display: flex; align-items: center; justify-content: space-around; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px;">
-                  <div style="display: flex; align-items: center; gap: 0.4rem;">
-                      <i class="fa-solid fa-dice-d20" style="font-size: 1.35rem; color: #c9a054;"></i>
-                      <span class="roll-value" style="font-size: 1.2rem; font-weight: bold;">${roll.total}</span>
-                  </div>
-                  <div style="font-weight: bold; color: ${isSuccess ? '#4caf50' : '#f44336'};">${resultText}</div>
-              </div>
-          </div>
-      </div>
-  `;
-
-  await roll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    flavor: `${actor.name} rolls against their ${name} drive${typeLabel} (Drama Tracker)`,
-    content,
-  });
-}
-
 // A plain, non-interactive log message announcing the request - not dnd5e's own roll-request
 // chat card. That system's roll button turned out to be a bare 30x30 icon buried in a chat
 // card's status column (confirmed in live testing: it works, but is very easy to miss mid-scene).
 // The actual roll now happens via a clearly-labeled button in the target PC's own Player HUD (see
 // DramaPlayerHUD's pendingCheck handling) - this message is just a heads-up for the chat log.
-async function postDramaCheckPrompt(actor, skill, dc, rollMode, npcName) {
+async function postDramaCheckPrompt(actor, skill, dc, rollMode, purposeHtml) {
   const skillLabel = CONFIG.DND5E.skills[skill]?.label ?? skill;
   const modeLabel = rollMode === "advantage" ? " (Advantage)" : rollMode === "disadvantage" ? " (Disadvantage)" : "";
   await ChatMessage.create({
-    content: `<div class="dnd5e chat-card wicked-trait-card" style="font-family:'Signika',sans-serif;"><p style="margin:0;">Find out what motivates <strong>${npcName}</strong>: <strong>${actor.name}</strong>, roll <strong>${skillLabel}</strong>${modeLabel} (DC ${dc}) from your Drama Tracker HUD.</p></div>`,
+    content: `<div class="dnd5e chat-card wicked-trait-card" style="font-family:'Signika',sans-serif;"><p style="margin:0;">${purposeHtml}: <strong>${actor.name}</strong>, roll <strong>${skillLabel}</strong>${modeLabel} (DC ${dc}) from your Drama Tracker HUD.</p></div>`,
     speaker: { alias: "Drama Tracker" },
   });
+}
+
+// Option B for Rule 3 (Social Interaction) in the Motive Drivers rules doc: straight DC
+// subtraction let a single extreme motive value swing a check to trivial or impossible. Strong
+// motives (|value| >= 10) now grant Advantage (Attraction) or impose Disadvantage (Aversion)
+// instead of moving the DC at all; weaker motives (1-9) only nudge the standard DC 12 baseline by
+// +/-2. Never swings a check further than a small, bounded amount either direction.
+function suggestDramaCheckDC(motiveValue) {
+  const absValue = Math.abs(motiveValue);
+  if (absValue >= 10) {
+    return { dc: 12, rollMode: motiveValue > 0 ? "advantage" : "disadvantage" };
+  }
+  return { dc: motiveValue > 0 ? 10 : motiveValue < 0 ? 14 : 12, rollMode: "normal" };
 }
 
 class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
@@ -6522,7 +6485,7 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
             adjustFailure: DramaGMPanel.#onAdjustFailure,
             toggleMotiveReveal: DramaGMPanel.#onToggleMotiveReveal,
             openNpcRevealDialog: DramaGMPanel.#onOpenNpcRevealDialog,
-            rollTemptation: DramaGMPanel.#onRollTemptation,
+            openMotiveCheckDialog: DramaGMPanel.#onOpenMotiveCheckDialog,
             endConflict: DramaGMPanel.#onEndConflict,
         },
     };
@@ -6569,7 +6532,6 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
                 isWon: successes >= 3,
                 isLost: failures >= 3,
                 motives,
-                hasTargetable: motives.some((m) => m.canTarget),
             });
         }
         npcs.sort((a, b) => a.name.localeCompare(b.name));
@@ -6603,25 +6565,6 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
             addableActors,
             hasAddableActors: addableActors.length > 0,
         };
-    }
-
-    async _onRender(context, options) {
-        await super._onRender(context, options);
-        this.element.querySelectorAll(".drama-dc-calc").forEach((calc) => {
-            const motiveSelect = calc.querySelector('[data-role="motive-select"]');
-            const baseDcInput = calc.querySelector('[data-role="base-dc"]');
-            const resultEl = calc.querySelector('[data-role="final-dc"]');
-            const recompute = () => {
-                const base = Number(baseDcInput.value) || 0;
-                const selected = motiveSelect.options[motiveSelect.selectedIndex];
-                const motiveValue = Number(selected?.dataset.value) || 0;
-                const final = Math.max(0, base - motiveValue);
-                resultEl.textContent = final;
-            };
-            motiveSelect.addEventListener("change", recompute);
-            baseDcInput.addEventListener("input", recompute);
-            recompute();
-        });
     }
 
     static async #onNextTurn() {
@@ -6718,6 +6661,7 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
 
         const choice = await foundry.applications.api.DialogV2.wait({
             window: { title: `Reveal Check: ${actor.name}` },
+            classes: ["wicked-campaigns"],
             position: { width: 420 },
             content: `
                 ${noPcWarning}
@@ -6775,16 +6719,100 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
             rollMode: choice.rollMode,
             npcName: actor.name,
         });
-        await postDramaCheckPrompt(currentPCCombatant.actor, choice.skill, choice.dc, choice.rollMode, actor.name);
+        await postDramaCheckPrompt(currentPCCombatant.actor, choice.skill, choice.dc, choice.rollMode, `Find out what motivates <strong>${actor.name}</strong>`);
     }
 
-    static async #onRollTemptation(event, target) {
+    // Per-motive "leverage this in conversation" check - distinct from the NPC-level Reveal Check
+    // dialog above (which is about *discovering* a motive, not exploiting a known one) and from
+    // the NPC sheet's own standalone Temptation Save roll (a GM-only roll for the NPC's
+    // autonomous behavior, already available from the sheet directly - no need to duplicate it
+    // here). Pre-fills a suggested DC/roll mode from the motive's strength (see
+    // suggestDramaCheckDC, matching the redesigned Rule 3), but both stay fully editable, and the
+    // GM still picks the skill each time - Persuasion, Deception, and Intimidation fit differently
+    // depending on how the player is actually working the NPC.
+    static async #onOpenMotiveCheckDialog(event, target) {
         const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
         const motiveId = target.dataset.motiveId;
-        const rollType = target.dataset.rollType || "normal";
         const actor = game.actors.get(actorId);
-        if (!actor) return;
-        await rollDramaTemptation(actor, motiveId, rollType);
+        const motives = actor?.getFlag("cv-wicked-campaigns", "motives") || {};
+        const data = motives[motiveId];
+        if (!actor || !data) return;
+
+        const currentPCCombatant = this.combat.combatant ?? null;
+        const noPcWarning = currentPCCombatant?.actor
+            ? ""
+            : `<p style="color: #e08a75; font-size: 0.85rem; margin: 0 0 0.5rem;">No PC currently has the turn - advance to a PC's turn before sending a check.</p>`;
+
+        const motiveLabel = data.label || "Motive";
+        const motiveValue = Number(data.value) || 0;
+        const suggestion = suggestDramaCheckDC(motiveValue);
+        const modeNote = suggestion.rollMode !== "normal" ? `, ${suggestion.rollMode}` : "";
+
+        const skillOptions = Object.entries(CONFIG.DND5E.skills)
+            .map(([key, cfg]) => `<option value="${key}" ${key === "per" ? "selected" : ""}>${cfg.label}</option>`)
+            .join("");
+
+        const choice = await foundry.applications.api.DialogV2.wait({
+            window: { title: `Persuade: ${motiveLabel}` },
+            classes: ["wicked-campaigns"],
+            position: { width: 420 },
+            content: `
+                ${noPcWarning}
+                <div class="form-group">
+                    <label>Skill</label>
+                    <select name="skill" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">${skillOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label>DC</label>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <input type="number" name="dc" value="${suggestion.dc}" min="1" max="30" style="flex: 1; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
+                        <button type="button" data-dc="10" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Easy</button>
+                        <button type="button" data-dc="15" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Average</button>
+                        <button type="button" data-dc="20" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Hard</button>
+                    </div>
+                    <p style="font-size: 0.7rem; color: #a89a82; margin: 4px 0 0;">Suggested from ${motiveLabel} (${motiveValue}): DC ${suggestion.dc}${modeNote}.</p>
+                </div>
+                <div class="form-group">
+                    <label>Roll Mode</label>
+                    <select name="rollMode" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">
+                        <option value="normal" ${suggestion.rollMode === "normal" ? "selected" : ""}>Normal</option>
+                        <option value="advantage" ${suggestion.rollMode === "advantage" ? "selected" : ""}>Advantage</option>
+                        <option value="disadvantage" ${suggestion.rollMode === "disadvantage" ? "selected" : ""}>Disadvantage</option>
+                    </select>
+                </div>
+            `,
+            buttons: [
+                {
+                    action: "send",
+                    label: "Send Check",
+                    icon: "fa-solid fa-dice-d20",
+                    callback: (evt, button) => ({ skill: button.form.elements.skill.value, dc: Number(button.form.elements.dc.value), rollMode: button.form.elements.rollMode.value }),
+                },
+            ],
+            render: (event, dialog) => {
+                dialog.element.querySelectorAll(".drama-dc-quick").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        dialog.element.querySelector('input[name="dc"]').value = btn.dataset.dc;
+                    });
+                });
+            },
+            rejectClose: false,
+        }).catch(() => null);
+
+        if (!choice) return;
+
+        if (!currentPCCombatant?.actor) {
+            ui.notifications.warn("No PC currently has the turn - advance to a PC's turn before sending a check.");
+            return;
+        }
+
+        await currentPCCombatant.setFlag("cv-wicked-campaigns", "pendingCheck", {
+            skill: choice.skill,
+            dc: choice.dc,
+            rollMode: choice.rollMode,
+            npcName: actor.name,
+        });
+        await postDramaCheckPrompt(currentPCCombatant.actor, choice.skill, choice.dc, choice.rollMode, `Leverage <strong>${actor.name}</strong>'s <strong>${motiveLabel}</strong>`);
     }
 
     static async #onEndConflict() {
@@ -6871,7 +6899,6 @@ class DramaPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
             ? {
                 skillLabel: CONFIG.DND5E.skills[rawPendingCheck.skill]?.label ?? rawPendingCheck.skill,
                 dc: rawPendingCheck.dc,
-                npcName: rawPendingCheck.npcName,
                 modeLabel: rawPendingCheck.rollMode === "advantage" ? "Advantage" : rawPendingCheck.rollMode === "disadvantage" ? "Disadvantage" : "Normal",
             }
             : null;

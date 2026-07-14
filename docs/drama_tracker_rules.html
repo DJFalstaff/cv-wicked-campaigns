@@ -559,34 +559,29 @@
         <section>
             <h2><i class="fa-solid fa-handshake"></i> 4. Social Checks &amp; the DC Modifier</h2>
             <p>
-                Once a motive is revealed &mdash; Partial or Public &mdash; a PC can consciously work it. The
-                motive's value shifts the check's DC the same way it always has:
+                Once a motive is revealed &mdash; Partial or Public &mdash; a PC can consciously work it, via the
+                GM's <strong>Persuade</strong> button on that motive. Its strength determines the modifier: weak
+                motives only nudge the difficulty, but strong motives swing Advantage or Disadvantage instead of
+                the DC, so no single motive can make a check trivial or impossible on its own.
             </p>
 
-            <div class="math-block">
-                $$\text{Final DC} = \text{Base DC} - \text{Motive Value}$$
-            </div>
-
             <ul>
-                <li><strong>Appeal to a Want (positive value):</strong> lowers the DC &mdash; you're offering
-                    something they already crave.</li>
-                <li><strong>Lean on a Fear (negative value):</strong> raises the DC &mdash; threatening what
-                    they dread is a harder sell to pull off convincingly.</li>
-                <li><strong>Blind Roll:</strong> no revealed motive to target, or you'd rather not tip your hand
-                    &mdash; the check just uses the flat Base DC, no modifier either way.</li>
+                <li><strong>|Value| 10&ndash;20:</strong> DC stays at the standard <strong>12</strong>. Positive
+                    (a Want) grants <strong>Advantage</strong>; negative (a Fear) imposes <strong>Disadvantage</strong>.</li>
+                <li><strong>|Value| 1&ndash;9:</strong> small nudge off the standard DC &mdash; <strong>&minus;2</strong>
+                    for positive, <strong>+2</strong> for negative. Rolled normally.</li>
+                <li><strong>Value 0, or nothing revealed to target:</strong> the check just uses the standard DC 12,
+                    rolled normally.</li>
             </ul>
+            <p class="footnote">
+                DC 12 is the suggested starting point the Persuade dialog pre-fills, not a hard rule &mdash; the GM
+                can still type over it for an unusually easy or difficult ask.
+            </p>
 
             <div class="calc-widget">
-                <div class="calc-title"><i class="fa-solid fa-calculator"></i> Interactive DC Modifier Calculator</div>
+                <div class="calc-title"><i class="fa-solid fa-calculator"></i> Interactive DC/Advantage Calculator</div>
                 <div class="calc-grid">
-                    <div class="calc-control">
-                        <label for="base-dc">Base Social Check DC</label>
-                        <div class="calc-input-row">
-                            <input type="range" id="base-dc" class="calc-slider" min="5" max="30" value="15">
-                            <div class="calc-val-box" id="base-dc-val">15</div>
-                        </div>
-                    </div>
-                    <div class="calc-control">
+                    <div class="calc-control" style="grid-column: span 2;">
                         <label for="motive-val">Motive Value (-20 to 20)</label>
                         <div class="calc-input-row">
                             <input type="range" id="motive-val" class="calc-slider" min="-20" max="20" value="0">
@@ -594,10 +589,10 @@
                         </div>
                     </div>
                     <div class="calc-result-panel">
-                        <div class="calc-explanation" id="calc-explain">No motive applied. Base DC remains unchanged.</div>
+                        <div class="calc-explanation" id="calc-explain">No motive applied. Standard DC, rolled normally.</div>
                         <div style="display: flex; align-items: center; gap: 0.8rem;">
-                            <span style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase; color: var(--gold);">Final DC:</span>
-                            <div class="calc-dc-badge" id="calc-result">15</div>
+                            <span style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase; color: var(--gold);">Suggested:</span>
+                            <div class="calc-dc-badge" id="calc-result">DC 12</div>
                         </div>
                     </div>
                 </div>
@@ -637,34 +632,9 @@
             </ul>
         </section>
 
-        <!-- Section 6: Temptation Saves -->
-        <section>
-            <h2><i class="fa-solid fa-dice-d20"></i> 6. Temptation Saves (NPC Autonomy)</h2>
-            <p>
-                Sometimes an NPC needs to act on their own &mdash; do they take the bait, storm off, or hold their
-                composure? Same roll-under mechanic as the Motive Drivers system generally:
-            </p>
-
-            <div class="math-block">
-                $$\text{Temptation Roll (d20)} \le \text{Absolute Motive Value}$$
-            </div>
-
-            <ul>
-                <li><strong>Success (Roll &le; Value):</strong> the NPC succumbs to the drive and acts on it.</li>
-                <li><strong>Failure (Roll &gt; Value):</strong> they keep their composure.</li>
-                <li><strong>Advantage</strong> rolls <code>2d20kl</code> (more likely to succumb); <strong>Disadvantage</strong>
-                    rolls <code>2d20kh</code> (more likely to resist) &mdash; inverted from normal, since this is a
-                    roll-under check.</li>
-            </ul>
-            <p class="footnote">
-                Available for any motive on any NPC, revealed or not &mdash; this is what the NPC does when no one's
-                looking, not something the players are rolling against.
-            </p>
-        </section>
-
-        <!-- Section 7: Running It -->
+        <!-- Section 6: Running It -->
         <section style="margin-bottom: 0;">
-            <h2><i class="fa-solid fa-clapperboard"></i> 7. Running It at the Table</h2>
+            <h2><i class="fa-solid fa-clapperboard"></i> 6. Running It at the Table</h2>
 
             <h3><i class="fa-solid fa-keyboard"></i> Starting a Scene</h3>
             <p>Press <kbd>Shift</kbd> + <kbd>S</kbd> as the GM. If nothing's running, this opens the setup dialog:</p>
@@ -681,9 +651,9 @@
             <p>Pressing <kbd>Shift</kbd> + <kbd>S</kbd> again while a scene is active reopens this instead of the setup dialog. Per NPC, it gives you:</p>
             <ul>
                 <li>Their motive list, with reveal state and value at a glance.</li>
-                <li>One-click <strong>discovery Pass/Fail</strong> buttons per hidden or partial motive.</li>
-                <li>A <strong>DC calculator</strong> &mdash; pick a revealed motive (or Blind Roll) and a base DC, read off the final number.</li>
-                <li><strong>Temptation Save</strong> dice (normal / advantage / disadvantage) per motive.</li>
+                <li>A click-to-cycle <strong>reveal badge</strong> per motive (Hidden &rarr; Partial &rarr; Public &rarr; Hidden) &mdash; purely a visibility toggle, no roll attached.</li>
+                <li><strong>Reveal Check</strong> (one per NPC) &mdash; pick any skill, a DC (with Easy/Average/Hard quick-set), and a roll mode, and send it to whoever currently has the turn. The GM decides what to reveal afterward, based on the result.</li>
+                <li><strong>Persuade</strong> (one per visible motive) &mdash; same send-a-check flow, but pre-fills a suggested DC/roll mode from that motive's strength (see Section 4) and lets the GM pick the skill each time.</li>
                 <li>Success/Failure +/&minus; buttons for that NPC's tally.</li>
                 <li><strong>Add NPC</strong> for guests who wander in mid-scene, and a remove button for each existing one.</li>
             </ul>
@@ -691,7 +661,10 @@
             <h3><i class="fa-solid fa-users"></i> The Player HUD</h3>
             <p>Auto-opens for anyone with a PC in the scene. Shows the NPC roster, whose turn it is, and only
                 whatever's currently been revealed &mdash; a locked icon in place of the value for anything still
-                Partial, and nothing at all for anything still Hidden.</p>
+                Partial, and nothing at all for anything still Hidden. When the GM sends a Reveal Check or Persuade
+                request to a PC, a clearly labeled <strong>Roll &lt;Skill&gt; (DC X, mode)</strong> button appears
+                right in their HUD &mdash; clicking it opens a real, interactive roll on their own client, using
+                their own actor's modifiers.</p>
         </section>
 
     </div>
@@ -720,45 +693,58 @@
         document.documentElement.setAttribute('data-theme', newTheme);
     });
 
-    // DC Calculator Logic
-    const baseDcSlider = document.getElementById('base-dc');
-    const baseDcVal = document.getElementById('base-dc-val');
+    // DC/Advantage Calculator Logic - mirrors suggestDramaCheckDC() in
+    // scripts/cv-wicked-campaigns.mjs, which is what the Persuade dialog actually pre-fills.
     const motiveSlider = document.getElementById('motive-val');
     const motiveVal = document.getElementById('motive-val-val');
     const calcResult = document.getElementById('calc-result');
     const calcExplain = document.getElementById('calc-explain');
 
     function calculateDC() {
-        const base = parseInt(baseDcSlider.value);
         const motive = parseInt(motiveSlider.value);
-
-        baseDcVal.textContent = base;
         motiveVal.textContent = motive > 0 ? `+${motive}` : motive;
 
-        const finalDc = Math.max(0, base - motive);
-        calcResult.textContent = finalDc;
+        const absValue = Math.abs(motive);
+        let dc, rollMode, explanation;
 
-        let explanation = "";
-        if (motive > 0) {
-            explanation = `Appealing to a Want (reduces DC by ${motive}).`;
+        if (absValue >= 10) {
+            dc = 12;
+            rollMode = motive > 0 ? 'Advantage' : 'Disadvantage';
+            explanation = motive > 0
+                ? 'Strong Want: standard DC, rolled with Advantage.'
+                : 'Strong Fear: standard DC, rolled with Disadvantage.';
+        } else if (motive > 0) {
+            dc = 10;
+            rollMode = 'Normal';
+            explanation = 'Weak Want: DC reduced by 2.';
+        } else if (motive < 0) {
+            dc = 14;
+            rollMode = 'Normal';
+            explanation = 'Weak Fear: DC increased by 2.';
+        } else {
+            dc = 12;
+            rollMode = 'Normal';
+            explanation = 'No motive applied. Standard DC, rolled normally.';
+        }
+
+        calcResult.textContent = rollMode === 'Normal' ? `DC ${dc}` : `DC ${dc} (${rollMode})`;
+        calcExplain.textContent = explanation;
+
+        if (rollMode === 'Advantage') {
             calcResult.style.background = 'var(--green)';
             calcResult.style.color = '#fff';
             calcResult.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.4)';
-        } else if (motive < 0) {
-            explanation = `Leaning on a Fear (increases DC by ${Math.abs(motive)}).`;
+        } else if (rollMode === 'Disadvantage') {
             calcResult.style.background = 'var(--red)';
             calcResult.style.color = '#fff';
             calcResult.style.boxShadow = '0 0 10px rgba(244, 67, 54, 0.4)';
         } else {
-            explanation = "No motive applied. Base DC remains unchanged.";
             calcResult.style.background = 'var(--gold)';
             calcResult.style.color = 'var(--bg-color)';
             calcResult.style.boxShadow = '0 0 10px var(--gold-glow)';
         }
-        calcExplain.textContent = explanation;
     }
 
-    baseDcSlider.addEventListener('input', calculateDC);
     motiveSlider.addEventListener('input', calculateDC);
     calculateDC();
 </script>

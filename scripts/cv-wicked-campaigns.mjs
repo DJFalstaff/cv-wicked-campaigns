@@ -2,6 +2,7 @@
  * Wicked Campaigns Module
  * A campaign management and helper module for Foundry VTT V14.
  */
+// Test comment: verifying the commit -> confirm -> push workflow.
 
 import { exportBackgroundPdf, exportSessionZeroSummaryPdf } from "./pdf-export.mjs";
 

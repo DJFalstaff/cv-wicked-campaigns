@@ -1713,6 +1713,14 @@
     filter: brightness(1.2);
 }
 
+/* Pending discovery-check button in the Player HUD - a subtle pulse so a check requested while
+   the player isn't looking at their HUD is still noticeable when they glance back at it, without
+   being as jarring/attention-grabbing as a flashing animation would be. */
+@keyframes drama-pending-pulse {
+    0%, 100% { background: rgba(201, 160, 84, 0.15); }
+    50% { background: rgba(201, 160, 84, 0.3); }
+}
+
 /* NPC Motive Drivers Styling */
 .motives-widget {
     margin-top: 0.5rem;

@@ -6356,33 +6356,17 @@ async function rollDramaTemptation(actor, motiveId, rollType) {
   });
 }
 
-// Sends an actual interactive roll request to a specific PC's owning player, using dnd5e's own
-// built-in roll-request chat message (the same mechanism the Party actor's "request a skill
-// check" feature uses, just targeted at a single actor instead of a whole party). The chat card's
-// roll button is only visible/clickable to the GM and that actor's owner; clicking it opens a
-// real roll dialog on THEIR client, using their own actor's modifiers, pre-loaded with the DC and
-// roll mode set here. Sending a check does not reveal anything by itself - the GM reads the result
-// in chat and decides separately whether to flip a motive's reveal-state toggle.
-async function sendDramaDiscoveryCheckRequest(actor, skill, dc, rollMode, npcName) {
+// A plain, non-interactive log message announcing the request - not dnd5e's own roll-request
+// chat card. That system's roll button turned out to be a bare 30x30 icon buried in a chat
+// card's status column (confirmed in live testing: it works, but is very easy to miss mid-scene).
+// The actual roll now happens via a clearly-labeled button in the target PC's own Player HUD (see
+// DramaPlayerHUD's pendingCheck handling) - this message is just a heads-up for the chat log.
+async function postDramaCheckPrompt(actor, skill, dc, rollMode, npcName) {
   const skillLabel = CONFIG.DND5E.skills[skill]?.label ?? skill;
+  const modeLabel = rollMode === "advantage" ? " (Advantage)" : rollMode === "disadvantage" ? " (Disadvantage)" : "";
   await ChatMessage.create({
-    flavor: `Find out what motivates ${npcName}`,
-    speaker: ChatMessage.getSpeaker({ actor, alias: actor.name }),
-    system: {
-      button: {
-        icon: "fa-solid fa-dice-d20",
-        label: `Roll ${skillLabel}`,
-      },
-      data: {
-        skill,
-        target: dc,
-        advantage: rollMode === "advantage",
-        disadvantage: rollMode === "disadvantage",
-      },
-      handler: "skill",
-      targets: [{ actor: actor.uuid }],
-    },
-    type: "request",
+    content: `<div class="dnd5e chat-card wicked-trait-card" style="font-family:'Signika',sans-serif;"><p style="margin:0;">Find out what motivates <strong>${npcName}</strong>: <strong>${actor.name}</strong>, roll <strong>${skillLabel}</strong>${modeLabel} (DC ${dc}) from your Drama Tracker HUD.</p></div>`,
+    speaker: { alias: "Drama Tracker" },
   });
 }
 
@@ -6713,11 +6697,11 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
 
     // One reveal-check dialog per NPC card, not per motive: the GM picks any skill, sets a DC
     // (with Easy/Average/Hard quick-set buttons that just populate the field, not lock it), and a
-    // roll mode, then sends a single generic roll request to whichever PC currently has the turn
-    // (dnd5e's own built-in roll-request chat message - only the GM and that PC's owner can click
-    // it, and clicking it opens a real roll dialog on THEIR client). The request isn't tied to any
-    // specific motive; after seeing the result land in chat, the GM manually decides which
-    // motive(s) to reveal via the per-motive toggle badge.
+    // roll mode, then stores the request as a pendingCheck flag on whichever PC currently has the
+    // turn. That PC's own Player HUD picks it up and shows a "Roll <skill>" button (see
+    // DramaPlayerHUD), which is what actually triggers the interactive roll on their client - not
+    // a chat card button. The request isn't tied to any specific motive; after seeing the result,
+    // the GM manually decides which motive(s) to reveal via the per-motive toggle badge.
     static async #onOpenNpcRevealDialog(event, target) {
         const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
         const actor = game.actors.get(actorId);
@@ -6734,24 +6718,25 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
 
         const choice = await foundry.applications.api.DialogV2.wait({
             window: { title: `Reveal Check: ${actor.name}` },
+            position: { width: 420 },
             content: `
                 ${noPcWarning}
                 <div class="form-group">
                     <label>Skill</label>
-                    <select name="skill">${skillOptions}</select>
+                    <select name="skill" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">${skillOptions}</select>
                 </div>
                 <div class="form-group">
                     <label>DC</label>
                     <div style="display: flex; gap: 0.4rem; align-items: center;">
-                        <input type="number" name="dc" value="15" min="1" max="30" style="flex: 1;">
-                        <button type="button" data-dc="10" class="drama-dc-quick">Easy</button>
-                        <button type="button" data-dc="15" class="drama-dc-quick">Average</button>
-                        <button type="button" data-dc="20" class="drama-dc-quick">Hard</button>
+                        <input type="number" name="dc" value="15" min="1" max="30" style="flex: 1; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
+                        <button type="button" data-dc="10" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Easy</button>
+                        <button type="button" data-dc="15" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Average</button>
+                        <button type="button" data-dc="20" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Hard</button>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Roll Mode</label>
-                    <select name="rollMode">
+                    <select name="rollMode" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">
                         <option value="normal">Normal</option>
                         <option value="advantage">Advantage</option>
                         <option value="disadvantage">Disadvantage</option>
@@ -6778,12 +6763,19 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
 
         if (!choice) return;
 
-        if (!currentPCActor) {
+        const currentPCCombatant = this.combat.combatant ?? null;
+        if (!currentPCCombatant?.actor) {
             ui.notifications.warn("No PC currently has the turn - advance to a PC's turn before sending a check.");
             return;
         }
 
-        await sendDramaDiscoveryCheckRequest(currentPCActor, choice.skill, choice.dc, choice.rollMode, actor.name);
+        await currentPCCombatant.setFlag("cv-wicked-campaigns", "pendingCheck", {
+            skill: choice.skill,
+            dc: choice.dc,
+            rollMode: choice.rollMode,
+            npcName: actor.name,
+        });
+        await postDramaCheckPrompt(currentPCCombatant.actor, choice.skill, choice.dc, choice.rollMode, actor.name);
     }
 
     static async #onRollTemptation(event, target) {
@@ -6835,6 +6827,7 @@ class DramaPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
         position: { width: 320, height: 460 },
         actions: {
             rollInitiative: DramaPlayerHUD.#onRollInitiative,
+            rollPendingCheck: DramaPlayerHUD.#onRollPendingCheck,
         },
     };
 
@@ -6873,6 +6866,16 @@ class DramaPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
         }
         npcs.sort((a, b) => a.name.localeCompare(b.name));
 
+        const rawPendingCheck = ownCombatant?.getFlag("cv-wicked-campaigns", "pendingCheck") ?? null;
+        const pendingCheck = rawPendingCheck
+            ? {
+                skillLabel: CONFIG.DND5E.skills[rawPendingCheck.skill]?.label ?? rawPendingCheck.skill,
+                dc: rawPendingCheck.dc,
+                npcName: rawPendingCheck.npcName,
+                modeLabel: rawPendingCheck.rollMode === "advantage" ? "Advantage" : rawPendingCheck.rollMode === "disadvantage" ? "Disadvantage" : "Normal",
+            }
+            : null;
+
         return {
             sceneName: this.combat.getFlag("cv-wicked-campaigns", "sceneName") || "Drama Scene",
             round: this.combat.round,
@@ -6883,6 +6886,8 @@ class DramaPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
             })),
             hasOwnCombatant: !!ownCombatant,
             needsInitiative: !!ownCombatant && (ownCombatant.initiative === null || ownCombatant.initiative === undefined),
+            pendingCheck,
+            hasPendingCheck: !!pendingCheck,
             npcs,
             hasNpcs: npcs.length > 0,
         };
@@ -6891,6 +6896,26 @@ class DramaPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin
     static async #onRollInitiative() {
         const ownCombatant = this.combat.combatants.find((c) => c.actor?.isOwner);
         if (ownCombatant) await this.combat.rollInitiative([ownCombatant.id]);
+    }
+
+    // Triggers the actual interactive roll directly (same underlying Actor5e#rollSkill API dnd5e's
+    // own request-card button uses under the hood) rather than routing through a chat card - see
+    // the comment on postDramaCheckPrompt for why. Only clears the pendingCheck flag once a roll
+    // actually happened, so cancelling the roll dialog leaves the button in place to try again.
+    static async #onRollPendingCheck() {
+        const ownCombatant = this.combat.combatants.find((c) => c.actor?.isOwner);
+        const pending = ownCombatant?.getFlag("cv-wicked-campaigns", "pendingCheck");
+        const actor = ownCombatant?.actor;
+        if (!actor || !pending) return;
+
+        const [roll] = (await actor.rollSkill({
+            skill: pending.skill,
+            target: pending.dc,
+            advantage: pending.rollMode === "advantage",
+            disadvantage: pending.rollMode === "disadvantage",
+        })) ?? [];
+
+        if (roll) await ownCombatant.unsetFlag("cv-wicked-campaigns", "pendingCheck");
     }
 
     static open(combat) {

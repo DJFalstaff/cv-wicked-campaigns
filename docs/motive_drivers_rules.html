@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motive Drivers: Game Rules Summary</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Outfit:wght@300;400;600;700&family=Signika:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- KaTeX for Math Equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+    <style>
+        :root {
+            /* Dark Theme Variables */
+            --bg-color: #0e0814;
+            --panel-bg: rgba(22, 14, 33, 0.7);
+            --border-color: rgba(201, 160, 84, 0.25);
+            --text-color: #e5e1eb;
+            --text-muted: #afacc4;
+            --gold: #c9a054;
+            --gold-glow: rgba(201, 160, 84, 0.4);
+            --green: #4caf50;
+            --red: #f44336;
+            --card-wash: rgba(0, 0, 0, 0.2);
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="light"] {
+            /* Light Theme Variables */
+            --bg-color: #f7f5f0;
+            --panel-bg: rgba(247, 245, 240, 0.85);
+            --border-color: rgba(138, 109, 31, 0.35);
+            --text-color: #2c2520;
+            --text-muted: #5c5348;
+            --gold: #8a6d1f;
+            --gold-glow: rgba(138, 109, 31, 0.35);
+            --green: #2f6b2f;
+            --red: #8a2f2f;
+            --card-wash: rgba(0, 0, 0, 0.035);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --shadow: 0 8px 32px rgba(138, 109, 31, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Container & Glass Panel */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        /* Header Elements */
+        header {
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Cinzel', Georgia, serif;
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: 0.05em;
+            color: var(--gold);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        /* Toggle Button styling */
+        .theme-toggle-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--gold);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: 1.35rem;
+            color: var(--gold);
+            margin-bottom: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.4rem;
+        }
+
+        p {
+            font-size: 1.05rem;
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Bullet lists */
+        ul {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.6rem;
+            font-size: 1.05rem;
+            color: var(--text-color);
+        }
+
+        li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+        }
+
+        /* Math Display container */
+        .math-block {
+            background: var(--card-wash);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        /* Grid for preset pills */
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.6rem;
+            margin-top: 1.25rem;
+        }
+
+        .preset-pill {
+            background: var(--card-wash);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--text-color);
+            transition: transform 0.2s ease;
+        }
+
+        .preset-pill:hover {
+            transform: translateY(-2px);
+            border-color: var(--gold);
+        }
+
+        .preset-pill i {
+            color: var(--gold);
+            font-size: 1.1rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 1rem;
+        }
+
+        th, td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            font-family: 'Cinzel', Georgia, serif;
+            font-weight: bold;
+            color: var(--gold);
+            background: var(--card-wash);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        [data-theme="light"] tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-public { background: rgba(76, 175, 80, 0.15); color: var(--green); border: 1px solid var(--green); }
+        .badge-gated { background: rgba(201, 160, 84, 0.15); color: var(--gold); border: 1px solid var(--gold); }
+
+        /* Calculator UI Widget */
+        .calc-widget {
+            background: var(--card-wash);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .calc-title {
+            font-family: 'Cinzel', Georgia, serif;
+            color: var(--gold);
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .calc-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .calc-control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .calc-control label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .calc-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .calc-slider {
+            flex: 1;
+            height: 6px;
+            accent-color: var(--gold);
+            cursor: pointer;
+        }
+
+        .calc-val-box {
+            width: 50px;
+            height: 28px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+            line-height: 26px;
+            font-weight: bold;
+            font-family: 'Signika', sans-serif;
+        }
+
+        .calc-result-panel {
+            grid-column: span 2;
+            background: rgba(0,0,0,0.15);
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 600px) {
+            .calc-result-panel {
+                grid-column: span 1;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        .calc-explanation {
+            font-size: 0.95rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .calc-dc-badge {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Signika', sans-serif;
+            background: var(--gold);
+            color: var(--bg-color);
+            padding: 4px 16px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px var(--gold-glow);
+            transition: background 0.3s ease;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="glass-panel">
+        
+        <header>
+            <h1><i class="fa-solid fa-yin-yang"></i> Motive Drivers</h1>
+            <button class="theme-toggle-btn" id="theme-toggle">
+                <i class="fa-solid fa-sun" id="theme-icon"></i>
+                <span id="theme-text">Light Theme</span>
+            </button>
+        </header>
+
+        <!-- Section 1: Concept -->
+        <section>
+            <h2><i class="fa-solid fa-scale-balanced"></i> 1. Core Concept & Scale</h2>
+            <p>NPCs are driven by dynamic, list-based motivators. Each driver has a name and a value within the following scale:</p>
+            
+            <div class="math-block">
+                $$\text{Motive Value Range: } [-20, +20]$$
+            </div>
+            
+            <ul>
+                <li><strong>Attraction (Positive Values, +1 to +20)</strong>: Things the NPC actively desires, seeks out, or responds well to (Wants, Needs, Desires).</li>
+                <li><strong>Aversion (Negative Values, -1 to -20)</strong>: Things the NPC fears, avoids, or is repulsed by (Fears, Threats, Repulsions).</li>
+                <li><strong>Apathy (Value of 0)</strong>: Indifference toward the drive.</li>
+            </ul>
+
+            <p style="margin-top: 1.5rem; font-weight: 600;">Standard Preset Motives List:</p>
+            <div class="presets-grid">
+                <div class="preset-pill"><i class="fa-solid fa-coins"></i>Money</div>
+                <div class="preset-pill"><i class="fa-solid fa-shield-halved"></i>Safety</div>
+                <div class="preset-pill"><i class="fa-solid fa-crown"></i>Glory</div>
+                <div class="preset-pill"><i class="fa-solid fa-drumstick-bite"></i>Food</div>
+                <div class="preset-pill"><i class="fa-solid fa-arrow-up-right-dots"></i>Status</div>
+                <div class="preset-pill"><i class="fa-solid fa-skull"></i>Revenge</div>
+                <div class="preset-pill"><i class="fa-solid fa-bolt"></i>Power</div>
+                <div class="preset-pill"><i class="fa-solid fa-magnifying-glass"></i>Curiosity</div>
+                <div class="preset-pill"><i class="fa-solid fa-gavel"></i>Honor</div>
+                <div class="preset-pill"><i class="fa-solid fa-handshake"></i>Friendship</div>
+                <div class="preset-pill"><i class="fa-solid fa-wine-glass"></i>Pleasure</div>
+                <div class="preset-pill"><i class="fa-solid fa-heart"></i>Romance</div>
+            </div>
+        </section>
+
+        <!-- Section 2: Discovery -->
+        <section>
+            <h2><i class="fa-solid fa-eye"></i> 2. Discovery & Visibility Tiers</h2>
+            <p>Motives are initially hidden from players and must be discovered through research or observation:</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Absolute Value (|Value|)</th>
+                        <th>Discovery Tier</th>
+                        <th>Mechanic</th>
+                        <th>Player Visibility</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>15 to 20</strong></td>
+                        <td>Famous / Infamous</td>
+                        <td>Publicly known. No check needed.</td>
+                        <td><span class="badge badge-public">Public</span> (Auto-revealed)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>10 to 14</strong></td>
+                        <td>Local Rumors</td>
+                        <td>Whisper-tier. Revealed with a <strong>DC 12 Int (History)</strong> check.</td>
+                        <td><span class="badge badge-gated">Gated by GM</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>0 to 9</strong></td>
+                        <td>Private Drive</td>
+                        <td>Deeply personal. Revealed with a <strong>Wis (Insight)</strong> check against 20 - |Value|.</td>
+                        <td><span class="badge badge-gated">Gated by GM</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <ul>
+                <li><strong>Hidden</strong>: Invisible to players.</li>
+                <li><strong>Partial</strong>: Players see the motive's name but the numerical value is replaced by a padlock icon (they know the subject but not its strength or direction).</li>
+                <li><strong>Public</strong>: Both the name and value are visible.</li>
+                <li><strong>Fame Override</strong>: Any motive with a value of &ge; 15 or &le; -15 automatically overrides hidden/partial states, becoming visible to players.</li>
+            </ul>
+        </section>
+
+        <!-- Section 3: Social Modifier -->
+        <section>
+            <h2><i class="fa-solid fa-comments"></i> 3. Social Interaction (DC Modifier)</h2>
+            <p>When players target a discovered motive in their roleplay, the motive value modifies the base check difficulty:</p>
+            
+            <div class="math-block">
+                $$\text{Final DC} = \text{Base DC} - \text{Motive Value}$$
+            </div>
+            
+            <ul>
+                <li><strong>Appealing to Attraction (Positive Value)</strong>: Decreases the check DC (making the task easier).</li>
+                <li><strong>Threatening Aversion (Negative Value)</strong>: Increases the check DC (making the task harder).</li>
+            </ul>
+
+            <!-- Calculator Widget -->
+            <div class="calc-widget">
+                <div class="calc-title"><i class="fa-solid fa-calculator"></i> Interactive DC Modifier Calculator</div>
+                <div class="calc-grid">
+                    <div class="calc-control">
+                        <label for="base-dc">Base Social Check DC</label>
+                        <div class="calc-input-row">
+                            <input type="range" id="base-dc" class="calc-slider" min="5" max="30" value="15">
+                            <div class="calc-val-box" id="base-dc-val">15</div>
+                        </div>
+                    </div>
+                    <div class="calc-control">
+                        <label for="motive-val">Motive Value (-20 to 20)</label>
+                        <div class="calc-input-row">
+                            <input type="range" id="motive-val" class="calc-slider" min="-20" max="20" value="0">
+                            <div class="calc-val-box" id="motive-val-val">0</div>
+                        </div>
+                    </div>
+                    <div class="calc-result-panel">
+                        <div class="calc-explanation" id="calc-explain">No motive applied. Base DC remains unchanged.</div>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <span style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase; color: var(--gold);">Final DC:</span>
+                            <div class="calc-dc-badge" id="calc-result">15</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Autonomy -->
+        <section>
+            <h2><i class="fa-solid fa-dice-d20"></i> 4. NPC Autonomy (Temptation Saves)</h2>
+            <p>When an NPC must make a choice on their own without a player active roll (e.g., deciding to flee, resisting temptation), the GM rolls a <strong>Temptation Save</strong>:</p>
+            
+            <div class="math-block">
+                $$\text{Temptation Roll (d20)} \le \text{Absolute Motive Value}$$
+            </div>
+            
+            <ul>
+                <li><strong>Success (Roll &le; Value)</strong>: The NPC succumbs to their urge/fear and acts accordingly.</li>
+                <li><strong>Failure (Roll &gt; Value)</strong>: The NPC maintains discipline and resists the drive.</li>
+                <li>A value of 20 is an automatic fail to resist; a value of 0 means they never act on it.</li>
+            </ul>
+
+            <p style="margin-top: 1.5rem; font-weight: 600;">Advantage & Disadvantage (Roll-Under Mechanics):</p>
+            <p>Because Temptation Saves succeed on rolling <em>low</em>, Advantage and Disadvantage formulas are mathematically inverted to preserve the statistical meaning:</p>
+            <ul>
+                <li><strong>Advantage (Green d20 Icon)</strong>: Rolls <strong><code>2d20kl</code></strong> (Keep Lowest). Keeping the lowest result increases the likelihood of rolling under the target, making the NPC <em>more likely to succumb</em> to the temptation.</li>
+                <li><strong>Disadvantage (Red d20 Icon)</strong>: Rolls <strong><code>2d20kh</code></strong> (Keep Highest). Keeping the highest result decreases the likelihood of rolling under, making the NPC <em>more likely to resist</em> the temptation.</li>
+            </ul>
+        </section>
+
+        <!-- Section 5: Token Bars -->
+        <section style="margin-bottom: 0;">
+            <h2><i class="fa-solid fa-border-all"></i> 5. Token Resource Bars</h2>
+            <p>Public or famous motives can be tracked directly on token resource bars on the canvas:</p>
+            <ul>
+                <li><strong>Display</strong>: Drawn as a visual progress bar indicating intensity (0 to 20).</li>
+                <li><strong>Want (Positive)</strong>: Renders as a <strong>Green</strong> progress bar.</li>
+                <li><strong>Aversion (Negative)</strong>: Renders as a <strong>Red</strong> progress bar.</li>
+                <li><strong>Interactivity</strong>: Dragging or editing the value on the token bar directly updates the motive value on the NPC sheet.</li>
+            </ul>
+        </section>
+
+    </div>
+</div>
+
+<script>
+    // Theme Toggle Handler
+    const toggleBtn = document.getElementById('theme-toggle');
+    const toggleIcon = document.getElementById('theme-icon');
+    const toggleText = document.getElementById('theme-text');
+    
+    toggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        let newTheme = 'dark';
+        
+        if (currentTheme === 'dark') {
+            newTheme = 'light';
+            toggleIcon.className = 'fa-solid fa-moon';
+            toggleText.textContent = 'Dark Theme';
+        } else {
+            newTheme = 'dark';
+            toggleIcon.className = 'fa-solid fa-sun';
+            toggleText.textContent = 'Light Theme';
+        }
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+    });
+
+    // DC Calculator Logic
+    const baseDcSlider = document.getElementById('base-dc');
+    const baseDcVal = document.getElementById('base-dc-val');
+    const motiveSlider = document.getElementById('motive-val');
+    const motiveVal = document.getElementById('motive-val-val');
+    const calcResult = document.getElementById('calc-result');
+    const calcExplain = document.getElementById('calc-explain');
+
+    // Calculate dynamic DC on change
+    function calculateDC() {
+        const base = parseInt(baseDcSlider.value);
+        const motive = parseInt(motiveSlider.value);
+        
+        baseDcVal.textContent = base;
+        motiveVal.textContent = motive > 0 ? `+${motive}` : motive;
+        
+        const finalDc = Math.max(0, base - motive);
+        calcResult.textContent = finalDc;
+
+        let explanation = "";
+        if (motive > 0) {
+            explanation = `Appealing to Attraction (reduces DC by ${motive}).`;
+            calcResult.style.background = 'var(--green)';
+            calcResult.style.color = '#fff';
+            calcResult.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.4)';
+        } else if (motive < 0) {
+            explanation = `Threatening Aversion (increases DC by ${Math.abs(motive)}).`;
+            calcResult.style.background = 'var(--red)';
+            calcResult.style.color = '#fff';
+            calcResult.style.boxShadow = '0 0 10px rgba(244, 67, 54, 0.4)';
+        } else {
+            explanation = "No motive applied. Base DC remains unchanged.";
+            calcResult.style.background = 'var(--gold)';
+            calcResult.style.color = 'var(--bg-color)';
+            calcResult.style.boxShadow = '0 0 10px var(--gold-glow)';
+        }
+        calcExplain.textContent = explanation;
+    }
+
+    baseDcSlider.addEventListener('input', calculateDC);
+    motiveSlider.addEventListener('input', calculateDC);
+    calculateDC();
+</script>
+
+</body>
+</html>

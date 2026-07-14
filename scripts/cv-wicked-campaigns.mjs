@@ -965,7 +965,526 @@ function registerVideoPlayerWidget() {
     return;
   }
   const VideoPlayerWidget = buildVideoPlayerWidgetClass(ccApi.CampaignCodexWidget);
-  ccApi.widgetManager.registerWidget("Video Player", VideoPlayerWidget);
+  ccApi.widgetManager.registerWidget("WC-Video Player", VideoPlayerWidget);
+}
+
+// Serializes mutations to a WC- widget's saved data through a single per-instance queue.
+// Foundry's document update replaces a saved array wholesale rather than deep-merging into
+// individual elements, so widget mutations here read-modify-write the whole array - which
+// means two edits fired close together (e.g. removing two pills back to back) would otherwise
+// each read their own stale snapshot and clobber each other's change on save. The widget
+// instance itself is reused across re-renders (see WidgetManager #_ensureWidgetInstance), so a
+// queue stored on the instance correctly persists across separate DOM events.
+function queueWidgetWrite(instance, fn) {
+  const run = () => Promise.resolve().then(fn);
+  instance._writeQueue = (instance._writeQueue || Promise.resolve()).then(run, run);
+  return instance._writeQueue;
+}
+
+// ---- Campaign Codex Integration: Mannerisms Widget -------------------------
+// A half-width widget (see the [data-widget-type="WC-Mannerisms"] flex override in
+// cv-wicked-campaigns.css) with an editable title and a set of plain-text pill tags -
+// e.g. "sarcastic", "chews on quills". Meant to sit next to other half-width WC- widgets
+// in the same widget row. Compact by default (what players always see); a GM-only pencil
+// icon toggles per-widget edit mode, which reveals the add/remove/title controls.
+function buildMannerismsWidgetClass(CampaignCodexWidgetBase) {
+  return class MannerismsWidget extends CampaignCodexWidgetBase {
+    async _prepareContext() {
+      const data = (await this.getData()) || {};
+      const title = typeof data.title === "string" && data.title.trim() ? data.title.trim() : "Mannerisms";
+      const editMode = this.isGM && data.editMode === true;
+      const pills = Array.isArray(data.pills) ? data.pills.filter((p) => typeof p === "string" && p.trim()) : [];
+      return { title, editMode, pills };
+    }
+
+    async render() {
+      const data = await this._prepareContext();
+
+      const titleHtml = data.editMode
+        ? `<input type="text" class="mannerism-title-input" data-action="edit-title" value="${foundry.utils.escapeHTML(data.title)}" placeholder="Title" maxlength="60">`
+        : `<h3 class="mannerism-title">${foundry.utils.escapeHTML(data.title)}</h3>`;
+
+      const editToggle = this.isGM
+        ? `<i class="fa-solid ${data.editMode ? "fa-check" : "fa-pen"} mannerism-edit-toggle" data-action="toggle-edit" title="${data.editMode ? "Done" : "Edit"}"></i>`
+        : "";
+
+      const pillsHtml = data.pills.map((label, index) => `
+          <span class="mannerism-pill">
+            <span class="mannerism-pill-label">${foundry.utils.escapeHTML(label)}</span>
+            ${data.editMode ? `<i class="fa-solid fa-xmark mannerism-pill-remove" data-action="remove-pill" data-index="${index}" title="Remove"></i>` : ""}
+          </span>
+        `).join("");
+
+      const pillsBody = data.pills.length
+        ? `<div class="mannerism-pills">${pillsHtml}</div>`
+        : `<div class="mannerism-empty">${data.editMode ? "No mannerisms yet." : "No mannerisms recorded."}</div>`;
+
+      const addRow = data.editMode
+        ? `<div class="mannerism-add-row">
+            <input type="text" class="mannerism-add-input" data-action="pill-input" placeholder="Add a mannerism..." maxlength="50">
+            <button type="button" class="mannerism-add-btn" data-action="add-pill" title="Add"><i class="fa-solid fa-plus"></i></button>
+          </div>`
+        : "";
+
+      return `<div class="cc-widget-mannerisms" id="widget-${this.widgetId}">
+          <div class="mannerism-header">${titleHtml}${editToggle}</div>
+          ${pillsBody}
+          ${addRow}
+        </div>`;
+    }
+
+    async activateListeners(htmlElement) {
+      if (!this.isGM) return;
+
+      htmlElement.querySelector('[data-action="toggle-edit"]')?.addEventListener("click", async () => {
+        await queueWidgetWrite(this, async () => {
+          const data = (await this.getData()) || {};
+          await this.saveData({ ...data, editMode: !(data.editMode === true) });
+        });
+        await this._refreshWidget(htmlElement);
+      });
+
+      htmlElement.querySelector('[data-action="edit-title"]')?.addEventListener("change", async (event) => {
+        const title = event.target.value;
+        await queueWidgetWrite(this, async () => {
+          const data = (await this.getData()) || {};
+          await this.saveData({ ...data, title: title.trim() || "Mannerisms" });
+        });
+      });
+
+      const addInput = htmlElement.querySelector('[data-action="pill-input"]');
+      const submitAdd = async () => {
+        const value = addInput.value.trim();
+        if (!value) return;
+        await this._addPill(value, htmlElement);
+      };
+      htmlElement.querySelector('[data-action="add-pill"]')?.addEventListener("click", submitAdd);
+      addInput?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          submitAdd();
+        }
+      });
+
+      htmlElement.querySelectorAll('[data-action="remove-pill"]').forEach((el) => {
+        el.addEventListener("click", async () => {
+          await this._removePill(Number(el.dataset.index), htmlElement);
+        });
+      });
+    }
+
+    async _addPill(label, htmlElement) {
+      let blocked = false;
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const pills = Array.isArray(data.pills) ? [...data.pills] : [];
+        if (pills.some((p) => p.toLowerCase() === label.toLowerCase())) {
+          ui.notifications.warn(`"${label}" is already in the list.`);
+          blocked = true;
+          return;
+        }
+        pills.push(label);
+        await this.saveData({ ...data, pills });
+      });
+      if (!blocked) await this._refreshWidget(htmlElement);
+    }
+
+    async _removePill(index, htmlElement) {
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const pills = Array.isArray(data.pills) ? [...data.pills] : [];
+        if (index < 0 || index >= pills.length) return;
+        pills.splice(index, 1);
+        await this.saveData({ ...data, pills });
+      });
+      await this._refreshWidget(htmlElement);
+    }
+  };
+}
+
+function registerMannerismsWidget() {
+  const ccApi = game.modules.get(CC_MODULE_ID)?.api;
+  if (!ccApi?.widgetManager || !ccApi?.CampaignCodexWidget) {
+    console.warn("Wicked Campaigns | Campaign Codex's widget API wasn't found - skipping Mannerisms widget registration.");
+    return;
+  }
+  const MannerismsWidget = buildMannerismsWidgetClass(ccApi.CampaignCodexWidget);
+  ccApi.widgetManager.registerWidget("WC-Mannerisms", MannerismsWidget);
+}
+
+// ---- Campaign Codex Integration: Personality Widget ------------------------
+// A half-width widget (see [data-widget-type="WC-Personality"] in cv-wicked-campaigns.css),
+// same shell as the Mannerisms widget, but each pill carries its own GM-picked color -
+// matching the existing hand-written "Personality" trait pills already used on NPC sheets
+// (e.g. Jemma Brightflame's Info tab: distinct saturated background per trait, white text).
+function buildPersonalityWidgetClass(CampaignCodexWidgetBase) {
+  return class PersonalityWidget extends CampaignCodexWidgetBase {
+    async _prepareContext() {
+      const data = (await this.getData()) || {};
+      const title = typeof data.title === "string" && data.title.trim() ? data.title.trim() : "Personality";
+      const editMode = this.isGM && data.editMode === true;
+      const pills = Array.isArray(data.pills)
+        ? data.pills.filter((p) => p && typeof p.label === "string" && p.label.trim())
+        : [];
+      return { title, editMode, pills };
+    }
+
+    async render() {
+      const data = await this._prepareContext();
+
+      const titleHtml = data.editMode
+        ? `<input type="text" class="personality-title-input" data-action="edit-title" value="${foundry.utils.escapeHTML(data.title)}" placeholder="Title" maxlength="60">`
+        : `<h3 class="personality-title">${foundry.utils.escapeHTML(data.title)}</h3>`;
+
+      const editToggle = this.isGM
+        ? `<i class="fa-solid ${data.editMode ? "fa-check" : "fa-pen"} personality-edit-toggle" data-action="toggle-edit" title="${data.editMode ? "Done" : "Edit"}"></i>`
+        : "";
+
+      const pillsHtml = data.pills.map((pill, index) => {
+        const color = /^#[0-9a-f]{6}$/i.test(pill.color || "") ? pill.color : "#4a4a4a";
+        return `
+          <span class="personality-pill" style="background: ${color}; border-color: color-mix(in srgb, ${color} 70%, black);">
+            <span class="personality-pill-label">${foundry.utils.escapeHTML(pill.label)}</span>
+            ${data.editMode ? `<i class="fa-solid fa-xmark personality-pill-remove" data-action="remove-pill" data-index="${index}" title="Remove"></i>` : ""}
+          </span>
+        `;
+      }).join("");
+
+      const pillsBody = data.pills.length
+        ? `<div class="personality-pills">${pillsHtml}</div>`
+        : `<div class="personality-empty">${data.editMode ? "No traits yet." : "No personality traits recorded."}</div>`;
+
+      const addRow = data.editMode
+        ? `<div class="personality-add-row">
+            <input type="text" class="personality-add-input" data-action="pill-input" placeholder="Add a trait..." maxlength="30">
+            <input type="color" class="personality-add-color" data-action="pill-color" value="#4a4a4a" title="Pill color">
+            <button type="button" class="personality-add-btn" data-action="add-pill" title="Add"><i class="fa-solid fa-plus"></i></button>
+          </div>`
+        : "";
+
+      return `<div class="cc-widget-personality" id="widget-${this.widgetId}">
+          <div class="personality-header">${titleHtml}${editToggle}</div>
+          ${pillsBody}
+          ${addRow}
+        </div>`;
+    }
+
+    async activateListeners(htmlElement) {
+      if (!this.isGM) return;
+
+      htmlElement.querySelector('[data-action="toggle-edit"]')?.addEventListener("click", async () => {
+        await queueWidgetWrite(this, async () => {
+          const data = (await this.getData()) || {};
+          await this.saveData({ ...data, editMode: !(data.editMode === true) });
+        });
+        await this._refreshWidget(htmlElement);
+      });
+
+      htmlElement.querySelector('[data-action="edit-title"]')?.addEventListener("change", async (event) => {
+        const title = event.target.value;
+        await queueWidgetWrite(this, async () => {
+          const data = (await this.getData()) || {};
+          await this.saveData({ ...data, title: title.trim() || "Personality" });
+        });
+      });
+
+      const addInput = htmlElement.querySelector('[data-action="pill-input"]');
+      const addColor = htmlElement.querySelector('[data-action="pill-color"]');
+      const submitAdd = async () => {
+        const label = addInput.value.trim();
+        if (!label) return;
+        await this._addPill(label, addColor.value, htmlElement);
+      };
+      htmlElement.querySelector('[data-action="add-pill"]')?.addEventListener("click", submitAdd);
+      addInput?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          submitAdd();
+        }
+      });
+
+      htmlElement.querySelectorAll('[data-action="remove-pill"]').forEach((el) => {
+        el.addEventListener("click", async () => {
+          await this._removePill(Number(el.dataset.index), htmlElement);
+        });
+      });
+    }
+
+    async _addPill(label, color, htmlElement) {
+      let blocked = false;
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const pills = Array.isArray(data.pills) ? [...data.pills] : [];
+        if (pills.some((p) => p.label.toLowerCase() === label.toLowerCase())) {
+          ui.notifications.warn(`"${label}" is already in the list.`);
+          blocked = true;
+          return;
+        }
+        pills.push({ label, color: /^#[0-9a-f]{6}$/i.test(color || "") ? color : "#4a4a4a" });
+        await this.saveData({ ...data, pills });
+      });
+      if (!blocked) await this._refreshWidget(htmlElement);
+    }
+
+    async _removePill(index, htmlElement) {
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const pills = Array.isArray(data.pills) ? [...data.pills] : [];
+        if (index < 0 || index >= pills.length) return;
+        pills.splice(index, 1);
+        await this.saveData({ ...data, pills });
+      });
+      await this._refreshWidget(htmlElement);
+    }
+  };
+}
+
+function registerPersonalityWidget() {
+  const ccApi = game.modules.get(CC_MODULE_ID)?.api;
+  if (!ccApi?.widgetManager || !ccApi?.CampaignCodexWidget) {
+    console.warn("Wicked Campaigns | Campaign Codex's widget API wasn't found - skipping Personality widget registration.");
+    return;
+  }
+  const PersonalityWidget = buildPersonalityWidgetClass(ccApi.CampaignCodexWidget);
+  ccApi.widgetManager.registerWidget("WC-Personality", PersonalityWidget);
+}
+
+// ---- Campaign Codex Integration: Motives Widget -----------------------------
+// A half-width widget showing a standalone list of want/aversion "motive" bars, -20 to +20 -
+// visually similar to the NPC actor sheet's Motives tab, but purely a display tool: no roll
+// buttons, no hidden/partial/public visibility gating, and its own separate data (not linked
+// to any actor - same standalone-data approach as Mannerisms/Personality). The compact view
+// (what players always see, and what GMs see outside of edit mode) renders each motive as a
+// marker on a fixed red-to-green gradient meter; edit mode (GM-only, toggled per-widget) adds
+// the same preset/custom add flow and slider+number value editing as the sheet's Motives tab.
+const MOTIVE_WIDGET_PRESETS = [
+  "Money", "Safety", "Glory", "Food", "Status", "Revenge", "Power",
+  "Curiosity", "Honor", "Friendship", "Pleasure", "Romance"
+];
+
+// Same HSL formula as the NPC sheet's motive sliders/token bars, reused here so the marker
+// color on the compact meter matches the sheet's language for "how intense is this drive".
+function motiveWidgetColor(value) {
+  const v = Math.max(-20, Math.min(20, Number(value) || 0));
+  if (v > 0) {
+    const intensity = v / 20;
+    return `hsl(${45 + (120 - 45) * intensity}, ${55 + 25 * intensity}%, ${40 + 5 * intensity}%)`;
+  } else if (v < 0) {
+    const intensity = Math.abs(v) / 20;
+    return `hsl(${35 - 35 * intensity}, ${65 + 25 * intensity}%, ${40 + 5 * intensity}%)`;
+  }
+  return "hsl(0, 0%, 50%)";
+}
+
+function buildMotivesWidgetClass(CampaignCodexWidgetBase) {
+  return class MotivesWidget extends CampaignCodexWidgetBase {
+    async _prepareContext() {
+      const data = (await this.getData()) || {};
+      const title = typeof data.title === "string" && data.title.trim() ? data.title.trim() : "Motives";
+      const editMode = this.isGM && data.editMode === true;
+      const motives = Array.isArray(data.motives)
+        ? data.motives.filter((m) => m && typeof m.label === "string" && m.label.trim())
+        : [];
+      return {
+        title,
+        editMode,
+        motives: motives.map((m) => ({
+          label: m.label,
+          value: Math.max(-20, Math.min(20, Number(m.value) || 0)),
+        })),
+      };
+    }
+
+    async render() {
+      const data = await this._prepareContext();
+
+      const titleHtml = data.editMode
+        ? `<input type="text" class="motivesw-title-input" data-action="edit-title" value="${foundry.utils.escapeHTML(data.title)}" placeholder="Title" maxlength="60">`
+        : `<h3 class="motivesw-title">${foundry.utils.escapeHTML(data.title)}</h3>`;
+
+      const editToggle = this.isGM
+        ? `<i class="fa-solid ${data.editMode ? "fa-check" : "fa-pen"} motivesw-edit-toggle" data-action="toggle-edit" title="${data.editMode ? "Done" : "Edit"}"></i>`
+        : "";
+
+      const rowsHtml = data.motives.map((m, index) => {
+        if (data.editMode) {
+          return `
+            <div class="motivesw-row motivesw-row-edit">
+              <input type="text" class="motivesw-label-input" data-action="edit-label" data-index="${index}" value="${foundry.utils.escapeHTML(m.label)}" placeholder="Motive Name">
+              <input type="range" min="-20" max="20" class="motivesw-slider-input" data-index="${index}" value="${m.value}">
+              <input type="number" min="-20" max="20" class="motivesw-value-input" data-index="${index}" value="${m.value}">
+              <i class="fa-solid fa-trash motivesw-remove" data-action="remove-motive" data-index="${index}" title="Remove"></i>
+            </div>`;
+        }
+        const pct = ((m.value + 20) / 40) * 100;
+        const color = motiveWidgetColor(m.value);
+        return `
+          <div class="motivesw-row">
+            <span class="motivesw-label" title="${foundry.utils.escapeHTML(m.label)}">${foundry.utils.escapeHTML(m.label)}</span>
+            <div class="motivesw-meter">
+              <div class="motivesw-meter-marker" style="left: ${pct}%; background: ${color};"></div>
+            </div>
+            <span class="motivesw-value">${m.value > 0 ? "+" : ""}${m.value}</span>
+          </div>`;
+      }).join("");
+
+      const bodyHtml = data.motives.length
+        ? `<div class="motivesw-list">${rowsHtml}</div>`
+        : `<div class="motivesw-empty">${data.editMode ? "No motives yet." : "No motives recorded."}</div>`;
+
+      const addRow = data.editMode
+        ? `<div class="motivesw-add-row">
+            <select class="motivesw-preset-select" data-action="preset-select">
+              ${MOTIVE_WIDGET_PRESETS.map((p) => `<option value="${p}">${p}</option>`).join("")}
+              <option value="custom">Custom...</option>
+            </select>
+            <input type="text" class="motivesw-custom-input" data-action="custom-input" placeholder="Enter motive..." style="display:none;">
+            <button type="button" class="motivesw-add-btn" data-action="add-motive" title="Add"><i class="fa-solid fa-plus"></i></button>
+          </div>`
+        : "";
+
+      return `<div class="cc-widget-motives" id="widget-${this.widgetId}">
+          <div class="motivesw-header">${titleHtml}${editToggle}</div>
+          ${bodyHtml}
+          ${addRow}
+        </div>`;
+    }
+
+    async activateListeners(htmlElement) {
+      if (!this.isGM) return;
+
+      htmlElement.querySelector('[data-action="toggle-edit"]')?.addEventListener("click", async () => {
+        await queueWidgetWrite(this, async () => {
+          const data = (await this.getData()) || {};
+          await this.saveData({ ...data, editMode: !(data.editMode === true) });
+        });
+        await this._refreshWidget(htmlElement);
+      });
+
+      htmlElement.querySelector('[data-action="edit-title"]')?.addEventListener("change", async (event) => {
+        const title = event.target.value.trim();
+        await queueWidgetWrite(this, async () => {
+          const data = (await this.getData()) || {};
+          await this.saveData({ ...data, title: title || "Motives" });
+        });
+      });
+
+      const presetSelect = htmlElement.querySelector('[data-action="preset-select"]');
+      const customInput = htmlElement.querySelector('[data-action="custom-input"]');
+      presetSelect?.addEventListener("change", () => {
+        customInput.style.display = presetSelect.value === "custom" ? "inline-block" : "none";
+      });
+
+      htmlElement.querySelector('[data-action="add-motive"]')?.addEventListener("click", async () => {
+        let label = presetSelect?.value || "";
+        if (label === "custom") {
+          label = customInput?.value.trim() || "";
+          if (customInput) customInput.value = "";
+        }
+        if (!label) return;
+        await this._addMotive(label, htmlElement);
+      });
+
+      htmlElement.querySelectorAll('[data-action="remove-motive"]').forEach((el) => {
+        el.addEventListener("click", async () => {
+          await this._removeMotive(Number(el.dataset.index), htmlElement);
+        });
+      });
+
+      htmlElement.querySelectorAll('[data-action="edit-label"]').forEach((input) => {
+        input.addEventListener("change", async (event) => {
+          await this._updateMotiveLabel(Number(input.dataset.index), event.target.value.trim(), htmlElement);
+        });
+      });
+
+      htmlElement.querySelectorAll(".motivesw-slider-input").forEach((slider) => {
+        const index = Number(slider.dataset.index);
+        const numInput = htmlElement.querySelector(`.motivesw-value-input[data-index="${index}"]`);
+        slider.addEventListener("input", () => {
+          if (numInput) numInput.value = slider.value;
+        });
+        slider.addEventListener("change", async () => {
+          await this._updateMotiveValue(index, Number(slider.value), htmlElement);
+        });
+      });
+
+      htmlElement.querySelectorAll(".motivesw-value-input").forEach((numInput) => {
+        const index = Number(numInput.dataset.index);
+        numInput.addEventListener("change", async () => {
+          const val = Math.max(-20, Math.min(20, Number(numInput.value) || 0));
+          numInput.value = val;
+          const slider = htmlElement.querySelector(`.motivesw-slider-input[data-index="${index}"]`);
+          if (slider) slider.value = val;
+          await this._updateMotiveValue(index, val, htmlElement);
+        });
+      });
+    }
+
+    async _addMotive(label, htmlElement) {
+      let blocked = false;
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const motives = Array.isArray(data.motives) ? [...data.motives] : [];
+        if (motives.some((m) => m.label.toLowerCase() === label.toLowerCase())) {
+          ui.notifications.warn(`"${label}" is already in the list.`);
+          blocked = true;
+          return;
+        }
+        motives.push({ label, value: 0 });
+        await this.saveData({ ...data, motives });
+      });
+      if (!blocked) await this._refreshWidget(htmlElement);
+    }
+
+    async _removeMotive(index, htmlElement) {
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const motives = Array.isArray(data.motives) ? [...data.motives] : [];
+        if (index < 0 || index >= motives.length) return;
+        motives.splice(index, 1);
+        await this.saveData({ ...data, motives });
+      });
+      await this._refreshWidget(htmlElement);
+    }
+
+    async _updateMotiveLabel(index, label, htmlElement) {
+      if (!label) return;
+      let blocked = false;
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const motives = Array.isArray(data.motives) ? [...data.motives] : [];
+        if (index < 0 || index >= motives.length) return;
+        if (motives.some((m, i) => i !== index && m.label.toLowerCase() === label.toLowerCase())) {
+          ui.notifications.warn(`"${label}" is already in the list.`);
+          blocked = true;
+          return;
+        }
+        motives[index] = { ...motives[index], label };
+        await this.saveData({ ...data, motives });
+      });
+      if (blocked) await this._refreshWidget(htmlElement);
+    }
+
+    async _updateMotiveValue(index, value, htmlElement) {
+      await queueWidgetWrite(this, async () => {
+        const data = (await this.getData()) || {};
+        const motives = Array.isArray(data.motives) ? [...data.motives] : [];
+        if (index < 0 || index >= motives.length) return;
+        motives[index] = { ...motives[index], value: Math.max(-20, Math.min(20, value)) };
+        await this.saveData({ ...data, motives });
+      });
+    }
+  };
+}
+
+function registerMotivesWidget() {
+  const ccApi = game.modules.get(CC_MODULE_ID)?.api;
+  if (!ccApi?.widgetManager || !ccApi?.CampaignCodexWidget) {
+    console.warn("Wicked Campaigns | Campaign Codex's widget API wasn't found - skipping Motives widget registration.");
+    return;
+  }
+  const MotivesWidget = buildMotivesWidgetClass(ccApi.CampaignCodexWidget);
+  ccApi.widgetManager.registerWidget("WC-Motives", MotivesWidget);
 }
 
 // Wicked Campaigns' house look for Campaign Codex. Applied once per world on
@@ -4436,6 +4955,36 @@ Hooks.once('init', async function() {
       default: []
     });
 
+    // Gates the social conflict keybinding and all its Combat lifecycle hooks - same
+    // checked-live-in-every-handler idiom as chaseTrackerEnabled above.
+    game.settings.register("cv-wicked-campaigns", "socialConflictEnabled", {
+      name: "Social Conflict Tracker",
+      hint: "Enables the Social Conflict Tracker: turns a Combat into a scene with several NPCs a party can approach in any order (e.g. a masquerade ball) - discovery checks, per-motive DC modifiers, temptation saves, and per-NPC success/failure tracking, plus an auto-opening player HUD.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    // Saved social conflict setups: [{ id, name, participants: [{ actorUuid, role }] }], where
+    // role is "pc" or "npc" - same shape/portability rationale as chasePresets above.
+    game.settings.register("cv-wicked-campaigns", "socialConflictPresets", {
+      scope: "world",
+      config: false,
+      type: Array,
+      default: []
+    });
+
+    game.settings.register("cv-wicked-campaigns", "motivesEnabled", {
+      name: "NPC Motive Drivers",
+      hint: "Enables the Motives & Desires tab on NPC sheets to track dynamic wants, needs, and fears.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true,
+      onChange: () => foundry.applications.settings.SettingsConfig.reloadConfirm({ world: true })
+    });
+
     DocumentSheetConfig.registerSheet(JournalEntry, "cv-wicked-campaigns", PartySheet, {
       types: ["base"],
       label: "CV_WICKED_CAMPAIGNS.PartySheetLabel"
@@ -4530,6 +5079,20 @@ Hooks.once('init', async function() {
             const activeChase = game.combats.find((c) => c.getFlag("cv-wicked-campaigns", "isChase"));
             if (activeChase) ChaseGMPanel.open(activeChase);
             else new ChaseSetupDialog().render(true);
+        },
+        restricted: true
+    });
+
+    // Keybinding to open Social Conflict Setup (GM only)
+    game.keybindings.register("cv-wicked-campaigns", "openSocialConflictSetup", {
+        name: "Open Social Conflict Setup",
+        hint: "Open the Social Conflict Tracker setup dialog to start a new social scene (GM only).",
+        editable: [{ key: "KeyS", modifiers: ["SHIFT"] }],
+        onDown: () => {
+            if (!game.user.isGM || !game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) return;
+            const active = game.combats.find((c) => c.getFlag("cv-wicked-campaigns", "isSocialConflict"));
+            if (active) SocialConflictGMPanel.open(active);
+            else new SocialConflictSetupDialog().render(true);
         },
         restricted: true
     });
@@ -4691,6 +5254,125 @@ Hooks.once('init', async function() {
         });
 
         console.log('Wicked Campaigns | Registered Wicked Character Sheet');
+
+        // Register the Wicked NPC Sheet
+        const NPCActorSheet = dnd5e?.applications?.actor?.NPCActorSheet;
+        if (NPCActorSheet && game.settings.get("cv-wicked-campaigns", "motivesEnabled")) {
+            class WickedNPCActorSheet extends NPCActorSheet {
+                static DEFAULT_OPTIONS = {
+                    ...super.DEFAULT_OPTIONS,
+                    classes: [...(super.DEFAULT_OPTIONS.classes ?? []), "wicked-npc-sheet"],
+                    actions: {
+                        ...super.DEFAULT_OPTIONS.actions,
+                        "add-motive": async function(event, target) {
+                            const container = event.target.closest("h3");
+                            const selector = container?.querySelector("#motive-preset-selector");
+                            const customInput = container?.querySelector("#motive-custom-input");
+                            
+                            let label = "New Motive";
+                            if (selector) {
+                                const val = selector.value;
+                                if (val === "custom" && customInput && customInput.value.trim()) {
+                                    label = customInput.value.trim();
+                                    customInput.value = "";
+                                } else if (val && val !== "custom") {
+                                    label = val;
+                                }
+                            }
+
+                            const motives = this.actor.getFlag("cv-wicked-campaigns", "motives") || {};
+                            
+                            // Prevent duplicates
+                            const isDuplicate = Object.values(motives).some(data => data.label?.toLowerCase() === label.toLowerCase());
+                            if (isDuplicate) {
+                                ui.notifications.warn(`Wicked Campaigns | A motive named '${label}' already exists on this NPC.`);
+                                return;
+                            }
+
+                            const key = `mot_${Date.now()}`;
+                            await this.actor.setFlag("cv-wicked-campaigns", `motives.${key}`, {
+                                label: label,
+                                value: 0,
+                                revealed: "hidden"
+                            });
+                        },
+                        "delete-motive": async function(event, target) {
+                            const key = target.dataset.key;
+                            await this.actor.update({ [`flags.cv-wicked-campaigns.motives.-=${key}`]: null });
+                        },
+                        "roll-motive": async function(event, target) {
+                            const name = target.dataset.name;
+                            const value = parseInt(target.dataset.value, 10) || 0;
+                            const rollType = target.dataset.rollType || "normal";
+                            const targetValue = Math.abs(value);
+
+                            // Setup formula based on advantage/disadvantage for roll-under saves.
+                            // Advantage: 2d20 keep lowest (2d20kl)
+                            // Disadvantage: 2d20 keep highest (2d20kh)
+                            let formula = "1d20";
+                            let typeLabel = "";
+                            if (rollType === "advantage") {
+                                formula = "2d20kl";
+                                typeLabel = " (Advantage)";
+                            } else if (rollType === "disadvantage") {
+                                formula = "2d20kh";
+                                typeLabel = " (Disadvantage)";
+                            }
+
+                            const roll = await new Roll(formula).evaluate({ async: true });
+                            const isSuccess = roll.total <= targetValue;
+                            
+                            const resultText = isSuccess ? "Driven to Act!" : "Indifferent / Resisted";
+
+                            const content = `
+                                <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif;">
+                                    <div class="card-content" style="padding: 0.5rem 0;">
+                                        <p style="margin: 0 0 0.5rem 0; font-size: 0.95rem; text-align: center;">
+                                            Checking <strong>${name}</strong>${typeLabel} (Target: ${targetValue})
+                                        </p>
+                                        <div class="wicked-trait-roll-box" style="display: flex; align-items: center; justify-content: space-around; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px;">
+                                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                                <i class="fa-solid fa-dice-d20" style="font-size: 1.35rem; color: #c9a054;"></i>
+                                                <span class="roll-value" style="font-size: 1.2rem; font-weight: bold;">${roll.total}</span>
+                                            </div>
+                                            <div style="font-weight: bold; color: ${isSuccess ? '#4caf50' : '#f44336'};">${resultText}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+
+                            await roll.toMessage({
+                                speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+                                flavor: `${this.actor.name} rolls against their ${name} drive${typeLabel}`,
+                                content: content
+                            });
+                        }
+                    }
+                };
+
+                static TABS = [
+                    ...super.TABS,
+                    { tab: "wicked-motives", label: "CV_WICKED_CAMPAIGNS.NPCDrives", icon: "fa-solid fa-yin-yang" }
+                ];
+
+                static PARTS = {
+                    ...super.PARTS,
+                    "wicked-motives": {
+                        template: "modules/cv-wicked-campaigns/templates/wicked-motives.hbs",
+                        container: { classes: ["tab-body"], id: "tabs" },
+                        scrollable: [""]
+                    }
+                };
+            }
+
+            DocumentSheetConfig.registerSheet(Actor, "cv-wicked-campaigns", WickedNPCActorSheet, {
+                types: ["npc"],
+                label: "CV_WICKED_CAMPAIGNS.NPCLabel",
+                makeDefault: true
+            });
+
+            console.log('Wicked Campaigns | Registered Wicked NPC Sheet');
+        }
     } else {
         console.warn('Wicked Campaigns | dnd5e CharacterActorSheet not found');
     }
@@ -4724,6 +5406,39 @@ Hooks.on("dnd5e.prepareSheetContext", (sheet, partId, context, options) => {
         context.fatePool = getFatePoolSync();
         context.inPeril = getInPerilSync();
         context.fatePoolEnabled = game.settings.get("cv-wicked-campaigns", "fatePoolEnabled");
+    } else if (partId === "wicked-motives") {
+        context.isGM = game.user.isGM;
+        const rawMotives = sheet.actor.getFlag("cv-wicked-campaigns", "motives") || {};
+        context.motives = Object.entries(rawMotives).map(([id, data]) => {
+            const val = data.value ?? 0;
+            const absVal = Math.abs(val);
+            const isFameOrInfamy = absVal >= 15;
+            const isFullyRevealed = data.revealed === "public" || isFameOrInfamy;
+            const visibleToPlayers = data.revealed === "public" || data.revealed === "partial" || isFameOrInfamy;
+            
+            // Calculate dynamic HSL color
+            let color;
+            if (val > 0) {
+                const intensity = val / 20;
+                color = `hsl(${45 + (120 - 45) * intensity}, ${55 + 25 * intensity}%, ${40 + 5 * intensity}%)`;
+            } else if (val < 0) {
+                const intensity = absVal / 20;
+                color = `hsl(${35 - 35 * intensity}, ${65 + 25 * intensity}%, ${40 + 5 * intensity}%)`;
+            } else {
+                color = "hsl(0, 0%, 50%)";
+            }
+
+            return {
+                id,
+                label: data.label || "New Motive",
+                value: val,
+                revealed: data.revealed || "hidden",
+                color,
+                isFameOrInfamy,
+                isFullyRevealed,
+                visibleToPlayers
+            };
+        });
     }
 });
 
@@ -4776,12 +5491,18 @@ async function seedChaseComplicationTables() {
 
 Hooks.once('ready', async function() {
     console.log('Wicked Campaigns | Ready');
+    initializeNPCTrackableMotives();
+    patchMotiveTokenBars();
+    patchMotiveActorAttribute();
 
     // Every client needs the widget class available to render it, not just the GM -
     // registered unconditionally here (gated only on Campaign Codex being active),
     // separate from the GM-only setup work below.
     if (isCampaignCodexActive()) {
         registerVideoPlayerWidget();
+        registerMannerismsWidget();
+        registerPersonalityWidget();
+        registerMotivesWidget();
     }
 
     if (game.user.isGM) {
@@ -4836,12 +5557,27 @@ Hooks.once('ready', async function() {
             const activeChase = game.combats.find(isChaseCombat);
             if (activeChase) ChaseGMPanel.open(activeChase);
         }
-    } else if (game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled")) {
-        // Non-GM reconnect: reopen the player HUD if a chase is active and this user owns a
-        // combatant in it - mirrors the createCombat auto-open below, just for page reloads.
-        const activeChase = game.combats.find(isChaseCombat);
-        if (activeChase && activeChase.combatants.some((c) => c.actor?.isOwner)) {
-            ChasePlayerHUD.open(activeChase);
+
+        // Same reconnect behavior for an active social conflict.
+        if (game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) {
+            const activeConflict = game.combats.find(isSocialConflictCombat);
+            if (activeConflict) SocialConflictGMPanel.open(activeConflict);
+        }
+    } else {
+        // Non-GM reconnect: reopen the player HUD if a chase/conflict is active and this user owns
+        // a combatant in it - mirrors the createCombat auto-open below, just for page reloads.
+        if (game.settings.get("cv-wicked-campaigns", "chaseTrackerEnabled")) {
+            const activeChase = game.combats.find(isChaseCombat);
+            if (activeChase && activeChase.combatants.some((c) => c.actor?.isOwner)) {
+                ChasePlayerHUD.open(activeChase);
+            }
+        }
+
+        if (game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) {
+            const activeConflict = game.combats.find(isSocialConflictCombat);
+            if (activeConflict && activeConflict.combatants.some((c) => c.actor?.isOwner)) {
+                SocialConflictPlayerHUD.open(activeConflict);
+            }
         }
     }
 
@@ -5469,6 +6205,757 @@ Hooks.on("deleteCombat", (combat) => {
     ChasePlayerHUD.closeIfOpen();
 });
 
+// ---- Social Conflict Tracker: core logic -----------------------------------
+// Emulates a scene where the party can approach several NPCs in any order (e.g. a masquerade
+// ball), using the existing Motive Drivers system (the NPC sheet's Motives tab) as the underlying
+// resolution math: discovery checks reveal a motive per the tiers in the rules doc, social checks
+// apply that motive's DC modifier (or go in blind), and each NPC tracks their own 3-success/
+// 3-failure progress independently. Reuses Chase Tracker's architecture (Combat/Combatant for PC
+// turn order, the three-tier Setup/GM Panel/Player HUD app pattern, named actor-UUID-referenced
+// presets) but NPCs are a GM-managed roster rather than Combatants - there's no NPC "turn," since
+// a PC's turn just means they act, against whichever NPC they approached that round.
+//
+// The roster is stored as an OBJECT keyed by actor id (flags.cv-wicked-campaigns.npcs.<actorId>),
+// not an array - unlike Chase's array-based combatant data (which is fine, since combatants are
+// mutated via their own embedded-document update API, not raw flag writes), a plain object lets
+// success/failure adjustments use a single scoped flag path (Foundry deep-merges into objects but
+// replaces arrays wholesale) without needing the read-modify-write queue the widgets required.
+
+function isSocialConflictCombat(combat) {
+  return combat?.getFlag("cv-wicked-campaigns", "isSocialConflict") === true;
+}
+
+function getSocialConflictCandidateTokens() {
+  if (canvas.tokens?.controlled?.length) return canvas.tokens.controlled;
+  return canvas.tokens?.placeables ?? [];
+}
+
+// token.actor.uuid resolves to a scene/token-scoped compound UUID (Scene.X.Token.Y.Actor.Z) for
+// any unlinked-actor token (the default for most NPCs) - only a linked token happens to give back
+// the clean base Actor UUID. Presets need the latter (so they resolve on any future scene, after
+// the original token's long gone) - TokenDocument#baseActor is the reliable way to get it
+// regardless of link state.
+function getBaseActorUuid(token) {
+  return token?.document?.baseActor?.uuid ?? token?.actor?.uuid ?? null;
+}
+
+// Same fame-override / reveal-state computation already used by the NPC sheet's Motives tab and
+// the token-bar trackability logic - kept as a local duplicate here rather than a new shared
+// helper, matching how the codebase already repeats this exact computation in those two places.
+function getMotiveVisibility(data) {
+  const value = Math.max(-20, Math.min(20, Number(data?.value) || 0));
+  const absVal = Math.abs(value);
+  const isFameOrInfamy = absVal >= 15;
+  const revealed = data?.revealed || "hidden";
+  const isFullyRevealed = revealed === "public" || isFameOrInfamy;
+  const visibleToPlayers = revealed === "public" || revealed === "partial" || isFameOrInfamy;
+  return { value, absVal, isFameOrInfamy, revealed, isFullyRevealed, visibleToPlayers };
+}
+
+function cycleMotiveRevealTier(current) {
+  if (current === "hidden") return "partial";
+  if (current === "partial") return "public";
+  return "hidden";
+}
+
+async function startSocialConflict({ pcTokenIds, npcActorUuids, name }) {
+  const pcTokens = pcTokenIds.map((id) => canvas.tokens.get(id)).filter((t) => t?.actor);
+  if (!pcTokens.length) {
+    ui.notifications.warn("Select at least one PC to start a social conflict.");
+    return null;
+  }
+  if (!npcActorUuids.length) {
+    ui.notifications.warn("Include at least one NPC in the scene.");
+    return null;
+  }
+
+  const npcs = {};
+  for (const actorUuid of npcActorUuids) {
+    const actor = await fromUuid(actorUuid).catch(() => null);
+    if (!actor) continue;
+    npcs[actor.id] = { actorUuid, successes: 0, failures: 0 };
+  }
+
+  // isSocialConflict/sceneName/npcs must be present in the CREATE data itself, not set via a
+  // follow-up setFlag() - the createCombat hook (which every client uses to decide whether to
+  // auto-open its window) fires at creation time, before any later update would land. Same
+  // requirement as startChase above.
+  const combat = await Combat.create({
+    scene: canvas.scene?.id ?? null,
+    flags: {
+      "cv-wicked-campaigns": {
+        isSocialConflict: true,
+        sceneName: name || "Social Conflict",
+        npcs,
+      },
+    },
+  });
+
+  const combatantData = pcTokens.map((token) => ({
+    tokenId: token.id,
+    sceneId: token.scene?.id,
+    actorId: token.actor?.id,
+  }));
+  await combat.createEmbeddedDocuments("Combatant", combatantData);
+
+  await combat.rollAll();
+  await combat.startCombat();
+
+  SocialConflictGMPanel.open(combat);
+  return combat;
+}
+
+// Shared chat-card renderer for a Temptation Save roll, reusing the exact roll-under-value logic
+// and card styling already established by the NPC sheet's own "roll-motive" action, so a
+// Temptation Save triggered from the conflict tracker looks identical to one triggered from the
+// sheet directly.
+async function rollSocialConflictTemptation(actor, motiveId, rollType) {
+  const motives = actor.getFlag("cv-wicked-campaigns", "motives") || {};
+  const data = motives[motiveId];
+  if (!data) return;
+
+  const name = data.label || "Motive";
+  const targetValue = Math.abs(Number(data.value) || 0);
+
+  let formula = "1d20";
+  let typeLabel = "";
+  if (rollType === "advantage") {
+    formula = "2d20kl";
+    typeLabel = " (Advantage)";
+  } else if (rollType === "disadvantage") {
+    formula = "2d20kh";
+    typeLabel = " (Disadvantage)";
+  }
+
+  const roll = await new Roll(formula).evaluate({ async: true });
+  const isSuccess = roll.total <= targetValue;
+  const resultText = isSuccess ? "Driven to Act!" : "Indifferent / Resisted";
+
+  const content = `
+      <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif;">
+          <div class="card-content" style="padding: 0.5rem 0;">
+              <p style="margin: 0 0 0.5rem 0; font-size: 0.95rem; text-align: center;">
+                  ${actor.name} checking <strong>${name}</strong>${typeLabel} (Target: ${targetValue})
+              </p>
+              <div class="wicked-trait-roll-box" style="display: flex; align-items: center; justify-content: space-around; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px;">
+                  <div style="display: flex; align-items: center; gap: 0.4rem;">
+                      <i class="fa-solid fa-dice-d20" style="font-size: 1.35rem; color: #c9a054;"></i>
+                      <span class="roll-value" style="font-size: 1.2rem; font-weight: bold;">${roll.total}</span>
+                  </div>
+                  <div style="font-weight: bold; color: ${isSuccess ? '#4caf50' : '#f44336'};">${resultText}</div>
+              </div>
+          </div>
+      </div>
+  `;
+
+  await roll.toMessage({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    flavor: `${actor.name} rolls against their ${name} drive${typeLabel} (Social Conflict)`,
+    content,
+  });
+}
+
+// Sends an actual interactive roll request to a specific PC's owning player, using dnd5e's own
+// built-in roll-request chat message (the same mechanism the Party actor's "request a skill
+// check" feature uses, just targeted at a single actor instead of a whole party). The chat card's
+// roll button is only visible/clickable to the GM and that actor's owner; clicking it opens a
+// real roll dialog on THEIR client, using their own actor's modifiers, pre-loaded with the DC and
+// roll mode set here. Sending a check does not reveal anything by itself - the GM reads the result
+// in chat and decides separately whether to flip a motive's reveal-state toggle.
+async function sendSocialConflictDiscoveryCheckRequest(actor, skill, dc, rollMode, npcName) {
+  const skillLabel = CONFIG.DND5E.skills[skill]?.label ?? skill;
+  await ChatMessage.create({
+    flavor: `Find out what motivates ${npcName}`,
+    speaker: ChatMessage.getSpeaker({ actor, alias: actor.name }),
+    system: {
+      button: {
+        icon: "fa-solid fa-dice-d20",
+        label: `Roll ${skillLabel}`,
+      },
+      data: {
+        skill,
+        target: dc,
+        advantage: rollMode === "advantage",
+        disadvantage: rollMode === "disadvantage",
+      },
+      handler: "skill",
+      targets: [{ actor: actor.uuid }],
+    },
+    type: "request",
+  });
+}
+
+class SocialConflictSetupDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    constructor(options = {}) {
+        super(options);
+        this.loadedPresetId = null;
+    }
+
+    static DEFAULT_OPTIONS = {
+        id: "social-conflict-setup-dialog",
+        classes: ["wicked-campaigns", "social-conflict-setup-dialog"],
+        window: { title: "Start a Social Conflict", icon: "fa-solid fa-masks-theater" },
+        position: { width: 380, height: "auto" },
+        actions: {
+            start: SocialConflictSetupDialog.#onStart,
+            loadPreset: SocialConflictSetupDialog.#onLoadPreset,
+            deletePreset: SocialConflictSetupDialog.#onDeletePreset,
+            saveAsPreset: SocialConflictSetupDialog.#onSaveAsPreset,
+        },
+    };
+
+    static PARTS = {
+        main: { template: "modules/cv-wicked-campaigns/templates/social-conflict-setup.hbs" },
+    };
+
+    // A token's actor already says whether it's a PC ("character") or an NPC ("npc") - no need to
+    // ask the GM to classify each one by hand. Tokens of any other actor type (group, vehicle,
+    // ...) are simply not shown; they don't make sense as social-conflict participants either way.
+    async _prepareContext(options) {
+        const tokens = getSocialConflictCandidateTokens().filter((t) => t.actor);
+        const presets = game.settings.get("cv-wicked-campaigns", "socialConflictPresets") || [];
+        const preset = presets.find((p) => p.id === this.loadedPresetId) ?? null;
+
+        const pcUuids = new Set((preset?.participants ?? []).filter((p) => p.role === "pc").map((p) => p.actorUuid));
+        const npcUuids = new Set((preset?.participants ?? []).filter((p) => p.role === "npc").map((p) => p.actorUuid));
+
+        const pcTokens = tokens.filter((t) => t.actor.type === "character");
+        const npcTokens = tokens.filter((t) => t.actor.type === "npc");
+
+        const unmatchedCount = preset
+            ? preset.participants.filter((p) => !tokens.some((t) => getBaseActorUuid(t) === p.actorUuid)).length
+            : 0;
+
+        return {
+            sceneName: preset?.name ?? "",
+            pcs: pcTokens.map((t) => ({ id: t.id, name: t.actor.name, included: preset ? pcUuids.has(getBaseActorUuid(t)) : true })),
+            npcs: npcTokens.map((t) => ({ id: t.id, name: t.actor.name, included: preset ? npcUuids.has(getBaseActorUuid(t)) : true })),
+            presets: presets.map((p) => ({ id: p.id, name: p.name, isLoaded: p.id === this.loadedPresetId })),
+            hasPcs: pcTokens.length > 0,
+            hasNpcs: npcTokens.length > 0,
+            hasParticipants: pcTokens.length > 0 || npcTokens.length > 0,
+            hasPresets: presets.length > 0,
+            unmatchedCount,
+            presetParticipantCount: preset?.participants.length ?? 0,
+        };
+    }
+
+    _readFormSelections(form) {
+        const name = form.querySelector('input[name="sceneName"]')?.value.trim() || "";
+        const pcTokenIds = Array.from(form.querySelectorAll('input[name="pc"]:checked')).map((el) => el.value);
+        const npcTokenIds = Array.from(form.querySelectorAll('input[name="npc"]:checked')).map((el) => el.value);
+        return { name, pcTokenIds, npcTokenIds };
+    }
+
+    static async #onStart(event, target) {
+        const { name, pcTokenIds, npcTokenIds } = this._readFormSelections(target.closest("form"));
+        const npcActorUuids = npcTokenIds.map((id) => getBaseActorUuid(canvas.tokens.get(id))).filter(Boolean);
+
+        const combat = await startSocialConflict({ pcTokenIds, npcActorUuids, name });
+        if (combat) this.close();
+    }
+
+    static #onLoadPreset(event, target) {
+        const id = target.closest("form").querySelector('select[name="presetId"]')?.value || null;
+        if (!id) return;
+        this.loadedPresetId = id;
+        this.render();
+    }
+
+    static async #onDeletePreset(event, target) {
+        const id = target.closest("form").querySelector('select[name="presetId"]')?.value || null;
+        if (!id) return;
+
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: "Delete Preset" },
+            content: "<p>Delete this saved social conflict preset? This cannot be undone.</p>",
+            rejectClose: false,
+        }).catch(() => false);
+        if (!confirmed) return;
+
+        const presets = (game.settings.get("cv-wicked-campaigns", "socialConflictPresets") || []).filter((p) => p.id !== id);
+        await game.settings.set("cv-wicked-campaigns", "socialConflictPresets", presets);
+        if (this.loadedPresetId === id) this.loadedPresetId = null;
+        this.render();
+    }
+
+    static async #onSaveAsPreset(event, target) {
+        const form = target.closest("form");
+        const { pcTokenIds, npcTokenIds } = this._readFormSelections(form);
+
+        if (!pcTokenIds.length || !npcTokenIds.length) {
+            ui.notifications.warn("Include at least one PC and one NPC before saving a preset.");
+            return;
+        }
+
+        const name = await foundry.applications.api.DialogV2.prompt({
+            window: { title: "Save Social Conflict Preset" },
+            content: `<div class="form-group"><label>Preset Name</label><input type="text" name="presetName" value="New Social Conflict" autofocus></div>`,
+            ok: {
+                icon: "fas fa-check",
+                label: "Save",
+                callback: (event, button) => button.form.elements.presetName.value.trim(),
+            },
+            rejectClose: false,
+        }).catch(() => null);
+        if (!name) return;
+
+        const participants = [
+            ...pcTokenIds.map((id) => ({ actorUuid: getBaseActorUuid(canvas.tokens.get(id)), role: "pc" })),
+            ...npcTokenIds.map((id) => ({ actorUuid: getBaseActorUuid(canvas.tokens.get(id)), role: "npc" })),
+        ];
+
+        const presets = foundry.utils.deepClone(game.settings.get("cv-wicked-campaigns", "socialConflictPresets") || []);
+        const preset = { id: foundry.utils.randomID(), name, participants };
+        presets.push(preset);
+        await game.settings.set("cv-wicked-campaigns", "socialConflictPresets", presets);
+
+        this.loadedPresetId = preset.id;
+        ui.notifications.info(`Saved social conflict preset "${name}".`);
+        this.render();
+    }
+}
+
+class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    constructor(combat, options = {}) {
+        super(options);
+        this.combat = combat;
+    }
+
+    static DEFAULT_OPTIONS = {
+        id: "social-conflict-gm-panel",
+        classes: ["wicked-campaigns", "social-conflict-gm-panel-dialog"],
+        window: { title: "Social Conflict", icon: "fa-solid fa-masks-theater", resizable: true },
+        position: { width: 480, height: 680 },
+        actions: {
+            nextTurn: SocialConflictGMPanel.#onNextTurn,
+            previousTurn: SocialConflictGMPanel.#onPreviousTurn,
+            setTurn: SocialConflictGMPanel.#onSetTurn,
+            addNpc: SocialConflictGMPanel.#onAddNpc,
+            removeNpc: SocialConflictGMPanel.#onRemoveNpc,
+            adjustSuccess: SocialConflictGMPanel.#onAdjustSuccess,
+            adjustFailure: SocialConflictGMPanel.#onAdjustFailure,
+            toggleMotiveReveal: SocialConflictGMPanel.#onToggleMotiveReveal,
+            openNpcRevealDialog: SocialConflictGMPanel.#onOpenNpcRevealDialog,
+            rollTemptation: SocialConflictGMPanel.#onRollTemptation,
+            endConflict: SocialConflictGMPanel.#onEndConflict,
+        },
+    };
+
+    static PARTS = {
+        main: { template: "modules/cv-wicked-campaigns/templates/social-conflict-gm-panel.hbs", scrollable: [".sc-npc-roster"] },
+    };
+
+    async _prepareContext(options) {
+        const npcsFlag = this.combat.getFlag("cv-wicked-campaigns", "npcs") || {};
+        const npcs = [];
+        for (const [actorId, entry] of Object.entries(npcsFlag)) {
+            const actor = game.actors.get(actorId) ?? await fromUuid(entry.actorUuid).catch(() => null);
+            if (!actor) continue;
+
+            const rawMotives = actor.getFlag("cv-wicked-campaigns", "motives") || {};
+            const motives = Object.entries(rawMotives).map(([id, data]) => {
+                const vis = getMotiveVisibility(data);
+                return {
+                    id,
+                    label: data.label || "Motive",
+                    value: vis.value,
+                    revealed: vis.revealed,
+                    isFameOrInfamy: vis.isFameOrInfamy,
+                    // Famous/infamous motives are always public regardless of the stored reveal
+                    // state (see getMotiveVisibility) - toggling them would have no visible effect,
+                    // so only non-fame motives get an interactive toggle badge.
+                    canToggle: !vis.isFameOrInfamy,
+                    canTarget: vis.visibleToPlayers,
+                };
+            });
+
+            const successes = Math.max(0, Math.min(3, entry.successes ?? 0));
+            const failures = Math.max(0, Math.min(3, entry.failures ?? 0));
+
+            npcs.push({
+                actorId,
+                name: actor.name,
+                img: actor.img,
+                successes,
+                failures,
+                successPips: [0, 1, 2].map((i) => i < successes),
+                failurePips: [0, 1, 2].map((i) => i < failures),
+                isWon: successes >= 3,
+                isLost: failures >= 3,
+                motives,
+                hasTargetable: motives.some((m) => m.canTarget),
+            });
+        }
+        npcs.sort((a, b) => a.name.localeCompare(b.name));
+
+        const combatants = this.combat.turns.map((c) => ({
+            id: c.id,
+            name: c.name,
+            img: c.img,
+            isCurrentTurn: c.id === this.combat.combatant?.id,
+        }));
+
+        // Scoped to NPC actors with a token on the current scene - not every NPC actor in the
+        // world (the bestiary alone would bury "who's actually at the ball" under every monster
+        // stat block in the game). Deliberately ALL scene placeables regardless of what's
+        // currently selected (unlike the setup dialog's token scoping) - the GM could easily have
+        // an unrelated token selected while reaching for this dropdown, and that shouldn't hide
+        // the NPC they're trying to add.
+        const addableActors = (canvas.tokens?.placeables ?? [])
+            .filter((t) => t.actor?.type === "npc" && !npcsFlag[t.actor.id])
+            .map((t) => ({ id: t.actor.id, name: t.actor.name }))
+            .filter((a, index, arr) => arr.findIndex((x) => x.id === a.id) === index)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        return {
+            sceneName: this.combat.getFlag("cv-wicked-campaigns", "sceneName") || "Social Conflict",
+            round: this.combat.round,
+            combatants,
+            hasCombatants: combatants.length > 0,
+            npcs,
+            hasNpcs: npcs.length > 0,
+            addableActors,
+            hasAddableActors: addableActors.length > 0,
+        };
+    }
+
+    async _onRender(context, options) {
+        await super._onRender(context, options);
+        this.element.querySelectorAll(".sc-dc-calc").forEach((calc) => {
+            const motiveSelect = calc.querySelector('[data-role="motive-select"]');
+            const baseDcInput = calc.querySelector('[data-role="base-dc"]');
+            const resultEl = calc.querySelector('[data-role="final-dc"]');
+            const recompute = () => {
+                const base = Number(baseDcInput.value) || 0;
+                const selected = motiveSelect.options[motiveSelect.selectedIndex];
+                const motiveValue = Number(selected?.dataset.value) || 0;
+                const final = Math.max(0, base - motiveValue);
+                resultEl.textContent = final;
+            };
+            motiveSelect.addEventListener("change", recompute);
+            baseDcInput.addEventListener("input", recompute);
+            recompute();
+        });
+    }
+
+    static async #onNextTurn() {
+        await this.combat.nextTurn();
+    }
+
+    static async #onPreviousTurn() {
+        await this.combat.previousTurn();
+    }
+
+    // Lets the GM jump straight to any PC's turn by clicking their chip in the turn tracker,
+    // rather than only stepping one at a time via next/previous - useful since who acts next in
+    // a mingling scene isn't a strict marching order the way it is in a fight.
+    static async #onSetTurn(event, target) {
+        const combatantId = target.closest("[data-combatant-id]")?.dataset.combatantId;
+        const index = this.combat.turns.findIndex((c) => c.id === combatantId);
+        if (index === -1) return;
+        await this.combat.update({ turn: index });
+    }
+
+    static async #onAddNpc(event, target) {
+        const select = target.closest("form")?.querySelector('[data-role="add-npc-select"]')
+            ?? this.element.querySelector('[data-role="add-npc-select"]');
+        const actorId = select?.value;
+        if (!actorId) return;
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+
+        await this.combat.setFlag("cv-wicked-campaigns", `npcs.${actorId}`, {
+            actorUuid: actor.uuid,
+            successes: 0,
+            failures: 0,
+        });
+    }
+
+    static async #onRemoveNpc(event, target) {
+        const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
+        if (!actorId) return;
+        await this.combat.unsetFlag("cv-wicked-campaigns", `npcs.${actorId}`);
+    }
+
+    static async #onAdjustSuccess(event, target) {
+        const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
+        const delta = Number(target.dataset.delta) || 0;
+        const current = this.combat.getFlag("cv-wicked-campaigns", `npcs.${actorId}.successes`) ?? 0;
+        const next = Math.max(0, Math.min(3, current + delta));
+        await this.combat.setFlag("cv-wicked-campaigns", `npcs.${actorId}.successes`, next);
+    }
+
+    static async #onAdjustFailure(event, target) {
+        const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
+        const delta = Number(target.dataset.delta) || 0;
+        const current = this.combat.getFlag("cv-wicked-campaigns", `npcs.${actorId}.failures`) ?? 0;
+        const next = Math.max(0, Math.min(3, current + delta));
+        await this.combat.setFlag("cv-wicked-campaigns", `npcs.${actorId}.failures`, next);
+    }
+
+    // The reveal-state badge does exactly one thing now: cycle hidden -> partial -> public ->
+    // hidden. No dialog, no chat message, no tie to any check result - the GM decides when to
+    // flip it, independently of however they resolved a check narratively or via the roll-request
+    // dialog below.
+    static async #onToggleMotiveReveal(event, target) {
+        const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
+        const motiveId = target.dataset.motiveId;
+        const actor = game.actors.get(actorId);
+        const motives = actor?.getFlag("cv-wicked-campaigns", "motives") || {};
+        const data = motives[motiveId];
+        if (!actor || !data) return;
+
+        const nextTier = cycleMotiveRevealTier(data.revealed || "hidden");
+        await actor.setFlag("cv-wicked-campaigns", `motives.${motiveId}.revealed`, nextTier);
+    }
+
+    // One reveal-check dialog per NPC card, not per motive: the GM picks any skill, sets a DC
+    // (with Easy/Average/Hard quick-set buttons that just populate the field, not lock it), and a
+    // roll mode, then sends a single generic roll request to whichever PC currently has the turn
+    // (dnd5e's own built-in roll-request chat message - only the GM and that PC's owner can click
+    // it, and clicking it opens a real roll dialog on THEIR client). The request isn't tied to any
+    // specific motive; after seeing the result land in chat, the GM manually decides which
+    // motive(s) to reveal via the per-motive toggle badge.
+    static async #onOpenNpcRevealDialog(event, target) {
+        const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+
+        const currentPCActor = this.combat.combatant?.actor ?? null;
+        const noPcWarning = currentPCActor
+            ? ""
+            : `<p style="color: #e08a75; font-size: 0.85rem; margin: 0 0 0.5rem;">No PC currently has the turn - advance to a PC's turn before sending a check.</p>`;
+
+        const skillOptions = Object.entries(CONFIG.DND5E.skills)
+            .map(([key, cfg]) => `<option value="${key}" ${key === "ins" ? "selected" : ""}>${cfg.label}</option>`)
+            .join("");
+
+        const choice = await foundry.applications.api.DialogV2.wait({
+            window: { title: `Reveal Check: ${actor.name}` },
+            content: `
+                ${noPcWarning}
+                <div class="form-group">
+                    <label>Skill</label>
+                    <select name="skill">${skillOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label>DC</label>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <input type="number" name="dc" value="15" min="1" max="30" style="flex: 1;">
+                        <button type="button" data-dc="10" class="sc-dc-quick">Easy</button>
+                        <button type="button" data-dc="15" class="sc-dc-quick">Average</button>
+                        <button type="button" data-dc="20" class="sc-dc-quick">Hard</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Roll Mode</label>
+                    <select name="rollMode">
+                        <option value="normal">Normal</option>
+                        <option value="advantage">Advantage</option>
+                        <option value="disadvantage">Disadvantage</option>
+                    </select>
+                </div>
+            `,
+            buttons: [
+                {
+                    action: "send",
+                    label: "Send Check",
+                    icon: "fa-solid fa-dice-d20",
+                    callback: (evt, button) => ({ skill: button.form.elements.skill.value, dc: Number(button.form.elements.dc.value), rollMode: button.form.elements.rollMode.value }),
+                },
+            ],
+            render: (event, dialog) => {
+                dialog.element.querySelectorAll(".sc-dc-quick").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        dialog.element.querySelector('input[name="dc"]').value = btn.dataset.dc;
+                    });
+                });
+            },
+            rejectClose: false,
+        }).catch(() => null);
+
+        if (!choice) return;
+
+        if (!currentPCActor) {
+            ui.notifications.warn("No PC currently has the turn - advance to a PC's turn before sending a check.");
+            return;
+        }
+
+        await sendSocialConflictDiscoveryCheckRequest(currentPCActor, choice.skill, choice.dc, choice.rollMode, actor.name);
+    }
+
+    static async #onRollTemptation(event, target) {
+        const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
+        const motiveId = target.dataset.motiveId;
+        const rollType = target.dataset.rollType || "normal";
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+        await rollSocialConflictTemptation(actor, motiveId, rollType);
+    }
+
+    static async #onEndConflict() {
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: "End Social Conflict" },
+            content: "<p>End this social conflict? This deletes the scene's Combat encounter. NPC motives and their reveal states are unaffected.</p>",
+            rejectClose: false,
+        }).catch(() => false);
+        if (!confirmed) return;
+        await this.combat.delete();
+    }
+
+    static open(combat) {
+        const existing = foundry.applications.instances.get("social-conflict-gm-panel");
+        if (existing) {
+            existing.combat = combat;
+            existing.render(true);
+            return existing;
+        }
+        const app = new SocialConflictGMPanel(combat);
+        app.render(true);
+        return app;
+    }
+
+    static closeIfOpen() {
+        foundry.applications.instances.get("social-conflict-gm-panel")?.close();
+    }
+}
+
+class SocialConflictPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    constructor(combat, options = {}) {
+        super(options);
+        this.combat = combat;
+    }
+
+    static DEFAULT_OPTIONS = {
+        id: "social-conflict-player-hud",
+        classes: ["wicked-campaigns", "social-conflict-player-hud-dialog"],
+        window: { title: "Social Conflict", icon: "fa-solid fa-masks-theater", resizable: true },
+        position: { width: 320, height: 460 },
+        actions: {
+            rollInitiative: SocialConflictPlayerHUD.#onRollInitiative,
+        },
+    };
+
+    static PARTS = {
+        main: { template: "modules/cv-wicked-campaigns/templates/social-conflict-player-hud.hbs", scrollable: [".sc-hud-npc-list"] },
+    };
+
+    async _prepareContext(options) {
+        const ownCombatant = this.combat.combatants.find((c) => c.actor?.isOwner);
+        const npcsFlag = this.combat.getFlag("cv-wicked-campaigns", "npcs") || {};
+
+        const npcs = [];
+        for (const [actorId, entry] of Object.entries(npcsFlag)) {
+            const actor = game.actors.get(actorId);
+            if (!actor) continue;
+
+            const rawMotives = actor.getFlag("cv-wicked-campaigns", "motives") || {};
+            const motives = Object.entries(rawMotives)
+                .map(([id, data]) => ({ id, ...getMotiveVisibility(data), label: data.label || "Motive" }))
+                .filter((m) => m.visibleToPlayers);
+
+            const successes = Math.max(0, Math.min(3, entry.successes ?? 0));
+            const failures = Math.max(0, Math.min(3, entry.failures ?? 0));
+
+            npcs.push({
+                name: actor.name,
+                img: actor.img,
+                successPips: [0, 1, 2].map((i) => i < successes),
+                failurePips: [0, 1, 2].map((i) => i < failures),
+                motives: motives.map((m) => ({
+                    label: m.label,
+                    isFullyRevealed: m.isFullyRevealed,
+                    value: m.value,
+                })),
+            });
+        }
+        npcs.sort((a, b) => a.name.localeCompare(b.name));
+
+        return {
+            sceneName: this.combat.getFlag("cv-wicked-campaigns", "sceneName") || "Social Conflict",
+            round: this.combat.round,
+            turns: this.combat.turns.map((c) => ({
+                id: c.id,
+                name: c.name,
+                isCurrentTurn: c.id === this.combat.combatant?.id,
+            })),
+            hasOwnCombatant: !!ownCombatant,
+            needsInitiative: !!ownCombatant && (ownCombatant.initiative === null || ownCombatant.initiative === undefined),
+            npcs,
+            hasNpcs: npcs.length > 0,
+        };
+    }
+
+    static async #onRollInitiative() {
+        const ownCombatant = this.combat.combatants.find((c) => c.actor?.isOwner);
+        if (ownCombatant) await this.combat.rollInitiative([ownCombatant.id]);
+    }
+
+    static open(combat) {
+        const existing = foundry.applications.instances.get("social-conflict-player-hud");
+        if (existing) {
+            existing.combat = combat;
+            existing.render(true);
+            return existing;
+        }
+        const app = new SocialConflictPlayerHUD(combat);
+        app.render(true);
+        return app;
+    }
+
+    static closeIfOpen() {
+        foundry.applications.instances.get("social-conflict-player-hud")?.close();
+    }
+}
+
+function refreshOpenSocialConflictApps(combat) {
+    const gmPanel = foundry.applications.instances.get("social-conflict-gm-panel");
+    if (gmPanel?.combat?.id === combat.id) gmPanel.render();
+    const playerHud = foundry.applications.instances.get("social-conflict-player-hud");
+    if (playerHud?.combat?.id === combat.id) playerHud.render();
+}
+
+Hooks.on("createCombat", (combat) => {
+    if (!game.settings.get("cv-wicked-campaigns", "socialConflictEnabled") || !isSocialConflictCombat(combat)) return;
+    if (game.user.isGM) SocialConflictGMPanel.open(combat);
+});
+
+Hooks.on("createCombatant", (combatant) => {
+    const combat = combatant.parent;
+    if (!game.settings.get("cv-wicked-campaigns", "socialConflictEnabled") || !isSocialConflictCombat(combat)) return;
+    if (!game.user.isGM && combatant.actor?.isOwner) SocialConflictPlayerHUD.open(combat);
+    refreshOpenSocialConflictApps(combat);
+});
+
+Hooks.on("updateCombat", (combat) => {
+    if (!isSocialConflictCombat(combat)) return;
+    refreshOpenSocialConflictApps(combat);
+});
+
+Hooks.on("updateCombatant", (combatant) => {
+    if (!isSocialConflictCombat(combatant.parent)) return;
+    refreshOpenSocialConflictApps(combatant.parent);
+});
+
+Hooks.on("deleteCombat", (combat) => {
+    if (!isSocialConflictCombat(combat)) return;
+    SocialConflictGMPanel.closeIfOpen();
+    SocialConflictPlayerHUD.closeIfOpen();
+});
+
+// Also refresh open Social Conflict apps whenever an NPC's motives change (revealed state,
+// value, label) - e.g. the GM edits a motive directly on the NPC sheet mid-scene rather than
+// through the discovery-check buttons - so the GM panel/player HUD never show stale data.
+Hooks.on("updateActor", (actor, changes) => {
+    if (!game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) return;
+    if (!foundry.utils.hasProperty(changes, "flags.cv-wicked-campaigns.motives")) return;
+    const activeConflict = game.combats.find(isSocialConflictCombat);
+    if (activeConflict && activeConflict.getFlag("cv-wicked-campaigns", "npcs")?.[actor.id]) {
+        refreshOpenSocialConflictApps(activeConflict);
+    }
+});
+
 // Neither dnd5e's own body.dnd5e-theme-light/-dark class NOR the underlying "dnd5e.theme"/core
 // uiConfig settings are reliable signals here: the class can get stuck showing dark after a fresh
 // page load even though the setting correctly reads "light" (reproduced live - a dnd5e timing
@@ -5624,6 +7111,152 @@ function handleActorSheetRender(sheet, html, data) {
             if (rightButton) rightButton.dataset.value = 20 - val;
         });
     });
+
+    // NPC Motive Drivers logic
+    const motivesList = el.querySelector(".motives-list");
+    if (motivesList) {
+        console.log("Wicked Campaigns | Motives tab rendering detected. isSheetEditable:", isSheetEditable);
+
+        // Toggle preset custom field visibility
+        const presetSelector = el.querySelector("#motive-preset-selector");
+        const customInput = el.querySelector("#motive-custom-input");
+        if (presetSelector && customInput) {
+            presetSelector.addEventListener("change", (event) => {
+                if (presetSelector.value === "custom") {
+                    customInput.style.display = "inline-block";
+                } else {
+                    customInput.style.display = "none";
+                }
+            });
+        }
+
+        // Helper to update range slider accent color and row left border color
+        const updateSliderColor = (slider, val) => {
+            let color;
+            if (val > 0) {
+                const intensity = val / 20;
+                color = `hsl(${45 + (120 - 45) * intensity}, ${55 + 25 * intensity}%, ${40 + 5 * intensity}%)`;
+            } else if (val < 0) {
+                const intensity = Math.abs(val) / 20;
+                color = `hsl(${35 - 35 * intensity}, ${65 + 25 * intensity}%, ${40 + 5 * intensity}%)`;
+            } else {
+                color = "hsl(0, 0%, 50%)";
+            }
+            slider.style.accentColor = color;
+            
+            // Update row's left border color dynamically
+            const row = slider.closest(".motive-row");
+            if (row) {
+                row.style.setProperty("border-left-color", color, "important");
+            }
+        };
+
+        const sliders = el.querySelectorAll(".motive-slider-input");
+        console.log(`Wicked Campaigns | Found ${sliders.length} motive sliders.`);
+
+        // Bind custom range sliders
+        sliders.forEach(slider => {
+            const key = slider.dataset.key;
+            const numInput = el.querySelector(`.motive-value-input[data-key="${key}"]`);
+            console.log(`Wicked Campaigns | Binding motive slider ${key}. Found numInput:`, !!numInput);
+            
+            // Sync disabled status
+            slider.disabled = !isSheetEditable;
+            if (numInput) numInput.disabled = !isSheetEditable;
+
+            // Set initial color
+            updateSliderColor(slider, parseInt(slider.value, 10));
+
+            slider.addEventListener("input", (event) => {
+                event.stopPropagation();
+                if (!isSheetEditable) {
+                    console.warn("Wicked Campaigns | Motive slider input ignored: sheet is not editable.");
+                    return;
+                }
+                const val = parseInt(slider.value, 10);
+                console.log(`Wicked Campaigns | Motive slider ${key} input: ${val}`);
+                if (numInput) numInput.value = val;
+                updateSliderColor(slider, val);
+            });
+
+            slider.addEventListener("change", async (event) => {
+                event.stopPropagation();
+                if (!isSheetEditable) {
+                    console.warn("Wicked Campaigns | Motive slider change ignored: sheet is not editable.");
+                    return;
+                }
+                const val = parseInt(slider.value, 10);
+                console.log(`Wicked Campaigns | Saving motive ${key} value directly to flag: ${val}`);
+                await sheet.actor.setFlag("cv-wicked-campaigns", `motives.${key}.value`, val);
+            });
+        });
+
+        // Bind number input fields
+        el.querySelectorAll(".motive-value-input").forEach(numInput => {
+            const key = numInput.dataset.key;
+            const slider = el.querySelector(`.motive-slider-input[data-key="${key}"]`);
+            
+            numInput.disabled = !isSheetEditable;
+
+            numInput.addEventListener("change", async (event) => {
+                event.stopPropagation();
+                if (!isSheetEditable) return;
+                let val = parseInt(numInput.value, 10) || 0;
+                val = Math.max(-20, Math.min(20, val));
+                numInput.value = val;
+                if (slider) {
+                    slider.value = val;
+                    updateSliderColor(slider, val);
+                }
+                console.log(`Wicked Campaigns | Saving motive ${key} value from number input: ${val}`);
+                await sheet.actor.setFlag("cv-wicked-campaigns", `motives.${key}.value`, val);
+            });
+        });
+
+        // Bind motive label input fields
+        el.querySelectorAll(".motive-label-input").forEach(input => {
+            input.disabled = !isSheetEditable;
+
+            input.addEventListener("change", async (event) => {
+                event.stopPropagation();
+                if (!isSheetEditable) return;
+                const key = input.dataset.key;
+                const val = input.value.trim();
+
+                const motives = sheet.actor.getFlag("cv-wicked-campaigns", "motives") || {};
+                
+                // Check if any other motive has the same name
+                const isDuplicate = Object.entries(motives).some(([k, data]) => {
+                    return k !== key && data.label?.toLowerCase() === val.toLowerCase();
+                });
+
+                if (isDuplicate) {
+                    ui.notifications.warn(`Wicked Campaigns | A motive named '${val}' already exists on this NPC.`);
+                    input.value = motives[key]?.label || "";
+                    return;
+                }
+
+                if (val) {
+                    console.log(`Wicked Campaigns | Saving motive ${key} label: ${val}`);
+                    await sheet.actor.setFlag("cv-wicked-campaigns", `motives.${key}.label`, val);
+                }
+            });
+        });
+
+        // Bind revealed state select fields
+        el.querySelectorAll(".motive-revealed-input").forEach(select => {
+            select.disabled = !isSheetEditable;
+
+            select.addEventListener("change", async (event) => {
+                event.stopPropagation();
+                if (!isSheetEditable) return;
+                const key = select.dataset.key;
+                const val = select.value;
+                console.log(`Wicked Campaigns | Saving motive ${key} revealed state: ${val}`);
+                await sheet.actor.setFlag("cv-wicked-campaigns", `motives.${key}.revealed`, val);
+            });
+        });
+    }
 }
 
 Hooks.on("renderActorSheet", handleActorSheetRender);
@@ -6849,3 +8482,176 @@ function onRenderCardHud(hud, html) {
     middle.appendChild(rollButton);
   }
 }
+
+// Recompute the full set of NPC Motive Driver bar-attribute paths from scratch. This must be a
+// full rebuild rather than an incremental push/splice: a motive can drop out of trackability in
+// ways incremental logic never caught (the motive gets deleted outright, or the actor itself gets
+// deleted) - either left an orphaned path sitting in CONFIG.Actor.trackableAttributes.npc.bar for
+// the rest of the session, which then renders as an unresolvable "Motive: Motive" in the Token
+// Config Resources dropdown and can't draw a bar (its actor/flag no longer exists).
+function rebuildMotiveTrackableAttributes() {
+    if (!CONFIG.Actor.trackableAttributes.npc) {
+        CONFIG.Actor.trackableAttributes.npc = { bar: [], value: [] };
+    }
+    if (!CONFIG.Actor.trackableAttributes.npc.bar) {
+        CONFIG.Actor.trackableAttributes.npc.bar = [];
+    }
+
+    const bar = CONFIG.Actor.trackableAttributes.npc.bar;
+    for (let i = bar.length - 1; i >= 0; i--) {
+        if (bar[i].startsWith("flags.cv-wicked-campaigns.motives.")) bar.splice(i, 1);
+    }
+
+    if (!game.settings.get("cv-wicked-campaigns", "motivesEnabled")) return;
+
+    for (const actor of game.actors) {
+        if (actor.type !== "npc") continue;
+        const motives = actor.getFlag("cv-wicked-campaigns", "motives") || {};
+        for (const [id, data] of Object.entries(motives)) {
+            const absVal = Math.abs(data.value ?? 0);
+            const isFameOrInfamy = absVal >= 15;
+            const isPubliclyTrackable = data.revealed === "public" || isFameOrInfamy;
+            if (!isPubliclyTrackable) continue;
+            const path = `flags.cv-wicked-campaigns.motives.${id}.value`;
+            if (!bar.includes(path)) bar.push(path);
+        }
+    }
+}
+
+// Dynamic Token Trackability for NPC Motive Drivers
+function initializeNPCTrackableMotives() {
+    rebuildMotiveTrackableAttributes();
+
+    // Wrap CONFIG.Token.documentClass.getTrackedAttributeChoices if not already wrapped
+    const docClass = CONFIG.Token.documentClass;
+    if (docClass && !docClass._originalGetTrackedAttributeChoices) {
+        docClass._originalGetTrackedAttributeChoices = docClass.getTrackedAttributeChoices;
+        docClass.getTrackedAttributeChoices = function(attributes) {
+            const choices = docClass._originalGetTrackedAttributeChoices.call(this, attributes);
+            for (const entry of choices) {
+                if (entry.value.startsWith("flags.cv-wicked-campaigns.motives.")) {
+                    const parts = entry.value.split(".");
+                    const id = parts[3];
+                    let label = "Motive";
+                    for (const actor of game.actors) {
+                        if (actor.type === "npc") {
+                            const motives = actor.getFlag("cv-wicked-campaigns", "motives") || {};
+                            if (motives[id]) {
+                                label = motives[id].label;
+                                break;
+                            }
+                        }
+                    }
+                    entry.label = `Motive: ${label}`;
+                    entry.group = "NPC Motives";
+                }
+            }
+            return choices;
+        };
+    }
+}
+
+// Patch the system's actual runtime Token classes to read/render motive flags as token bars.
+// dnd5e replaces CONFIG.Token.documentClass/objectClass with its own TokenDocument5e/Token5e,
+// each defining its own getBarAttribute/_drawBar - patching the base Foundry TokenDocument/Token
+// classes is silently shadowed by those subclass methods and never runs. Must patch whatever
+// CONFIG.Token.documentClass/objectClass actually resolve to, once they're finalized at ready.
+function patchMotiveTokenBars() {
+    const TokenDocClass = CONFIG.Token.documentClass;
+    if (TokenDocClass && !TokenDocClass.prototype._wickedGetBarAttributePatched) {
+        const originalGetBarAttribute = TokenDocClass.prototype.getBarAttribute;
+        TokenDocClass.prototype.getBarAttribute = function(barName, {alternative}={}) {
+            const attr = alternative || this[barName]?.attribute;
+            if (attr && attr.startsWith("flags.cv-wicked-campaigns.motives.")) {
+                if (!this.actor) return null;
+                const val = foundry.utils.getProperty(this.actor, attr);
+                if (val !== undefined) {
+                    const numericVal = typeof val === "number" ? val : (val?.value ?? 0);
+                    return {
+                        type: "bar",
+                        attribute: attr,
+                        value: Math.abs(numericVal),
+                        max: 20,
+                        isMotive: true,
+                        isAversion: numericVal < 0
+                    };
+                }
+            }
+            return originalGetBarAttribute.call(this, barName, {alternative});
+        };
+        TokenDocClass.prototype._wickedGetBarAttributePatched = true;
+    }
+
+    const TokenObjClass = CONFIG.Token.objectClass;
+    if (TokenObjClass && !TokenObjClass.prototype._wickedDrawBarPatched) {
+        const originalDrawBar = TokenObjClass.prototype._drawBar;
+        TokenObjClass.prototype._drawBar = function(number, bar, data) {
+            if (data && data.isMotive) {
+                const customColor = data.isAversion ? 0xc62828 : 0x2e7d32; // Red for Aversion, Green for Want
+
+                // dnd5e's Token5e._drawBar delegates to the base Token._drawBar for any
+                // non-HP bar, which draws via bar.beginFill(...) - there is no separate
+                // "V14 .fill()" drawing path to intercept here.
+                const originalBeginFill = bar.beginFill;
+                if (originalBeginFill) {
+                    bar.beginFill = function(color, alpha) {
+                        // Ignore black background fills
+                        if (color !== 0x000000 && color !== 0) {
+                            color = customColor;
+                        }
+                        return originalBeginFill.call(this, color, alpha);
+                    };
+                }
+
+                const result = originalDrawBar.call(this, number, bar, data);
+
+                // Restore the original drawing method
+                if (originalBeginFill) bar.beginFill = originalBeginFill;
+
+                return result;
+            }
+            return originalDrawBar.call(this, number, bar, data);
+        };
+        TokenObjClass.prototype._wickedDrawBarPatched = true;
+    }
+}
+
+// Patch Actor#modifyTokenAttribute (dragging/editing a resource bar from the Token HUD) so
+// motive bars work at all and preserve their Attraction/Aversion sign. The core implementation
+// (and dnd5e's Actor5e, which falls through to it for anything but HP/item-uses) always reads
+// via `this.system` and writes to `system.<attribute>.value` - since motives live under `flags`,
+// that lookup returns undefined and crashes on `.value`. Our bars also only ever expose the
+// unsigned intensity (0-20) to the HUD, so a naive fix would silently flip an Aversion into an
+// Attraction the moment someone dragged/typed a new value; this preserves the existing sign.
+function patchMotiveActorAttribute() {
+    const ActorClass = CONFIG.Actor.documentClass;
+    if (!ActorClass || ActorClass.prototype._wickedModifyTokenAttributePatched) return;
+
+    const originalModifyTokenAttribute = ActorClass.prototype.modifyTokenAttribute;
+    ActorClass.prototype.modifyTokenAttribute = async function(attribute, value, isDelta=false, isBar=true) {
+        if (attribute && attribute.startsWith("flags.cv-wicked-campaigns.motives.")) {
+            const current = Number(foundry.utils.getProperty(this, attribute)) || 0;
+            const sign = current < 0 ? -1 : 1;
+            const currentMagnitude = Math.abs(current);
+            let newMagnitude = isDelta ? currentMagnitude + value : value;
+            newMagnitude = Math.clamp(newMagnitude, 0, 20);
+            const updated = newMagnitude === 0 ? 0 : sign * newMagnitude;
+            if (updated === current) return this;
+            return this.update({ [attribute]: updated });
+        }
+        return originalModifyTokenAttribute.call(this, attribute, value, isDelta, isBar);
+    };
+    ActorClass.prototype._wickedModifyTokenAttributePatched = true;
+}
+
+Hooks.on("updateActor", (actor, changes, options, userId) => {
+    if (actor.type !== "npc") return;
+    rebuildMotiveTrackableAttributes();
+});
+
+// An NPC with public/famous motives can be deleted outright - without this, its motive paths
+// would linger forever in CONFIG.Actor.trackableAttributes.npc.bar (see rebuildMotiveTrackableAttributes).
+Hooks.on("deleteActor", (actor, options, userId) => {
+    if (actor.type !== "npc") return;
+    rebuildMotiveTrackableAttributes();
+});

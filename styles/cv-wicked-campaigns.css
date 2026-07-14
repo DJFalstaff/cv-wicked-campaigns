@@ -1016,7 +1016,8 @@
    is derived from the same underlying "dnd5e.theme" setting but can get stuck showing dark after a
    fresh page load even when the setting itself correctly reads "light" (a dnd5e timing quirk, not
    something fixable from our CSS alone), so we compute and apply the effective theme ourselves. */
-.wicked-character-sheet.wicked-theme-light {
+.wicked-character-sheet.wicked-theme-light,
+.wicked-npc-sheet.wicked-theme-light {
     --wicked-gold: #8a6d1f;
     --wicked-gold-dim: #6b5518;
     --wicked-gold-border: rgba(138, 109, 31, 0.35);
@@ -1156,6 +1157,505 @@
     filter: brightness(1.3);
 }
 
+/* Campaign Codex Mannerisms widget - half-width so a second WC- widget can sit beside it in
+   the same flex-wrap widget row (Campaign Codex's own .cc-widget-container defaults to
+   flex: 1 0 100%; !important is needed here since our stylesheet and theirs tie on specificity
+   and load order between modules isn't something we control). Uses their --cc-* theme
+   variables (with fallbacks) and reuses the wicked tag-pill look for the pills themselves. */
+.campaign-codex .cc-widget-container[data-widget-type="WC-Mannerisms"] {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+}
+
+.cc-widget-mannerisms {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--cc-card-bg, #1c1c1c);
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+}
+
+.cc-widget-mannerisms .mannerism-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.cc-widget-mannerisms .mannerism-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-mannerisms .mannerism-title-input {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px 4px;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-mannerisms .mannerism-title-input:hover,
+.cc-widget-mannerisms .mannerism-title-input:focus {
+    border-color: var(--cc-border, rgba(201, 160, 84, 0.3));
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.15));
+}
+
+.cc-widget-mannerisms .mannerism-edit-toggle {
+    cursor: pointer;
+    opacity: 0.75;
+    font-size: 0.85rem;
+    color: var(--cc-accent, #b9a987);
+    flex-shrink: 0;
+}
+
+.cc-widget-mannerisms .mannerism-edit-toggle:hover {
+    opacity: 1;
+}
+
+.cc-widget-mannerisms .mannerism-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.cc-widget-mannerisms .mannerism-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    /* Tint of the CC theme's own accent, with the theme's own main text color on top - this is
+       the same pairing CC's own pills (.cc-quest-link-pill) use, so contrast against
+       --cc-card-bg is guaranteed whatever CC theme (light/dark/custom) is active. A hardcoded
+       gold-on-gold here was unreadable against a light CC theme's card background. */
+    background: var(--cc-accent30, rgba(201, 160, 84, 0.3));
+    color: var(--cc-main-text, inherit);
+    border: 1px solid var(--cc-accent, rgba(201, 160, 84, 0.5));
+}
+
+.cc-widget-mannerisms .mannerism-pill-remove {
+    cursor: pointer;
+    opacity: 0.6;
+    font-size: 0.65rem;
+}
+
+.cc-widget-mannerisms .mannerism-pill-remove:hover {
+    opacity: 1;
+    color: var(--cc-danger, #dc3545);
+}
+
+.cc-widget-mannerisms .mannerism-empty {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--cc-text-muted, #888);
+}
+
+.cc-widget-mannerisms .mannerism-add-row {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.cc-widget-mannerisms .mannerism-add-input {
+    flex: 1;
+    font-size: 0.8rem;
+    padding: 3px 6px;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    color: var(--cc-main-text, inherit);
+    border-radius: 4px;
+}
+
+.cc-widget-mannerisms .mannerism-add-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-accent, #b9a987);
+    border-radius: 4px;
+    color: var(--cc-accent, #b9a987);
+    cursor: pointer;
+}
+
+.cc-widget-mannerisms .mannerism-add-btn:hover {
+    filter: brightness(1.2);
+}
+
+/* Campaign Codex Personality widget - same half-width shell as Mannerisms, but each pill
+   carries its own GM-picked background color (data-driven, not a CSS class) matching the
+   existing hand-written Personality trait pills on NPC sheets: solid saturated background,
+   white text with a shadow for legibility against any hue, border a darker shade of the same
+   color via color-mix(). */
+.campaign-codex .cc-widget-container[data-widget-type="WC-Personality"] {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+}
+
+.cc-widget-personality {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--cc-card-bg, #1c1c1c);
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+}
+
+.cc-widget-personality .personality-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.cc-widget-personality .personality-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-personality .personality-title-input {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px 4px;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-personality .personality-title-input:hover,
+.cc-widget-personality .personality-title-input:focus {
+    border-color: var(--cc-border, rgba(201, 160, 84, 0.3));
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.15));
+}
+
+.cc-widget-personality .personality-edit-toggle {
+    cursor: pointer;
+    opacity: 0.75;
+    font-size: 0.85rem;
+    color: var(--cc-accent, #b9a987);
+    flex-shrink: 0;
+}
+
+.cc-widget-personality .personality-edit-toggle:hover {
+    opacity: 1;
+}
+
+.cc-widget-personality .personality-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.cc-widget-personality .personality-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+    border: 1px solid;
+}
+
+.cc-widget-personality .personality-pill-remove {
+    cursor: pointer;
+    opacity: 0.75;
+    font-size: 0.65rem;
+}
+
+.cc-widget-personality .personality-pill-remove:hover {
+    opacity: 1;
+}
+
+.cc-widget-personality .personality-empty {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--cc-text-muted, #888);
+}
+
+.cc-widget-personality .personality-add-row {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.cc-widget-personality .personality-add-input {
+    flex: 1;
+    font-size: 0.8rem;
+    padding: 3px 6px;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    color: var(--cc-main-text, inherit);
+    border-radius: 4px;
+}
+
+.cc-widget-personality .personality-add-color {
+    width: 32px;
+    height: 28px;
+    padding: 2px;
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+}
+
+.cc-widget-personality .personality-add-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-accent, #b9a987);
+    border-radius: 4px;
+    color: var(--cc-accent, #b9a987);
+    cursor: pointer;
+}
+
+.cc-widget-personality .personality-add-btn:hover {
+    filter: brightness(1.2);
+}
+
+/* Campaign Codex Motives widget - half-width, same shell pattern as Mannerisms/Personality.
+   Compact (non-edit) rows show a marker on a fixed -20..+20 red-to-green gradient meter; edit
+   mode (toggled per-widget, GM only) swaps in the sheet's slider+number+preset-dropdown controls. */
+.campaign-codex .cc-widget-container[data-widget-type="WC-Motives"] {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+}
+
+.cc-widget-motives {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--cc-card-bg, #1c1c1c);
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+}
+
+.cc-widget-motives .motivesw-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    padding-bottom: 0.4rem;
+}
+
+.cc-widget-motives .motivesw-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-motives .motivesw-title-input {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px 4px;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-motives .motivesw-title-input:hover,
+.cc-widget-motives .motivesw-title-input:focus {
+    border-color: var(--cc-border, rgba(201, 160, 84, 0.3));
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.15));
+}
+
+.cc-widget-motives .motivesw-edit-toggle {
+    cursor: pointer;
+    opacity: 0.75;
+    font-size: 0.85rem;
+    color: var(--cc-accent, #b9a987);
+    flex-shrink: 0;
+}
+
+.cc-widget-motives .motivesw-edit-toggle:hover {
+    opacity: 1;
+}
+
+.cc-widget-motives .motivesw-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.cc-widget-motives .motivesw-empty {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--cc-text-muted, #888);
+}
+
+.cc-widget-motives .motivesw-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cc-widget-motives .motivesw-label {
+    flex: 0 0 30%;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--cc-main-text, inherit);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cc-widget-motives .motivesw-meter {
+    position: relative;
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(
+        to right,
+        hsl(0, 90%, 45%) 0%,
+        hsl(18, 78%, 43%) 25%,
+        hsl(0, 0%, 50%) 50%,
+        hsl(82, 67%, 42%) 75%,
+        hsl(120, 80%, 45%) 100%
+    );
+}
+
+.cc-widget-motives .motivesw-meter::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -2px;
+    bottom: -2px;
+    width: 1px;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.cc-widget-motives .motivesw-meter-marker {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 4px;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.cc-widget-motives .motivesw-value {
+    flex: 0 0 32px;
+    text-align: right;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-motives .motivesw-row-edit .motivesw-label-input {
+    flex: 2;
+    font-size: 0.78rem;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    border-radius: 4px;
+    color: var(--cc-main-text, inherit);
+    padding: 2px 4px;
+}
+
+.cc-widget-motives .motivesw-row-edit .motivesw-slider-input {
+    flex: 3;
+    height: 4px;
+}
+
+.cc-widget-motives .motivesw-row-edit .motivesw-value-input {
+    flex: 0 0 44px;
+    font-size: 0.75rem;
+    text-align: center;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    border-radius: 4px;
+    color: var(--cc-main-text, inherit);
+}
+
+.cc-widget-motives .motivesw-remove {
+    cursor: pointer;
+    opacity: 0.6;
+    font-size: 0.75rem;
+    color: var(--cc-danger, #dc3545);
+    flex-shrink: 0;
+}
+
+.cc-widget-motives .motivesw-remove:hover {
+    opacity: 1;
+}
+
+.cc-widget-motives .motivesw-add-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+}
+
+.cc-widget-motives .motivesw-preset-select {
+    flex: 1;
+    font-size: 0.78rem;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    border-radius: 4px;
+    color: var(--cc-main-text, inherit);
+}
+
+/* Native <option> popups don't inherit the select's own background - see the identical fix
+   for .wicked-campaigns select option. Theme-aware here (not hardcoded dark) since CC's active
+   theme may be light. */
+.cc-widget-motives .motivesw-preset-select option {
+    background-color: var(--cc-main-bg, #1c1c1c);
+    color: var(--cc-main-text, #fff);
+}
+
+.cc-widget-motives .motivesw-custom-input {
+    flex: 1;
+    font-size: 0.78rem;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-border, rgba(201, 160, 84, 0.15));
+    border-radius: 4px;
+    color: var(--cc-main-text, inherit);
+    padding: 2px 4px;
+}
+
+.cc-widget-motives .motivesw-add-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cc-main-bg, rgba(0, 0, 0, 0.2));
+    border: 1px solid var(--cc-accent, #b9a987);
+    border-radius: 4px;
+    color: var(--cc-accent, #b9a987);
+    cursor: pointer;
+}
+
+.cc-widget-motives .motivesw-add-btn:hover {
+    filter: brightness(1.2);
+}
+
 /* Every custom dialog (Fate Pool Manager, Table Config, Chase Setup, ...) styles its <select>
    elements with a translucent dark background + white text - but that translucent background
    doesn't carry into the native <option> popup list (browser/OS-rendered, not ours to style via
@@ -1186,4 +1686,77 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+}
+
+/* Social Conflict Tracker - same fixed-height/scrollable-roster fix as the Chase GM panel/player
+   HUD above (flex:1 + min-height:0 so the NPC roster scrolls within the window instead of the
+   window growing past the viewport). */
+.social-conflict-gm-panel-dialog .window-content,
+.social-conflict-player-hud-dialog .window-content {
+    height: 100%;
+}
+
+.social-conflict-gm-panel,
+.social-conflict-player-hud {
+    height: 100%;
+}
+
+.social-conflict-gm-panel .sc-npc-roster,
+.social-conflict-player-hud .sc-hud-npc-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.social-conflict-gm-panel button:hover,
+.social-conflict-player-hud button:hover {
+    filter: brightness(1.2);
+}
+
+/* NPC Motive Drivers Styling */
+.motives-widget {
+    margin-top: 0.5rem;
+}
+
+.motive-row {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.motive-row:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+.theme-light .motive-row,
+.wicked-theme-light .motive-row {
+    background: rgba(0, 0, 0, 0.03) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .motive-row:hover,
+.wicked-theme-light .motive-row:hover {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Range slider styling for motives */
+.motive-slider-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    outline: none;
+}
+
+.theme-light .motive-slider-input,
+.wicked-theme-light .motive-slider-input {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Dropdown color adjustments for light/dark modes */
+.wicked-npc-sheet select option {
+    background-color: #1c1c1c;
+    color: #fff;
+}
+.wicked-npc-sheet.wicked-theme-light select option {
+    background-color: #fff;
+    color: #333;
 }

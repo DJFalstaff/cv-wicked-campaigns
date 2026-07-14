@@ -1,0 +1,130 @@
+<div class="social-conflict-gm-panel" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0.5rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px;">
+        <span style="font-size: 0.85rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">{{sceneName}}</span>
+        <span style="font-size: 0.75rem; color: #a89a82;">Round {{round}}</span>
+    </div>
+
+    {{#if hasCombatants}}
+    <ul class="sc-turn-list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem;">
+        {{#each combatants}}
+        <li data-combatant-id="{{this.id}}" data-action="setTurn" title="Make it {{this.name}}'s turn" style="display: flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; background: {{#if this.isCurrentTurn}}rgba(201, 160, 84, 0.15){{else}}rgba(0, 0, 0, 0.15){{/if}}; border: 1px solid {{#if this.isCurrentTurn}}rgba(201, 160, 84, 0.5){{else}}rgba(201, 160, 84, 0.1){{/if}}; border-radius: 12px; cursor: pointer;">
+            <img src="{{this.img}}" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover;" />
+            <span style="font-size: 0.78rem; color: {{#if this.isCurrentTurn}}#fff{{else}}#a89a82{{/if}}; font-weight: {{#if this.isCurrentTurn}}bold{{else}}normal{{/if}};">{{this.name}}</span>
+        </li>
+        {{/each}}
+    </ul>
+
+    <div style="display: flex; gap: 0.5rem;">
+        <button type="button" data-action="previousTurn" style="flex: 1; padding: 5px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+            <i class="fa-solid fa-backward-step"></i> Prev Turn
+        </button>
+        <button type="button" data-action="nextTurn" style="flex: 1; padding: 5px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+            Next Turn <i class="fa-solid fa-forward-step"></i>
+        </button>
+    </div>
+    {{/if}}
+
+    <div class="sc-npc-roster" style="display: flex; flex-direction: column; gap: 0.6rem;">
+        {{#unless hasNpcs}}
+        <p style="font-size: 0.8rem; color: #a89a82; font-style: italic;">No NPCs in this scene yet.</p>
+        {{/unless}}
+
+        {{#each npcs}}
+        <div data-npc-id="{{this.actorId}}" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem 0.6rem; background: rgba(0, 0, 0, 0.15); border: 1px solid {{#if this.isWon}}rgba(76, 175, 80, 0.4){{else}}{{#if this.isLost}}rgba(190, 70, 70, 0.4){{else}}rgba(201, 160, 84, 0.15){{/if}}{{/if}}; border-radius: 4px;">
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <img src="{{this.img}}" style="width: 28px; height: 28px; border-radius: 4px; object-fit: cover;" />
+                <span style="flex: 1; font-size: 0.9rem; font-weight: bold; color: #fff;">{{this.name}}</span>
+                <button type="button" data-action="openNpcRevealDialog" title="Send a discovery check to the current PC" style="padding: 2px 8px; font-size: 0.72rem; background: rgba(201,160,84,0.1); border: 1px solid rgba(201,160,84,0.3); border-radius: 3px; color: #c9a054; cursor: pointer;">
+                    <i class="fa-solid fa-dice-d20"></i> Reveal Check
+                </button>
+                <i class="fa-solid fa-xmark" data-action="removeNpc" title="Remove from scene" style="color: #e08a75; cursor: pointer; opacity: 0.7;"></i>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="font-size: 0.7rem; color: #a89a82; text-transform: uppercase;">Success</span>
+                    <button type="button" data-action="adjustSuccess" data-delta="-1" style="width: 20px; height: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(76,175,80,0.3); border-radius: 3px; color: #7ec984; cursor: pointer; font-size: 0.75rem;">-</button>
+                    {{#each this.successPips}}
+                    <i class="fa-solid fa-circle" style="font-size: 0.55rem; color: {{#if this}}#4caf50{{else}}rgba(255,255,255,0.15){{/if}};"></i>
+                    {{/each}}
+                    <button type="button" data-action="adjustSuccess" data-delta="1" style="width: 20px; height: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(76,175,80,0.3); border-radius: 3px; color: #7ec984; cursor: pointer; font-size: 0.75rem;">+</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="font-size: 0.7rem; color: #a89a82; text-transform: uppercase;">Failure</span>
+                    <button type="button" data-action="adjustFailure" data-delta="-1" style="width: 20px; height: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(190,70,70,0.3); border-radius: 3px; color: #e08a75; cursor: pointer; font-size: 0.75rem;">-</button>
+                    {{#each this.failurePips}}
+                    <i class="fa-solid fa-circle" style="font-size: 0.55rem; color: {{#if this}}#f44336{{else}}rgba(255,255,255,0.15){{/if}};"></i>
+                    {{/each}}
+                    <button type="button" data-action="adjustFailure" data-delta="1" style="width: 20px; height: 20px; background: rgba(0,0,0,0.2); border: 1px solid rgba(190,70,70,0.3); border-radius: 3px; color: #e08a75; cursor: pointer; font-size: 0.75rem;">+</button>
+                </div>
+                {{#if this.isWon}}<span style="font-size: 0.7rem; font-weight: bold; color: #4caf50; text-transform: uppercase;">Won Over</span>{{/if}}
+                {{#if this.isLost}}<span style="font-size: 0.7rem; font-weight: bold; color: #f44336; text-transform: uppercase;">Alienated</span>{{/if}}
+            </div>
+
+            {{#if this.motives.length}}
+            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                {{#each this.motives}}
+                <div style="display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.4rem; background: rgba(0,0,0,0.12); border-radius: 3px; flex-wrap: wrap;">
+                    <span style="font-size: 0.78rem; color: #fff; min-width: 70px;">{{this.label}}</span>
+                    {{#if this.canToggle}}
+                    <button type="button" data-action="toggleMotiveReveal" data-motive-id="{{this.id}}" title="Click to show/hide from players" class="badge" style="cursor: pointer; font: inherit; font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; background: rgba(255,255,255,0.05); color: #888; border: 1px dashed #888;">
+                        {{this.revealed}} <i class="fa-solid fa-eye" style="font-size: 0.6rem;"></i>
+                    </button>
+                    {{else}}
+                    <span class="badge" style="font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid #4caf50;">
+                        famous
+                    </span>
+                    {{/if}}
+                    <span style="font-family: monospace; font-size: 0.75rem; color: #a89a82;">{{this.value}}</span>
+
+                    <span style="flex: 1;"></span>
+                    <span style="font-size: 0.68rem; color: #a89a82;">Temptation</span>
+                    <i class="fa-solid fa-dice-d20" data-action="rollTemptation" data-motive-id="{{this.id}}" data-roll-type="advantage" title="Roll with Advantage (2d20kl)" style="color: #4caf50; font-size: 0.8rem; cursor: pointer;"></i>
+                    <i class="fa-solid fa-dice-d20" data-action="rollTemptation" data-motive-id="{{this.id}}" data-roll-type="normal" title="Roll (1d20)" style="color: #c9a054; font-size: 0.8rem; cursor: pointer;"></i>
+                    <i class="fa-solid fa-dice-d20" data-action="rollTemptation" data-motive-id="{{this.id}}" data-roll-type="disadvantage" title="Roll with Disadvantage (2d20kh)" style="color: #f44336; font-size: 0.8rem; cursor: pointer;"></i>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+
+            {{#if this.hasTargetable}}
+            <div class="sc-dc-calc" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.4rem; background: rgba(0,0,0,0.2); border: 1px dashed rgba(201,160,84,0.2); border-radius: 4px; flex-wrap: wrap;">
+                <span style="font-size: 0.7rem; color: #a89a82; text-transform: uppercase;">DC Calc</span>
+                <select data-role="motive-select" style="font-size: 0.75rem; padding: 2px 4px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">
+                    <option value="" data-value="0">(Blind Roll)</option>
+                    {{#each this.motives}}
+                    {{#if this.canTarget}}
+                    <option value="{{this.id}}" data-value="{{this.value}}">{{this.label}} ({{this.value}})</option>
+                    {{/if}}
+                    {{/each}}
+                </select>
+                <span style="font-size: 0.72rem; color: #a89a82;">Base DC</span>
+                <input type="number" data-role="base-dc" value="15" style="width: 44px; font-size: 0.75rem; padding: 2px 4px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
+                <span style="font-size: 0.72rem; color: #a89a82;">Final DC</span>
+                <span data-role="final-dc" style="font-family: monospace; font-weight: bold; font-size: 0.95rem; color: #c9a054;">15</span>
+            </div>
+            {{/if}}
+        </div>
+        {{/each}}
+    </div>
+
+    {{#if hasAddableActors}}
+    <div style="display: flex; gap: 0.4rem;">
+        <select data-role="add-npc-select" style="flex: 1; font-size: 0.8rem; padding: 4px 6px; background: rgba(0, 0, 0, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;">
+            {{#each addableActors}}
+            <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
+        <button type="button" data-action="addNpc" style="padding: 4px 10px; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">
+            <i class="fa-solid fa-plus"></i> Add NPC
+        </button>
+    </div>
+    {{/if}}
+
+    <button type="button" data-action="endConflict" style="width: 100%; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; background: rgba(163, 74, 58, 0.12); border: 1px solid rgba(163, 74, 58, 0.35); border-radius: 4px; color: #e08a75;">
+        <i class="fa-solid fa-flag-checkered"></i> End Social Conflict
+    </button>
+
+</div>

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Conflict Tracker: Game Rules Summary</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Outfit:wght@300;400;600;700&family=Signika:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- KaTeX for Math Equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+    <style>
+        :root {
+            /* Dark Theme Variables */
+            --bg-color: #0e0814;
+            --panel-bg: rgba(22, 14, 33, 0.7);
+            --border-color: rgba(201, 160, 84, 0.25);
+            --text-color: #e5e1eb;
+            --text-muted: #afacc4;
+            --gold: #c9a054;
+            --gold-glow: rgba(201, 160, 84, 0.4);
+            --green: #4caf50;
+            --red: #f44336;
+            --card-wash: rgba(0, 0, 0, 0.2);
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="light"] {
+            /* Light Theme Variables */
+            --bg-color: #f7f5f0;
+            --panel-bg: rgba(247, 245, 240, 0.85);
+            --border-color: rgba(138, 109, 31, 0.35);
+            --text-color: #2c2520;
+            --text-muted: #5c5348;
+            --gold: #8a6d1f;
+            --gold-glow: rgba(138, 109, 31, 0.35);
+            --green: #2f6b2f;
+            --red: #8a2f2f;
+            --card-wash: rgba(0, 0, 0, 0.035);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --shadow: 0 8px 32px rgba(138, 109, 31, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        header {
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Cinzel', Georgia, serif;
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: 0.05em;
+            color: var(--gold);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        .theme-toggle-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--gold);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        section {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: 1.35rem;
+            color: var(--gold);
+            margin-bottom: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.4rem;
+        }
+
+        h3 {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: 1.05rem;
+            color: var(--text-color);
+            margin: 1.5rem 0 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p {
+            font-size: 1.05rem;
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        ul {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.6rem;
+            font-size: 1.05rem;
+            color: var(--text-color);
+        }
+
+        li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+        }
+
+        .math-block {
+            background: var(--card-wash);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.8rem;
+            margin: 1.25rem 0 1.5rem;
+        }
+
+        .flow-step {
+            background: var(--card-wash);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .flow-step .flow-num {
+            font-family: 'Cinzel', Georgia, serif;
+            font-weight: 800;
+            font-size: 0.75rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .flow-step .flow-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flow-step .flow-title i {
+            color: var(--gold);
+        }
+
+        .flow-step p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 1rem;
+        }
+
+        th, td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            font-family: 'Cinzel', Georgia, serif;
+            font-weight: bold;
+            color: var(--gold);
+            background: var(--card-wash);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        [data-theme="light"] tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-public { background: rgba(76, 175, 80, 0.15); color: var(--green); border: 1px solid var(--green); }
+        .badge-gated { background: rgba(201, 160, 84, 0.15); color: var(--gold); border: 1px solid var(--gold); }
+        .badge-red { background: rgba(244, 67, 54, 0.15); color: var(--red); border: 1px solid var(--red); }
+
+        kbd {
+            display: inline-block;
+            padding: 2px 8px;
+            font-family: 'Signika', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            color: var(--gold);
+        }
+
+        /* Pip tracker illustration */
+        .pip-demo {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            background: var(--card-wash);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0 1.5rem;
+        }
+
+        .pip-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pip-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .pip {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .pip.filled-success { background: var(--green); box-shadow: 0 0 6px rgba(76, 175, 80, 0.5); }
+        .pip.filled-failure { background: var(--red); box-shadow: 0 0 6px rgba(244, 67, 54, 0.5); }
+        .pip.empty { background: rgba(255, 255, 255, 0.12); }
+        [data-theme="light"] .pip.empty { background: rgba(0, 0, 0, 0.12); }
+
+        /* Calculator UI Widget (reused from the Motive Drivers rules page) */
+        .calc-widget {
+            background: var(--card-wash);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .calc-title {
+            font-family: 'Cinzel', Georgia, serif;
+            color: var(--gold);
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .calc-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .calc-control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .calc-control label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .calc-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .calc-slider {
+            flex: 1;
+            height: 6px;
+            accent-color: var(--gold);
+            cursor: pointer;
+        }
+
+        .calc-val-box {
+            width: 50px;
+            height: 28px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+            line-height: 26px;
+            font-weight: bold;
+            font-family: 'Signika', sans-serif;
+        }
+
+        .calc-result-panel {
+            grid-column: span 2;
+            background: rgba(0,0,0,0.15);
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 600px) {
+            .calc-result-panel {
+                grid-column: span 1;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        .calc-explanation {
+            font-size: 0.95rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .calc-dc-badge {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Signika', sans-serif;
+            background: var(--gold);
+            color: var(--bg-color);
+            padding: 4px 16px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px var(--gold-glow);
+            transition: background 0.3s ease;
+        }
+
+        .footnote {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="glass-panel">
+
+        <header>
+            <h1><i class="fa-solid fa-masks-theater"></i> Social Conflict Tracker</h1>
+            <button class="theme-toggle-btn" id="theme-toggle">
+                <i class="fa-solid fa-sun" id="theme-icon"></i>
+                <span id="theme-text">Light Theme</span>
+            </button>
+        </header>
+
+        <!-- Section 1: Concept -->
+        <section>
+            <h2><i class="fa-solid fa-champagne-glasses"></i> 1. Core Concept</h2>
+            <p>
+                A Social Conflict is a scene where the party can approach and work several NPCs at once, in any
+                order &mdash; a masquerade ball, a noble's dinner party, a den of rival crime bosses. Unlike a single
+                one-on-one negotiation, there's no fixed "target": on any given turn a PC can walk up to whichever
+                NPC they like, and the next round they might try someone else entirely.
+            </p>
+            <p>
+                It runs on top of the existing <strong>Motive Drivers</strong> system &mdash; every NPC's wants,
+                fears, and secrets are the same data already tracked on their sheet. This tool doesn't add new NPC
+                data; it gives the GM a live console for using that data mid-scene: revealing motives, computing
+                the DC swing they cause, rolling the NPC's own impulses, and tracking how each relationship is
+                trending.
+            </p>
+            <ul>
+                <li><strong>Every NPC tracks their own outcome independently.</strong> Winning over the countess
+                    doesn't affect your standing with the baron standing next to her.</li>
+                <li><strong>No roll buttons.</strong> Dice are still rolled at the table like normal &mdash; the
+                    tracker's job is to tell you the DC and record what happened, not to roll for you.</li>
+                <li><strong>History and Insight checks are your reconnaissance.</strong> They don't win the
+                    conflict on their own &mdash; they tell you which of an NPC's buttons are worth pushing before
+                    you commit to a Persuasion, Deception, or Intimidation check.</li>
+            </ul>
+        </section>
+
+        <!-- Section 2: Flow -->
+        <section>
+            <h2><i class="fa-solid fa-route"></i> 2. How a Round Plays Out</h2>
+            <p>PCs act in initiative order, same as any encounter &mdash; but "acting" means picking a target and a tactic, not moving or attacking.</p>
+            <div class="flow-grid">
+                <div class="flow-step">
+                    <span class="flow-num">Step 1</span>
+                    <span class="flow-title"><i class="fa-solid fa-person-walking-arrow-right"></i> Approach</span>
+                    <p>On their turn, a PC picks any NPC present in the scene to talk to &mdash; doesn't have to be who they talked to last round.</p>
+                </div>
+                <div class="flow-step">
+                    <span class="flow-num">Step 2</span>
+                    <span class="flow-title"><i class="fa-solid fa-magnifying-glass"></i> Read the Room (optional)</span>
+                    <p>Attempt a History or Insight check to reveal one of that NPC's hidden motives before committing to an approach.</p>
+                </div>
+                <div class="flow-step">
+                    <span class="flow-num">Step 3</span>
+                    <span class="flow-title"><i class="fa-solid fa-comments"></i> Make the Play</span>
+                    <p>Roleplay the approach, then roll a social check &mdash; against a revealed motive for a DC modifier, or in blind for the flat DC.</p>
+                </div>
+                <div class="flow-step">
+                    <span class="flow-num">Step 4</span>
+                    <span class="flow-title"><i class="fa-solid fa-scale-balanced"></i> Record It</span>
+                    <p>GM logs the roll as a success or failure against that NPC's own tally. Three of either ends their arc.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Discovery -->
+        <section>
+            <h2><i class="fa-solid fa-eye"></i> 3. Discovery Checks</h2>
+            <p>
+                Every NPC's motives start Hidden. A successful discovery check moves one motive up a tier &mdash;
+                Hidden &rarr; Partial (the party learns the topic, not the strength) &rarr; Public (they learn the
+                exact value too). The check you roll depends on how big a secret it actually is:
+            </p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Absolute Value (|Value|)</th>
+                        <th>Discovery Tier</th>
+                        <th>Check</th>
+                        <th>Player Visibility</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>15 to 20</strong></td>
+                        <td>Famous / Infamous</td>
+                        <td>None needed &mdash; already public knowledge.</td>
+                        <td><span class="badge badge-public">Public</span> (Auto-revealed)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>10 to 14</strong></td>
+                        <td>Local Rumors</td>
+                        <td><strong>History, DC 12</strong></td>
+                        <td><span class="badge badge-gated">Gated by GM</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>0 to 9</strong></td>
+                        <td>Private Drive</td>
+                        <td><strong>Insight, DC = 20 &minus; |Value|</strong></td>
+                        <td><span class="badge badge-gated">Gated by GM</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p class="footnote">
+                A motive at &plusmn;15 or beyond never needs a discovery check &mdash; it's already common knowledge,
+                and shows up on every player's view automatically. A failed check simply finds nothing new; there's
+                no penalty for trying.
+            </p>
+        </section>
+
+        <!-- Section 4: Social Checks -->
+        <section>
+            <h2><i class="fa-solid fa-handshake"></i> 4. Social Checks &amp; the DC Modifier</h2>
+            <p>
+                Once a motive is revealed &mdash; Partial or Public &mdash; a PC can consciously work it. The
+                motive's value shifts the check's DC the same way it always has:
+            </p>
+
+            <div class="math-block">
+                $$\text{Final DC} = \text{Base DC} - \text{Motive Value}$$
+            </div>
+
+            <ul>
+                <li><strong>Appeal to a Want (positive value):</strong> lowers the DC &mdash; you're offering
+                    something they already crave.</li>
+                <li><strong>Lean on a Fear (negative value):</strong> raises the DC &mdash; threatening what
+                    they dread is a harder sell to pull off convincingly.</li>
+                <li><strong>Blind Roll:</strong> no revealed motive to target, or you'd rather not tip your hand
+                    &mdash; the check just uses the flat Base DC, no modifier either way.</li>
+            </ul>
+
+            <div class="calc-widget">
+                <div class="calc-title"><i class="fa-solid fa-calculator"></i> Interactive DC Modifier Calculator</div>
+                <div class="calc-grid">
+                    <div class="calc-control">
+                        <label for="base-dc">Base Social Check DC</label>
+                        <div class="calc-input-row">
+                            <input type="range" id="base-dc" class="calc-slider" min="5" max="30" value="15">
+                            <div class="calc-val-box" id="base-dc-val">15</div>
+                        </div>
+                    </div>
+                    <div class="calc-control">
+                        <label for="motive-val">Motive Value (-20 to 20)</label>
+                        <div class="calc-input-row">
+                            <input type="range" id="motive-val" class="calc-slider" min="-20" max="20" value="0">
+                            <div class="calc-val-box" id="motive-val-val">0</div>
+                        </div>
+                    </div>
+                    <div class="calc-result-panel">
+                        <div class="calc-explanation" id="calc-explain">No motive applied. Base DC remains unchanged.</div>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <span style="font-weight: bold; font-size: 0.9rem; text-transform: uppercase; color: var(--gold);">Final DC:</span>
+                            <div class="calc-dc-badge" id="calc-result">15</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Resolution -->
+        <section>
+            <h2><i class="fa-solid fa-chart-line"></i> 5. Resolution: Success &amp; Failure</h2>
+            <p>
+                Every NPC in the scene keeps their own running tally, completely independent of everyone else
+                present:
+            </p>
+
+            <div class="pip-demo">
+                <div class="pip-row">
+                    <span class="pip-label">Success</span>
+                    <span class="pip filled-success"></span>
+                    <span class="pip filled-success"></span>
+                    <span class="pip empty"></span>
+                </div>
+                <div class="pip-row">
+                    <span class="pip-label">Failure</span>
+                    <span class="pip filled-failure"></span>
+                    <span class="pip empty"></span>
+                    <span class="pip empty"></span>
+                </div>
+            </div>
+
+            <ul>
+                <li><strong>3 Successes &mdash; Won Over.</strong> The NPC's attitude shifts in the party's favor;
+                    the GM decides what that unlocks (an introduction, a favor, information, a deal).</li>
+                <li><strong>3 Failures &mdash; Alienated.</strong> The NPC shuts down or turns hostile toward
+                    further approaches for the rest of the scene.</li>
+                <li><strong>Everyone else keeps going.</strong> One NPC resolving &mdash; either way &mdash;
+                    doesn't end the scene. The ball goes on until the GM calls it.</li>
+            </ul>
+        </section>
+
+        <!-- Section 6: Temptation Saves -->
+        <section>
+            <h2><i class="fa-solid fa-dice-d20"></i> 6. Temptation Saves (NPC Autonomy)</h2>
+            <p>
+                Sometimes an NPC needs to act on their own &mdash; do they take the bait, storm off, or hold their
+                composure? Same roll-under mechanic as the Motive Drivers system generally:
+            </p>
+
+            <div class="math-block">
+                $$\text{Temptation Roll (d20)} \le \text{Absolute Motive Value}$$
+            </div>
+
+            <ul>
+                <li><strong>Success (Roll &le; Value):</strong> the NPC succumbs to the drive and acts on it.</li>
+                <li><strong>Failure (Roll &gt; Value):</strong> they keep their composure.</li>
+                <li><strong>Advantage</strong> rolls <code>2d20kl</code> (more likely to succumb); <strong>Disadvantage</strong>
+                    rolls <code>2d20kh</code> (more likely to resist) &mdash; inverted from normal, since this is a
+                    roll-under check.</li>
+            </ul>
+            <p class="footnote">
+                Available for any motive on any NPC, revealed or not &mdash; this is what the NPC does when no one's
+                looking, not something the players are rolling against.
+            </p>
+        </section>
+
+        <!-- Section 7: Running It -->
+        <section style="margin-bottom: 0;">
+            <h2><i class="fa-solid fa-clapperboard"></i> 7. Running It at the Table</h2>
+
+            <h3><i class="fa-solid fa-keyboard"></i> Starting a Scene</h3>
+            <p>Press <kbd>Shift</kbd> + <kbd>S</kbd> as the GM. If nothing's running, this opens the setup dialog:</p>
+            <ul>
+                <li>Name the scene ("The Duskmere Masquerade").</li>
+                <li>Mark each token on the canvas as a <strong>PC</strong>, an <strong>NPC</strong>, or leave it out.</li>
+                <li><strong>Save as Preset</strong> to reuse the same cast and scene name later &mdash; presets
+                    reference the actors themselves, so they still work even if the tokens they were saved from are
+                    long gone.</li>
+                <li><strong>Start Social Conflict</strong> rolls initiative for the PCs and opens the GM Panel.</li>
+            </ul>
+
+            <h3><i class="fa-solid fa-user-shield"></i> The GM Panel</h3>
+            <p>Pressing <kbd>Shift</kbd> + <kbd>S</kbd> again while a scene is active reopens this instead of the setup dialog. Per NPC, it gives you:</p>
+            <ul>
+                <li>Their motive list, with reveal state and value at a glance.</li>
+                <li>One-click <strong>discovery Pass/Fail</strong> buttons per hidden or partial motive.</li>
+                <li>A <strong>DC calculator</strong> &mdash; pick a revealed motive (or Blind Roll) and a base DC, read off the final number.</li>
+                <li><strong>Temptation Save</strong> dice (normal / advantage / disadvantage) per motive.</li>
+                <li>Success/Failure +/&minus; buttons for that NPC's tally.</li>
+                <li><strong>Add NPC</strong> for guests who wander in mid-scene, and a remove button for each existing one.</li>
+            </ul>
+
+            <h3><i class="fa-solid fa-users"></i> The Player HUD</h3>
+            <p>Auto-opens for anyone with a PC in the scene. Shows the NPC roster, whose turn it is, and only
+                whatever's currently been revealed &mdash; a locked icon in place of the value for anything still
+                Partial, and nothing at all for anything still Hidden.</p>
+        </section>
+
+    </div>
+</div>
+
+<script>
+    // Theme Toggle Handler
+    const toggleBtn = document.getElementById('theme-toggle');
+    const toggleIcon = document.getElementById('theme-icon');
+    const toggleText = document.getElementById('theme-text');
+
+    toggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        let newTheme = 'dark';
+
+        if (currentTheme === 'dark') {
+            newTheme = 'light';
+            toggleIcon.className = 'fa-solid fa-moon';
+            toggleText.textContent = 'Dark Theme';
+        } else {
+            newTheme = 'dark';
+            toggleIcon.className = 'fa-solid fa-sun';
+            toggleText.textContent = 'Light Theme';
+        }
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+    });
+
+    // DC Calculator Logic
+    const baseDcSlider = document.getElementById('base-dc');
+    const baseDcVal = document.getElementById('base-dc-val');
+    const motiveSlider = document.getElementById('motive-val');
+    const motiveVal = document.getElementById('motive-val-val');
+    const calcResult = document.getElementById('calc-result');
+    const calcExplain = document.getElementById('calc-explain');
+
+    function calculateDC() {
+        const base = parseInt(baseDcSlider.value);
+        const motive = parseInt(motiveSlider.value);
+
+        baseDcVal.textContent = base;
+        motiveVal.textContent = motive > 0 ? `+${motive}` : motive;
+
+        const finalDc = Math.max(0, base - motive);
+        calcResult.textContent = finalDc;
+
+        let explanation = "";
+        if (motive > 0) {
+            explanation = `Appealing to a Want (reduces DC by ${motive}).`;
+            calcResult.style.background = 'var(--green)';
+            calcResult.style.color = '#fff';
+            calcResult.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.4)';
+        } else if (motive < 0) {
+            explanation = `Leaning on a Fear (increases DC by ${Math.abs(motive)}).`;
+            calcResult.style.background = 'var(--red)';
+            calcResult.style.color = '#fff';
+            calcResult.style.boxShadow = '0 0 10px rgba(244, 67, 54, 0.4)';
+        } else {
+            explanation = "No motive applied. Base DC remains unchanged.";
+            calcResult.style.background = 'var(--gold)';
+            calcResult.style.color = 'var(--bg-color)';
+            calcResult.style.boxShadow = '0 0 10px var(--gold-glow)';
+        }
+        calcExplain.textContent = explanation;
+    }
+
+    baseDcSlider.addEventListener('input', calculateDC);
+    motiveSlider.addEventListener('input', calculateDC);
+    calculateDC();
+</script>
+
+</body>
+</html>

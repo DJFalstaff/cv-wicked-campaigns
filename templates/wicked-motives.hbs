@@ -1,0 +1,117 @@
+<section class="tab {{ tab.cssClass }}" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
+    <div class="wicked-campaigns-tab-content" style="padding: 0.5rem 1rem;">
+        <div class="wicked-widget-card motives-widget" style="max-width: 580px; margin: 0 auto; background: var(--dnd5e-background-card, rgba(0, 0, 0, 0.05)); border: 1px solid var(--dnd5e-border-color, rgba(0,0,0,0.1)); border-radius: 6px; padding: 1rem; color: var(--dnd5e-text-color, #e3e3e3);">
+            
+            <h3 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--dnd5e-color-gold, #c9a054); padding-bottom: 0.5rem; margin-top: 0; margin-bottom: 1rem; font-family: 'Cinzel', Georgia, serif; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dnd5e-color-gold, #c9a054);">
+                <span><i class="fa-solid fa-yin-yang"></i> Motives & Needs</span>
+                
+                {{#if isGM}}
+                {{#if @root.editable}}
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <select id="motive-preset-selector" style="height: 26px; font-size: 0.75rem; width: 130px; background: var(--dnd5e-background-input, rgba(0,0,0,0.1)); border: 1px solid var(--dnd5e-border-color); color: inherit;">
+                        <option value="Money">Money</option>
+                        <option value="Safety">Safety</option>
+                        <option value="Glory">Glory</option>
+                        <option value="Food">Food</option>
+                        <option value="Status">Status</option>
+                        <option value="Revenge">Revenge</option>
+                        <option value="Power">Power</option>
+                        <option value="Curiosity">Curiosity</option>
+                        <option value="Honor">Honor</option>
+                        <option value="Friendship">Friendship</option>
+                        <option value="Pleasure">Pleasure</option>
+                        <option value="Romance">Romance</option>
+                        <option value="custom">Custom...</option>
+                    </select>
+                    <input type="text" id="motive-custom-input" placeholder="Enter motive..." style="display: none; height: 26px; width: 120px; font-size: 0.75rem; background: var(--dnd5e-background-input); border: 1px solid var(--dnd5e-border-color); color: inherit;" />
+                    <button type="button" class="qbw-btn" data-action="add-motive" style="font-size: 0.75rem; padding: 2px 8px; height: 26px;">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </div>
+                {{/if}}
+                {{/if}}
+            </h3>
+
+            <div class="motives-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+                {{#if isGM}}
+                    {{#each motives}}
+                        <div class="motive-row" data-key="{{id}}" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem; background: rgba(0, 0, 0, 0.08); border: 1px solid rgba(255,255,255,0.05); border-left: 4px solid {{color}} !important; border-radius: 4px;">
+                            
+                            <!-- Motive Label Input -->
+                            <input type="text" class="motive-label-input" data-key="{{id}}" value="{{label}}" style="flex: 2; height: 26px; background: var(--dnd5e-background-input); border: 1px solid var(--dnd5e-border-color); color: inherit;" placeholder="Motive Name" {{#unless @root.editable}}disabled{{/unless}} />
+
+                            <!-- Motive Value Slider -->
+                            <div style="flex: 3; display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="range" min="-20" max="20" class="motive-slider-input" data-key="{{id}}" value="{{value}}" style="width: 100%; height: 6px; accent-color: {{color}}; cursor: pointer;" {{#unless @root.editable}}disabled{{/unless}} />
+                            </div>
+
+                            <!-- Motive Value Number Input -->
+                            <input type="number" min="-20" max="20" class="motive-value-input" data-key="{{id}}" value="{{value}}" style="width: 48px; text-align: center; height: 26px; background: var(--dnd5e-background-input); border: 1px solid var(--dnd5e-border-color); color: inherit;" {{#unless @root.editable}}disabled{{/unless}} />
+
+                            <!-- Revealed State Selector -->
+                            <select class="motive-revealed-input" data-key="{{id}}" style="width: 85px; height: 26px; background: var(--dnd5e-background-input); border: 1px solid var(--dnd5e-border-color); color: inherit; font-size: 0.75rem;" {{#unless @root.editable}}disabled{{/unless}}>
+                                <option value="hidden" {{#if (eq revealed "hidden")}}selected{{/if}}>Hidden</option>
+                                <option value="partial" {{#if (eq revealed "partial")}}selected{{/if}}>Partial</option>
+                                <option value="public" {{#if (eq revealed "public")}}selected{{/if}}>Public</option>
+                            </select>
+
+                            <!-- Roll Buttons Group -->
+                            <div style="display: flex; gap: 2px;">
+                                <!-- Advantage Roll -->
+                                <button type="button" class="qbw-btn roll-motive-btn" data-action="roll-motive" data-roll-type="advantage" data-name="{{label}}" data-value="{{value}}" style="width: 24px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Roll Temptation Save with Advantage (2d20 keep lowest)">
+                                    <i class="fa-solid fa-dice-d20" style="color: #4caf50; font-size: 0.85rem;"></i>
+                                </button>
+                                <!-- Normal Roll -->
+                                <button type="button" class="qbw-btn roll-motive-btn" data-action="roll-motive" data-roll-type="normal" data-name="{{label}}" data-value="{{value}}" style="width: 24px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Roll Temptation Save (1d20)">
+                                    <i class="fa-solid fa-dice-d20" style="color: var(--dnd5e-color-gold); font-size: 0.85rem;"></i>
+                                </button>
+                                <!-- Disadvantage Roll -->
+                                <button type="button" class="qbw-btn roll-motive-btn" data-action="roll-motive" data-roll-type="disadvantage" data-name="{{label}}" data-value="{{value}}" style="width: 24px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Roll Temptation Save with Disadvantage (2d20 keep highest)">
+                                    <i class="fa-solid fa-dice-d20" style="color: #f44336; font-size: 0.85rem;"></i>
+                                </button>
+                            </div>
+
+                            <!-- Delete Button (Only visible in edit mode) -->
+                            {{#if @root.editable}}
+                            <button type="button" class="qbw-btn delete-motive-btn" data-action="delete-motive" data-key="{{id}}" style="width: 30px; height: 26px; padding: 0; color: #ff5252; display: flex; align-items: center; justify-content: center;" title="Delete Motive">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            {{/if}}
+                        </div>
+                    {{else}}
+                        <p style="text-align: center; color: var(--dnd5e-text-color-muted, #888); font-style: italic; margin: 1rem 0;">No motives defined. Add a drive using the selector above.</p>
+                    {{/each}}
+                {{else}}
+                    <!-- Player View -->
+                    {{#each motives}}
+                        {{#if visibleToPlayers}}
+                            <div class="motive-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: rgba(0, 0, 0, 0.08); border: 1px solid rgba(255,255,255,0.05); border-left: 4px solid {{color}} !important; border-radius: 4px;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fa-solid fa-yin-yang" style="color: {{color}}; font-size: 0.9rem;"></i>
+                                    <span style="font-weight: bold; font-size: 0.9rem;">{{label}}</span>
+                                    {{#if isFameOrInfamy}}
+                                    <span style="font-size: 0.7rem; text-transform: uppercase; background: rgba(201,160,84,0.15); border: 1px solid var(--dnd5e-color-gold); border-radius: 3px; padding: 1px 4px; color: var(--dnd5e-color-gold); font-weight: bold; letter-spacing: 0.05em;" title="This trait is famous or infamous in the region.">Famous</span>
+                                    {{/if}}
+                                </div>
+
+                                {{#if isFullyRevealed}}
+                                    <!-- Show exact value badge -->
+                                    <div style="font-size: 0.85rem; font-weight: bold; padding: 3px 8px; border-radius: 3px; background: {{color}}; color: #fff; min-width: 36px; text-align: center;">
+                                        {{#if (gt value 0)}}+{{/if}}{{value}}
+                                    </div>
+                                {{else}}
+                                    <!-- Partially revealed: show name but obscure value -->
+                                    <div style="font-size: 0.85rem; font-weight: bold; padding: 3px 8px; border-radius: 3px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--dnd5e-text-color-muted, #888); min-width: 36px; text-align: center;" title="Value is currently hidden.">
+                                        <i class="fa-solid fa-lock" style="font-size: 0.75rem; opacity: 0.7;"></i>
+                                    </div>
+                                {{/if}}
+                            </div>
+                        {{/if}}
+                    {{else}}
+                        <p style="text-align: center; color: var(--dnd5e-text-color-muted, #888); font-style: italic; margin: 1rem 0;">No motives are currently known to you.</p>
+                    {{/each}}
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</section>

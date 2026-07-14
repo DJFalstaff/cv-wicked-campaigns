@@ -1,0 +1,212 @@
+{
+  "name": "Underwater Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=10]] saving throw to hold your course against a strong current. On a failed save, you are pushed 10 feet off course, which counts as 10 feet of &amp;Reference[Difficult Terrain] to correct.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "RDvQZyKYKhUfhtXn",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912313,
+        "modifiedTime": 1783941912313,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!ZnVE2ehrtEvfntQx.RDvQZyKYKhUfhtXn"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=10]] or [[/save dex dc=10]] saving throw (your choice) as a tangle of seaweed or kelp wraps around a limb. On a failed save, you have the &amp;Reference[Restrained] condition until you or an ally spends an action freeing you.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "0jVZ4ZAVCAp3efWJ",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912313,
+        "modifiedTime": 1783941912313,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!ZnVE2ehrtEvfntQx.0jVZ4ZAVCAp3efWJ"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw as silt and sand cloud the water around you. On a failed save, you have the &amp;Reference[Blinded] condition until the end of your turn.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "jj2WZ3hZba5JsMh3",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912313,
+        "modifiedTime": 1783941912313,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!ZnVE2ehrtEvfntQx.jj2WZ3hZba5JsMh3"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to avoid a school of startled fish or eels darting through the area. On a failed save, they count as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "IUnmUulOYmVPdfPR",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912313,
+        "modifiedTime": 1783941912313,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!ZnVE2ehrtEvfntQx.IUnmUulOYmVPdfPR"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=15]] saving throw to avoid brushing against stinging coral or a jellyfish. On a failed save, you take [[/damage 1d6 type=poison]] damage.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "QEW4KM2jwzSDHxWj",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912313,
+        "modifiedTime": 1783941912313,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!ZnVE2ehrtEvfntQx.QEW4KM2jwzSDHxWj"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw as your air runs short from the exertion (if you lack a way to breathe underwater). On a failed save, you gain 1 level of Exhaustion.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "gUu1xmqZpjIoy5Ui",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912313,
+        "modifiedTime": 1783941912313,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!ZnVE2ehrtEvfntQx.gUu1xmqZpjIoy5Ui"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "jS94SQryjTltsgfW",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912313,
+        "modifiedTime": 1783941912313,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!ZnVE2ehrtEvfntQx.jS94SQryjTltsgfW"
+    }
+  ],
+  "_id": "ZnVE2ehrtEvfntQx",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912313,
+    "modifiedTime": 1783941912313,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!ZnVE2ehrtEvfntQx"
+}

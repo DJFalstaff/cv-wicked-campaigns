@@ -1,0 +1,212 @@
+{
+  "name": "Arctic & Ice Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as the ground turns to slick ice underfoot. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "8Axq2wLfxvea533z",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912326,
+        "modifiedTime": 1783941912326,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!rWTEmTIKiyIyHRUc.8Axq2wLfxvea533z"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=10]] saving throw as deep snowdrifts swallow your steps. On a failed save, it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "RP9vMukWUPKgBcMC",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912326,
+        "modifiedTime": 1783941912326,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!rWTEmTIKiyIyHRUc.RP9vMukWUPKgBcMC"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw as a sudden whiteout squall reduces visibility to nothing. On a failed save, you have the &amp;Reference[Blinded] condition until the end of your turn.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "Z2RN6IBrNb2zXE06",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912326,
+        "modifiedTime": 1783941912326,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!rWTEmTIKiyIyHRUc.Z2RN6IBrNb2zXE06"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=15]] saving throw as thin ice gives way beneath you. On a failed save, you fall through into frigid water and take [[/damage 1d6 type=cold]] damage.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "SrTq8tXAFJpzXqFc",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912326,
+        "modifiedTime": 1783941912326,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!rWTEmTIKiyIyHRUc.SrTq8tXAFJpzXqFc"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw against the biting wind sapping your grip and footing. On a failed save, you have disadvantage on the next ability check you make before the chase ends.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "XXhEFQ1cjCAnTLUx",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912326,
+        "modifiedTime": 1783941912326,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!rWTEmTIKiyIyHRUc.XXhEFQ1cjCAnTLUx"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as an icicle or overhang breaks loose above you. On a failed save, you take [[/damage 1d6 type=bludgeoning]] damage.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "iRuXT5D1fUHPIKLm",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912326,
+        "modifiedTime": 1783941912326,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!rWTEmTIKiyIyHRUc.iRuXT5D1fUHPIKLm"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "ZsiK0VvHX3bmvfXu",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912326,
+        "modifiedTime": 1783941912326,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!rWTEmTIKiyIyHRUc.ZsiK0VvHX3bmvfXu"
+    }
+  ],
+  "_id": "rWTEmTIKiyIyHRUc",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912326,
+    "modifiedTime": 1783941912327,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!rWTEmTIKiyIyHRUc"
+}

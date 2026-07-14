@@ -1,0 +1,212 @@
+{
+  "name": "Aerial Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=10]] saving throw to hold steady against a sudden gust. On a failed save, you are pushed 10 feet off your intended path.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "cRHFseCXSO7uoZjG",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912318,
+        "modifiedTime": 1783941912318,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pkYVLOq2kKMP2vxA.cRHFseCXSO7uoZjG"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save wis dc=10]] saving throw (Perception) to keep the quarry in sight through a bank of thick cloud. On a failed save, you have the &amp;Reference[Blinded] condition until the end of your turn.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "9KyEONGB3YpMhWcS",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912318,
+        "modifiedTime": 1783941912318,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pkYVLOq2kKMP2vxA.9KyEONGB3YpMhWcS"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to hold steady through a turbulent air pocket. On a failed save, you drop 10 feet and must spend 10 feet of movement regaining altitude.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "1dJoiYJzcAEQGJBt",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912318,
+        "modifiedTime": 1783941912318,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pkYVLOq2kKMP2vxA.1dJoiYJzcAEQGJBt"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to avoid a flock of birds or flying vermin scattering into your path. On a failed save, they count as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "oL3LClwBpLQdYGED",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912318,
+        "modifiedTime": 1783941912318,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pkYVLOq2kKMP2vxA.oL3LClwBpLQdYGED"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=15]] saving throw as lightning flickers through nearby storm clouds. On a failed save, you take [[/damage 2d6 type=lightning]] damage.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "u10zMIY8LfbZF0z8",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912318,
+        "modifiedTime": 1783941912318,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pkYVLOq2kKMP2vxA.u10zMIY8LfbZF0z8"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw against the thin air at altitude. On a failed save, you have the &amp;Reference[Poisoned] condition until the end of your next turn.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "dwSxmHCKpov8vltS",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912318,
+        "modifiedTime": 1783941912318,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pkYVLOq2kKMP2vxA.dwSxmHCKpov8vltS"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "ey5mvHqvh6Q6fTHA",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912318,
+        "modifiedTime": 1783941912318,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pkYVLOq2kKMP2vxA.ey5mvHqvh6Q6fTHA"
+    }
+  ],
+  "_id": "pkYVLOq2kKMP2vxA",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912318,
+    "modifiedTime": 1783941912318,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!pkYVLOq2kKMP2vxA"
+}

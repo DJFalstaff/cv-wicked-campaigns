@@ -1,0 +1,212 @@
+{
+  "name": "Shipboard Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to keep your footing as a sudden swell rocks the ship. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "z5tN1zu1qcJHTe8z",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912307,
+        "modifiedTime": 1783941912307,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!VBmqLKWIJmcWQSN7.z5tN1zu1qcJHTe8z"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] or [[/save str dc=10]] saving throw (your choice) to navigate coiled rigging tangled underfoot. On a failed save, it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "fYpJILmP4Gm3vuF8",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912307,
+        "modifiedTime": 1783941912307,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!VBmqLKWIJmcWQSN7.fYpJILmP4Gm3vuF8"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as cargo crates shift and slide across the deck. On a failed save, you take [[/damage 1d6 type=bludgeoning]] damage and they count as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "TxzHLi4mKSflrtAA",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912307,
+        "modifiedTime": 1783941912307,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!VBmqLKWIJmcWQSN7.TxzHLi4mKSflrtAA"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw as sea spray blinds you when a wave crashes over the rail. On a failed save, you have the &amp;Reference[Blinded] condition until the end of your turn.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "eNYJfqhDMAfxgSca",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912307,
+        "modifiedTime": 1783941912307,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!VBmqLKWIJmcWQSN7.eNYJfqhDMAfxgSca"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw on a deck slick with spilled oil or fish guts. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "29fvmH9NOKDSB12c",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912307,
+        "modifiedTime": 1783941912307,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!VBmqLKWIJmcWQSN7.29fvmH9NOKDSB12c"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=15]] saving throw to scramble across a swaying plank or rope bridge between vessels. On a failed save, you fall into the water below.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "AVuVjTPLW9CKEALe",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912307,
+        "modifiedTime": 1783941912307,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!VBmqLKWIJmcWQSN7.AVuVjTPLW9CKEALe"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "dU00E89HPxLRSHZn",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912307,
+        "modifiedTime": 1783941912307,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!VBmqLKWIJmcWQSN7.dU00E89HPxLRSHZn"
+    }
+  ],
+  "_id": "VBmqLKWIJmcWQSN7",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912307,
+    "modifiedTime": 1783941912308,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!VBmqLKWIJmcWQSN7"
+}

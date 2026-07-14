@@ -1,0 +1,83 @@
+{
+  "name": "Bramwell Thorne - Journal",
+  "flags": {
+    "campaign-codex": {
+      "type": "npc",
+      "data": {
+        "linkedActor": "Compendium.cv-wicked-campaigns.wicked-example-characters.Actor.TiAsSio7p3t7Z1SP",
+        "description": "",
+        "linkedLocations": [],
+        "linkedShops": [],
+        "associates": [],
+        "notes": "",
+        "tagMode": false,
+        "linkedStandardJournals": [
+          "Compendium.cv-wicked-campaigns.wicked-lore.JournalEntry.KcSe5Rs0UEAv37TA"
+        ]
+      }
+    },
+    "core": {
+      "sheetClass": "campaign-codex.NPCSheet"
+    }
+  },
+  "pages": [
+    {
+      "name": "Overview",
+      "type": "text",
+      "text": {
+        "content": "<h1>Bramwell Thorne - Journal</h1><p>NPC details...</p>",
+        "format": 1
+      },
+      "_id": "nBon9d6gsPAHnDrh",
+      "system": {},
+      "title": {
+        "show": true,
+        "level": 1
+      },
+      "image": {},
+      "video": {
+        "controls": true,
+        "volume": 0.5
+      },
+      "src": null,
+      "category": null,
+      "sort": 0,
+      "ownership": {
+        "default": -1
+      },
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783663570642,
+        "modifiedTime": 1783663570642,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!journal.pages!WkxFlWodAvjVX2E3.nBon9d6gsPAHnDrh"
+    }
+  ],
+  "_id": "WkxFlWodAvjVX2E3",
+  "folder": "cRNLdwWppEdQK3ZG",
+  "categories": [],
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783663570642,
+    "modifiedTime": 1783663589996,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "sort": 0,
+  "_key": "!journal!WkxFlWodAvjVX2E3"
+}

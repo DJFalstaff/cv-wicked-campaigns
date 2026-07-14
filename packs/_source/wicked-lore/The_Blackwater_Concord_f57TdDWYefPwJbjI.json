@@ -1,0 +1,80 @@
+{
+  "name": "The Blackwater Concord",
+  "flags": {
+    "campaign-codex": {
+      "type": "tag",
+      "data": {
+        "linkedActor": null,
+        "description": "<p><em>[PLACEHOLDER LORE — replace with real setting content before publishing.]</em></p><p>A placeholder faction description. A merchant cabal that quietly controls trade along the coast.</p>",
+        "linkedLocations": [],
+        "linkedShops": [],
+        "associates": [],
+        "notes": "",
+        "tagMode": true
+      }
+    },
+    "core": {
+      "sheetClass": "campaign-codex.TagSheet"
+    }
+  },
+  "pages": [
+    {
+      "name": "Overview",
+      "type": "text",
+      "text": {
+        "content": "<h1>The Blackwater Concord</h1><p>Faction details...</p>",
+        "format": 1
+      },
+      "_id": "KZizCxCeaG40A4yt",
+      "system": {},
+      "title": {
+        "show": true,
+        "level": 1
+      },
+      "image": {},
+      "video": {
+        "controls": true,
+        "volume": 0.5
+      },
+      "src": null,
+      "category": null,
+      "sort": 0,
+      "ownership": {
+        "default": -1
+      },
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783656132266,
+        "modifiedTime": 1783656132266,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!journal.pages!f57TdDWYefPwJbjI.KZizCxCeaG40A4yt"
+    }
+  ],
+  "_id": "f57TdDWYefPwJbjI",
+  "folder": "3QEs2oKPk5W9nMHU",
+  "categories": [],
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783656132266,
+    "modifiedTime": 1783656132266,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "sort": 0,
+  "_key": "!journal!f57TdDWYefPwJbjI"
+}

@@ -1,0 +1,212 @@
+{
+  "name": "Desert Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=10]] saving throw as your feet sink into loose, shifting sand. On a failed save, it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "rV9FnTDT4PQxUZ54",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912322,
+        "modifiedTime": 1783941912322,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!SddBg8BL7RKNskjV.rV9FnTDT4PQxUZ54"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw as a sudden gust kicks up blinding dust and grit. On a failed save, you have the &amp;Reference[Blinded] condition until the end of your turn.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "jgUeK2u8kOfsZJqj",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912322,
+        "modifiedTime": 1783941912322,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!SddBg8BL7RKNskjV.jgUeK2u8kOfsZJqj"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw against the scorching heat. On a failed save, you have disadvantage on the next ability check you make before the chase ends.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "DNpO55OAy8LP9usy",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912322,
+        "modifiedTime": 1783941912322,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!SddBg8BL7RKNskjV.DNpO55OAy8LP9usy"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as a buried ruin or rock formation catches your foot. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "LvF4MJkhQHuoCAfb",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912322,
+        "modifiedTime": 1783941912322,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!SddBg8BL7RKNskjV.LvF4MJkhQHuoCAfb"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=15]] saving throw as a sinkhole opens beneath you. On a failed save, you fall 10 feet and take [[/damage 1d6 type=bludgeoning]] damage.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "rLZnxpjKFEh6L5Z7",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912322,
+        "modifiedTime": 1783941912322,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!SddBg8BL7RKNskjV.rLZnxpjKFEh6L5Z7"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw against the sun glare off pale stone or sand. On a failed save, you have disadvantage on Wisdom (Perception) checks until the end of your next turn.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "Bb3zmEBW1f9qVKtj",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912322,
+        "modifiedTime": 1783941912322,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!SddBg8BL7RKNskjV.Bb3zmEBW1f9qVKtj"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "th5FyDfuVHvgfFAS",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912322,
+        "modifiedTime": 1783941912322,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!SddBg8BL7RKNskjV.th5FyDfuVHvgfFAS"
+    }
+  ],
+  "_id": "SddBg8BL7RKNskjV",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912322,
+    "modifiedTime": 1783941912323,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!SddBg8BL7RKNskjV"
+}

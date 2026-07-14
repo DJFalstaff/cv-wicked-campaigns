@@ -1,0 +1,83 @@
+{
+  "name": "Doran Ashcroft - Journal",
+  "flags": {
+    "campaign-codex": {
+      "type": "npc",
+      "data": {
+        "linkedActor": "Compendium.cv-wicked-campaigns.wicked-example-characters.Actor.nyLOxbIXQmlRKDOp",
+        "description": "",
+        "linkedLocations": [],
+        "linkedShops": [],
+        "associates": [],
+        "notes": "",
+        "tagMode": false,
+        "linkedStandardJournals": [
+          "Compendium.cv-wicked-campaigns.wicked-lore.JournalEntry.15agJSFz85jOO5w9"
+        ]
+      }
+    },
+    "core": {
+      "sheetClass": "campaign-codex.NPCSheet"
+    }
+  },
+  "pages": [
+    {
+      "name": "Overview",
+      "type": "text",
+      "text": {
+        "content": "<h1>Doran Ashcroft - Journal</h1><p>NPC details...</p>",
+        "format": 1
+      },
+      "_id": "MKHtlIkpAX9yjrlk",
+      "system": {},
+      "title": {
+        "show": true,
+        "level": 1
+      },
+      "image": {},
+      "video": {
+        "controls": true,
+        "volume": 0.5
+      },
+      "src": null,
+      "category": null,
+      "sort": 0,
+      "ownership": {
+        "default": -1
+      },
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783663570651,
+        "modifiedTime": 1783663570651,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!journal.pages!HSRwPW3qUd4OmfAu.MKHtlIkpAX9yjrlk"
+    }
+  ],
+  "_id": "HSRwPW3qUd4OmfAu",
+  "folder": "cRNLdwWppEdQK3ZG",
+  "categories": [],
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783663570651,
+    "modifiedTime": 1783663589986,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "sort": 0,
+  "_key": "!journal!HSRwPW3qUd4OmfAu"
+}

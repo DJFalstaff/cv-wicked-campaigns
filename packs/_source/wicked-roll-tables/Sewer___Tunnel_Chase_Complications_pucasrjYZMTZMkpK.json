@@ -1,0 +1,212 @@
+{
+  "name": "Sewer & Tunnel Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=10]] saving throw to squeeze quickly through a narrow stretch of tunnel. On a failed save, it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "UUmk7w0AlSaoB79s",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912233,
+        "modifiedTime": 1783941912233,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pucasrjYZMTZMkpK.UUmk7w0AlSaoB79s"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as the floor drops away into deeper water. On a failed save, you fall 10 feet into filthy water and take [[/damage 1d4 type=bludgeoning]] damage.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "pxF8OMOFW8CspMiZ",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912233,
+        "modifiedTime": 1783941912233,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pucasrjYZMTZMkpK.pxF8OMOFW8CspMiZ"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw against the foul, stagnant air. On a failed save, you have the &amp;Reference[Poisoned] condition until the end of your next turn.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "hngdZdkLj3NF0cd9",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912233,
+        "modifiedTime": 1783941912233,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pucasrjYZMTZMkpK.hngdZdkLj3NF0cd9"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as a rusted grate or rotten walkway collapses underfoot. On a failed save, you have the &amp;Reference[Prone] condition and take [[/damage 1d4 type=bludgeoning]] damage.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "GpIcLkJvnTbJwJNe",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912233,
+        "modifiedTime": 1783941912233,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pucasrjYZMTZMkpK.GpIcLkJvnTbJwJNe"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to avoid a swarm of rats scurrying across your path. On a failed save, it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "CcXTJMIt3blWi9IQ",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912233,
+        "modifiedTime": 1783941912233,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pucasrjYZMTZMkpK.CcXTJMIt3blWi9IQ"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to keep hold of your light source as dripping water or a gust of foul wind threatens to snuff it out. On a failed save, you have the &amp;Reference[Blinded] condition until you spend an action relighting it.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "0pXvCYYe0ionvSno",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912233,
+        "modifiedTime": 1783941912233,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pucasrjYZMTZMkpK.0pXvCYYe0ionvSno"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "eQQiLSSK1rK9B9IJ",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912233,
+        "modifiedTime": 1783941912233,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!pucasrjYZMTZMkpK.eQQiLSSK1rK9B9IJ"
+    }
+  ],
+  "_id": "pucasrjYZMTZMkpK",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912233,
+    "modifiedTime": 1783941912233,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!pucasrjYZMTZMkpK"
+}

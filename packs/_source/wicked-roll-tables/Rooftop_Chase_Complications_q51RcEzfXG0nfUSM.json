@@ -1,0 +1,212 @@
+{
+  "name": "Rooftop Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to leap a gap between buildings. On a failed save, you fall short and take [[/damage 2d6 type=bludgeoning]] damage, landing on the floor below.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "VN26NdmQrgTGvf8W",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941911996,
+        "modifiedTime": 1783941911996,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!q51RcEzfXG0nfUSM.VN26NdmQrgTGvf8W"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as loose or broken roof tiles shift underfoot. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "BE16ZWcBEFpOuXbh",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941911996,
+        "modifiedTime": 1783941911996,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!q51RcEzfXG0nfUSM.BE16ZWcBEFpOuXbh"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] or [[/save int dc=10]] saving throw (your choice) to navigate a maze of laundry lines and drying sheets. On a failed save, they count as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "FP2wn79WrMXxLRNd",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941911996,
+        "modifiedTime": 1783941911996,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!q51RcEzfXG0nfUSM.FP2wn79WrMXxLRNd"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw as a chimney vents a blast of hot steam or smoke. On a failed save, you have the &amp;Reference[Blinded] condition until the end of your turn.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "65UoJ0rVmT21P9Kw",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941911996,
+        "modifiedTime": 1783941911996,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!q51RcEzfXG0nfUSM.65UoJ0rVmT21P9Kw"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=15]] saving throw as a skylight or weak section of roofing gives way beneath you. On a failed save, you take [[/damage 2d4 type=slashing]] damage and have the &amp;Reference[Prone] condition.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "qZ8BRIqBPEefiIsK",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941911996,
+        "modifiedTime": 1783941911996,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!q51RcEzfXG0nfUSM.qZ8BRIqBPEefiIsK"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to keep your footing as a flock of startled birds bursts into your path. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "LX22VAzQ4OubbtLH",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941911996,
+        "modifiedTime": 1783941911996,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!q51RcEzfXG0nfUSM.LX22VAzQ4OubbtLH"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "VSMj0RIqvN7PP5KW",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941911996,
+        "modifiedTime": 1783941911996,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!q51RcEzfXG0nfUSM.VSMj0RIqvN7PP5KW"
+    }
+  ],
+  "_id": "q51RcEzfXG0nfUSM",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941911996,
+    "modifiedTime": 1783941911997,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!q51RcEzfXG0nfUSM"
+}

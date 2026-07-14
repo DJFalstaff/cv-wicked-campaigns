@@ -1,1 +1,7 @@
-packs/
+node_modules/
+dist/
+packs/wicked-adventures/
+packs/wicked-roll-tables/
+packs/wicked-macros/
+packs/wicked-lore/
+packs/wicked-example-characters/

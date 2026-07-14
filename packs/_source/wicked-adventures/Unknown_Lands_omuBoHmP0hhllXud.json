@@ -1,0 +1,23 @@
+{
+  "type": "Adventure",
+  "folder": null,
+  "name": "Unknown Lands",
+  "color": "#0e1ce1",
+  "sorting": "a",
+  "_id": "omuBoHmP0hhllXud",
+  "description": "",
+  "sort": 0,
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1782581949014,
+    "modifiedTime": 1782581983380,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!folders!omuBoHmP0hhllXud"
+}

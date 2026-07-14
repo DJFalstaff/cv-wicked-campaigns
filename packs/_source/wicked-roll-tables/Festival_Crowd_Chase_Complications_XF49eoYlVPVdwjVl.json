@@ -1,0 +1,212 @@
+{
+  "name": "Festival Crowd Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=10]], [[/save dex dc=10]], or [[/save cha dc=10]] saving throw (your choice) to get past a parade float or performer troupe blocking the way. On a failed save, it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "xvQ3xGJcsLlCERoC",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912338,
+        "modifiedTime": 1783941912338,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!XF49eoYlVPVdwjVl.xvQ3xGJcsLlCERoC"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as a merchant's stall of wares spills into your path. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "WNGeoWevBhoXh7tl",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912338,
+        "modifiedTime": 1783941912338,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!XF49eoYlVPVdwjVl.WNGeoWevBhoXh7tl"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as a street performer's act startles you mid-stride. On a failed save, you have the &amp;Reference[Prone] condition.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "VvCtlsBaHsBzz0l2",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912338,
+        "modifiedTime": 1783941912338,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!XF49eoYlVPVdwjVl.VvCtlsBaHsBzz0l2"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to shrug free without slowing as a pickpocket or overeager reveler grabs at you. On a failed save, the crowd counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "S2oapHT7TKbjFdM4",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912338,
+        "modifiedTime": 1783941912338,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!XF49eoYlVPVdwjVl.S2oapHT7TKbjFdM4"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save str dc=15]] or [[/save cha dc=15]] saving throw (your choice) to force through a tight crush of revelers packed shoulder to shoulder. On a failed save, you take [[/damage 1d4 type=bludgeoning]] damage and it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "ynioLs7xYutSczyU",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912338,
+        "modifiedTime": 1783941912338,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!XF49eoYlVPVdwjVl.ynioLs7xYutSczyU"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save con dc=10]] saving throw as confetti, smoke, or fireworks briefly blind you. On a failed save, you have the &amp;Reference[Blinded] condition until the end of your turn.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "gNmpSv2OuVdmAEIl",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912338,
+        "modifiedTime": 1783941912338,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!XF49eoYlVPVdwjVl.gNmpSv2OuVdmAEIl"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "uMtdFkeijrymlHWS",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912338,
+        "modifiedTime": 1783941912338,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!XF49eoYlVPVdwjVl.uMtdFkeijrymlHWS"
+    }
+  ],
+  "_id": "XF49eoYlVPVdwjVl",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912338,
+    "modifiedTime": 1783941912338,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!XF49eoYlVPVdwjVl"
+}

@@ -1,0 +1,25 @@
+{
+  "name": "cv-wicked-campaigns",
+  "private": true,
+  "version": "14.0.0",
+  "description": "Build tooling for the Wicked Campaigns Foundry VTT module",
+  "scripts": {
+    "unpack": "npm run unpack:adventures && npm run unpack:rolltables && npm run unpack:macros && npm run unpack:lore && npm run unpack:characters",
+    "unpack:adventures": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-adventures -t Adventure --in packs --out packs/_source/wicked-adventures --clean",
+    "unpack:rolltables": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-roll-tables -t RollTable --in packs --out packs/_source/wicked-roll-tables --clean",
+    "unpack:macros": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-macros -t Macro --in packs --out packs/_source/wicked-macros --clean",
+    "unpack:lore": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-lore -t JournalEntry --in packs --out packs/_source/wicked-lore --clean",
+    "unpack:characters": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-example-characters -t Actor --in packs --out packs/_source/wicked-example-characters --clean",
+    "pack": "npm run pack:adventures && npm run pack:rolltables && npm run pack:macros && npm run pack:lore && npm run pack:characters",
+    "pack:adventures": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-adventures -t Adventure --in packs/_source/wicked-adventures --out packs",
+    "pack:rolltables": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-roll-tables -t RollTable --in packs/_source/wicked-roll-tables --out packs",
+    "pack:macros": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-macros -t Macro --in packs/_source/wicked-macros --out packs",
+    "pack:lore": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-lore -t JournalEntry --in packs/_source/wicked-lore --out packs",
+    "pack:characters": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-example-characters -t Actor --in packs/_source/wicked-example-characters --out packs",
+    "release": "npm run pack && node tools/build-release.mjs"
+  },
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^1.0.3",
+    "archiver": "^7.0.1"
+  }
+}

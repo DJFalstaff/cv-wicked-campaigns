@@ -1,0 +1,45 @@
+{
+  "name": "The Cursed Crew",
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {
+    "campaign-codex": {
+      "type": "party",
+      "data": {
+        "members": [
+          "Compendium.cv-wicked-campaigns.wicked-lore.JournalEntry.KcSe5Rs0UEAv37TA",
+          "Compendium.cv-wicked-campaigns.wicked-lore.JournalEntry.0vVHQdCU7vxUTauy",
+          "Compendium.cv-wicked-campaigns.wicked-lore.JournalEntry.15agJSFz85jOO5w9",
+          "Compendium.cv-wicked-campaigns.wicked-lore.JournalEntry.XTyc8n7lQeERouaH"
+        ],
+        "description": ""
+      },
+      "icon-override": "fas fa-users"
+    },
+    "core": {
+      "sheetClass": "cv-wicked-campaigns.PartySheet"
+    },
+    "cv-wicked-campaigns": {
+      "partyStateUuid": "JournalEntry.TZLM0QOWSLcGOOwQ"
+    }
+  },
+  "_id": "UmxhnOKygZTTfnq1",
+  "pages": [],
+  "folder": null,
+  "categories": [],
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783663570639,
+    "modifiedTime": 1783663589993,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "sort": 0,
+  "_key": "!journal!UmxhnOKygZTTfnq1"
+}

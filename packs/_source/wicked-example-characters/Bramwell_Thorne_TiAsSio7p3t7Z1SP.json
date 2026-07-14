@@ -1,0 +1,808 @@
+{
+  "name": "Bramwell Thorne",
+  "type": "character",
+  "_id": "TiAsSio7p3t7Z1SP",
+  "img": "systems/dnd5e/icons/svg/actors/character.svg",
+  "system": {
+    "currency": {
+      "pp": 0,
+      "gp": 0,
+      "ep": 0,
+      "sp": 0,
+      "cp": 0,
+      "cr": 0
+    },
+    "abilities": {
+      "str": {
+        "value": 10,
+        "proficient": 0,
+        "max": null,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "check": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        },
+        "save": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        }
+      },
+      "dex": {
+        "value": 10,
+        "proficient": 0,
+        "max": null,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "check": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        },
+        "save": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        }
+      },
+      "con": {
+        "value": 10,
+        "proficient": 0,
+        "max": null,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "check": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        },
+        "save": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        }
+      },
+      "int": {
+        "value": 10,
+        "proficient": 0,
+        "max": null,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "check": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        },
+        "save": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        }
+      },
+      "wis": {
+        "value": 10,
+        "proficient": 0,
+        "max": null,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "check": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        },
+        "save": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        }
+      },
+      "cha": {
+        "value": 10,
+        "proficient": 0,
+        "max": null,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "check": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        },
+        "save": {
+          "roll": {
+            "min": null,
+            "max": null,
+            "mode": 0
+          }
+        }
+      }
+    },
+    "bonuses": {
+      "mwak": {
+        "attack": "",
+        "damage": ""
+      },
+      "rwak": {
+        "attack": "",
+        "damage": ""
+      },
+      "msak": {
+        "attack": "",
+        "damage": ""
+      },
+      "rsak": {
+        "attack": "",
+        "damage": ""
+      },
+      "abilities": {
+        "check": "",
+        "save": "",
+        "skill": ""
+      },
+      "spell": {
+        "dc": ""
+      }
+    },
+    "skills": {
+      "acr": {
+        "ability": "dex",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ani": {
+        "ability": "wis",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "arc": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ath": {
+        "ability": "str",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "dec": {
+        "ability": "cha",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "his": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ins": {
+        "ability": "wis",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "itm": {
+        "ability": "cha",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "inv": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "med": {
+        "ability": "wis",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "nat": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "prc": {
+        "ability": "wis",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "prf": {
+        "ability": "cha",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "per": {
+        "ability": "cha",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "rel": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "slt": {
+        "ability": "dex",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ste": {
+        "ability": "dex",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "sur": {
+        "ability": "wis",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "nav": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "dat": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "pil": {
+        "ability": "dex",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "tec": {
+        "ability": "int",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "value": 0,
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      }
+    },
+    "tools": {},
+    "spells": {
+      "spell1": {
+        "value": 0
+      },
+      "spell2": {
+        "value": 0
+      },
+      "spell3": {
+        "value": 0
+      },
+      "spell4": {
+        "value": 0
+      },
+      "spell5": {
+        "value": 0
+      },
+      "spell6": {
+        "value": 0
+      },
+      "spell7": {
+        "value": 0
+      },
+      "spell8": {
+        "value": 0
+      },
+      "spell9": {
+        "value": 0
+      },
+      "pact": {
+        "value": 0
+      }
+    },
+    "attributes": {
+      "ac": {
+        "calc": "default",
+        "flat": null
+      },
+      "init": {
+        "ability": "",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "bonus": ""
+      },
+      "movement": {
+        "units": null,
+        "hover": false,
+        "ignoredDifficultTerrain": []
+      },
+      "attunement": {
+        "max": 3
+      },
+      "senses": {
+        "ranges": {
+          "blindsight": null,
+          "darkvision": null,
+          "tremorsense": null,
+          "truesight": null,
+          "thermalsight": null
+        },
+        "units": null,
+        "special": ""
+      },
+      "spellcasting": "",
+      "exhaustion": 0,
+      "concentration": {
+        "ability": "",
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "bonuses": {
+          "save": ""
+        },
+        "limit": 1
+      },
+      "loyalty": {},
+      "hp": {
+        "max": null,
+        "temp": null,
+        "tempmax": 0,
+        "value": 0,
+        "bonuses": {}
+      },
+      "death": {
+        "roll": {
+          "min": null,
+          "max": null,
+          "mode": 0
+        },
+        "success": 0,
+        "failure": 0,
+        "bonuses": {
+          "save": ""
+        }
+      },
+      "inspiration": false
+    },
+    "bastion": {
+      "name": "",
+      "description": ""
+    },
+    "details": {
+      "biography": {
+        "value": "See the backstory sheet for more info",
+        "public": ""
+      },
+      "alignment": "Neutral Good",
+      "ideal": "See the backstory sheet for more info",
+      "bond": "See the backstory sheet for more info",
+      "flaw": "See the backstory sheet for more info",
+      "race": null,
+      "background": null,
+      "originalClass": "",
+      "xp": {
+        "value": 0
+      },
+      "appearance": "See the backstory sheet for more info",
+      "trait": "See the backstory sheet for more info",
+      "gender": "Male",
+      "height": "6'0\"",
+      "weight": "158 lbs",
+      "age": "79",
+      "hair": "Deep blue",
+      "eyes": "Cat-like slit pupils",
+      "skin": "Light",
+      "faith": "Seraphina — Goddess of mercy and healing, her temples are the only places enemies may share bread without weapons drawn. (See the backstory sheet for more info)"
+    },
+    "traits": {
+      "size": "med",
+      "di": {
+        "value": [],
+        "custom": "",
+        "bypasses": []
+      },
+      "dr": {
+        "value": [],
+        "custom": "",
+        "bypasses": []
+      },
+      "dv": {
+        "value": [],
+        "custom": "",
+        "bypasses": []
+      },
+      "dm": {
+        "amount": {},
+        "bypasses": []
+      },
+      "ci": {
+        "value": [],
+        "custom": ""
+      },
+      "languages": {
+        "value": [],
+        "custom": "",
+        "communication": {}
+      },
+      "weaponProf": {
+        "value": [],
+        "custom": "",
+        "mastery": {
+          "value": [],
+          "bonus": []
+        }
+      },
+      "armorProf": {
+        "value": [],
+        "custom": ""
+      }
+    },
+    "resources": {
+      "primary": {
+        "value": 0,
+        "max": 0,
+        "sr": false,
+        "lr": false,
+        "label": ""
+      },
+      "secondary": {
+        "value": 0,
+        "max": 0,
+        "sr": false,
+        "lr": false,
+        "label": ""
+      },
+      "tertiary": {
+        "value": 0,
+        "max": 0,
+        "sr": false,
+        "lr": false,
+        "label": ""
+      }
+    },
+    "favorites": []
+  },
+  "prototypeToken": {
+    "name": "Bramwell Thorne",
+    "displayName": 0,
+    "actorLink": true,
+    "width": 1,
+    "height": 1,
+    "depth": 1,
+    "texture": {
+      "src": "systems/dnd5e/icons/svg/actors/character.svg",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "fit": "contain",
+      "scaleX": 1,
+      "scaleY": 1,
+      "tint": "#ffffff",
+      "alphaThreshold": 0.75
+    },
+    "lockRotation": false,
+    "rotation": 0,
+    "alpha": 1,
+    "disposition": 1,
+    "displayBars": 0,
+    "bar1": {
+      "attribute": "attributes.hp"
+    },
+    "bar2": {
+      "attribute": null
+    },
+    "light": {
+      "negative": false,
+      "priority": 0,
+      "alpha": 0.5,
+      "angle": 360,
+      "bright": 0,
+      "color": null,
+      "coloration": 1,
+      "dim": 0,
+      "attenuation": 0.5,
+      "luminosity": 0.5,
+      "saturation": 0,
+      "contrast": 0,
+      "shadows": 0,
+      "animation": {
+        "type": null,
+        "speed": 5,
+        "intensity": 5,
+        "reverse": false
+      },
+      "darkness": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "sight": {
+      "enabled": true,
+      "range": 0,
+      "angle": 360,
+      "visionMode": "basic",
+      "color": null,
+      "attenuation": 0.1,
+      "brightness": 0,
+      "saturation": 0,
+      "contrast": 0
+    },
+    "detectionModes": {},
+    "occludable": {
+      "radius": 0
+    },
+    "ring": {
+      "enabled": false,
+      "colors": {
+        "ring": null,
+        "background": null
+      },
+      "effects": 1,
+      "subject": {
+        "scale": 1,
+        "texture": null
+      }
+    },
+    "turnMarker": {
+      "mode": 1,
+      "animation": null,
+      "src": null,
+      "disposition": false
+    },
+    "movementAction": null,
+    "flags": {},
+    "randomImg": false,
+    "appendNumber": false,
+    "prependAdjective": false
+  },
+  "items": [],
+  "effects": [],
+  "folder": null,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {
+    "cv-wicked-campaigns": {
+      "lifepathHtml": "<h2>Family</h2><div class=\"wicked-family-grid\">\n      <div class=\"wicked-family-card\">\n        <div class=\"card-label\">Social Standing</div>\n        <div class=\"card-value\">Town officials (reeves, magistrates, tax collectors).</div>\n      </div>\n      <div class=\"wicked-family-card\">\n        <div class=\"card-label\">Childhood</div>\n        <div class=\"card-value\">Learned about a family secret that changed their perspective</div>\n      </div>\n      <div class=\"wicked-family-card\">\n        <div class=\"card-label\">Parents Status</div>\n        <div class=\"card-value\">They were executed after being falsely accused of treason against the crown. They are still in prison.</div>\n      </div>\n      <div class=\"wicked-family-card\">\n        <div class=\"card-label\">Family Standing</div>\n        <div class=\"card-value\">Secure, even amid hardship.</div>\n      </div>\n      <div class=\"wicked-family-card\">\n        <div class=\"card-label\">Family Goal</div>\n        <div class=\"card-value\">Protect a hidden portal that your family has guarded for centuries.</div>\n      </div></div>\n    <div class=\"wicked-parent-grid\">\n      <div class=\"wicked-parent-card\">\n        <div class=\"parent-role\">Mother</div>\n        <div class=\"parent-name\">Petra</div>\n        <div class=\"parent-details\">\n          <p><strong>Relationship/Bond:</strong> You love and care for each other equally</p>\n        </div>\n      </div>\n      <div class=\"wicked-parent-card\">\n        <div class=\"parent-role\">Father</div>\n        <div class=\"parent-name\">Theron</div>\n        <div class=\"parent-details\">\n          <p><strong>Relationship/Bond:</strong> You are estranged and don't speak to each other</p>\n        </div>\n      </div>\n    </div><p><strong>Birth order:</strong> 4th of 8 children.</p><div class=\"wicked-sibling-grid\">\n          <div class=\"wicked-sibling-card\">\n            <div class=\"sibling-name\">Dawnara</div>\n            <div class=\"sibling-header\">\n              <span class=\"sibling-ordinal\">1st Child</span>\n              <span class=\"sibling-tag-pill\">older sister</span>\n            </div>\n            <div class=\"sibling-details\" style=\"margin-top: 0.5rem;\">\n              <p><strong>Occupation/Status:</strong> A sibling joined a secretive faction no one believes exists.</p>\n              <p><strong>Relationship:</strong> You are estranged and don't speak to each other</p>\n            </div>\n          </div>\n          <div class=\"wicked-sibling-card\">\n            <div class=\"sibling-name\">Elarion</div>\n            <div class=\"sibling-header\">\n              <span class=\"sibling-ordinal\">2nd Child</span>\n              <span class=\"sibling-tag-pill\">older brother</span> <span class=\"sibling-tag-pill half\">half-sibling</span>\n            </div>\n            <div class=\"sibling-details\" style=\"margin-top: 0.5rem;\">\n              <p><strong>Occupation/Status:</strong> This sibling is a devoted cleric of a powerful love, war, or law god.</p>\n              <p><strong>Relationship:</strong> You love and care for each other equally</p>\n            </div>\n          </div>\n          <div class=\"wicked-sibling-card\">\n            <div class=\"sibling-name\">Quinlan</div>\n            <div class=\"sibling-header\">\n              <span class=\"sibling-ordinal\">3rd Child</span>\n              <span class=\"sibling-tag-pill\">older brother</span>\n            </div>\n            <div class=\"sibling-details\" style=\"margin-top: 0.5rem;\">\n              <p><strong>Occupation/Status:</strong> This sibling fell in with cultists devoted to an nihilistic god.</p>\n              <p><strong>Relationship:</strong> You love and care for each other equally</p>\n            </div>\n          </div>\n          <div class=\"wicked-sibling-card\">\n            <div class=\"sibling-name\">Caldrin</div>\n            <div class=\"sibling-header\">\n              <span class=\"sibling-ordinal\">5th Child</span>\n              <span class=\"sibling-tag-pill\">younger brother</span> <span class=\"sibling-tag-pill identical\">identical twin</span>\n            </div>\n            <div class=\"sibling-details\" style=\"margin-top: 0.5rem;\">\n              <p><strong>Occupation/Status:</strong> This sibling is your bitter rival, competing for inheritance or glory.</p>\n              <p><strong>Relationship:</strong> You love and care for each other equally</p>\n            </div>\n          </div>\n          <div class=\"wicked-sibling-card\">\n            <div class=\"sibling-name\">Seraphine</div>\n            <div class=\"sibling-header\">\n              <span class=\"sibling-ordinal\">6th Child</span>\n              <span class=\"sibling-tag-pill\">younger sister</span>\n            </div>\n            <div class=\"sibling-details\" style=\"margin-top: 0.5rem;\">\n              <p><strong>Occupation/Status:</strong> This sibling constantly outshines you.</p>\n              <p><strong>Relationship:</strong> You are estranged and don't speak to each other</p>\n            </div>\n          </div>\n          <div class=\"wicked-sibling-card\">\n            <div class=\"sibling-name\">Elavan</div>\n            <div class=\"sibling-header\">\n              <span class=\"sibling-ordinal\">7th Child</span>\n              <span class=\"sibling-tag-pill\">younger brother</span>\n            </div>\n            <div class=\"sibling-details\" style=\"margin-top: 0.5rem;\">\n              <p><strong>Occupation/Status:</strong> This sibling is a renowned wizard studying in a distant arcane academy.</p>\n              <p><strong>Relationship:</strong> They care for you more than you care for them</p>\n            </div>\n          </div>\n          <div class=\"wicked-sibling-card\">\n            <div class=\"sibling-name\">Sylvara</div>\n            <div class=\"sibling-header\">\n              <span class=\"sibling-ordinal\">8th Child</span>\n              <span class=\"sibling-tag-pill\">younger sister</span>\n            </div>\n            <div class=\"sibling-details\" style=\"margin-top: 0.5rem;\">\n              <p><strong>Occupation/Status:</strong> This sibling is always the center of a typhoon of trouble.</p>\n              <p><strong>Relationship:</strong> You care for each other but constantly bicker</p>\n            </div>\n          </div></div><h2>Friends &amp; Enemies</h2><h3>Friends</h3><div class=\"wicked-fe-grid\">\n      <div class=\"wicked-fe-card is-friend\">\n        <div class=\"fe-name\">Evandara Copperholm</div>\n        <div class=\"fe-header\"><span class=\"fe-tag-pill\">female</span> <span class=\"fe-tag-pill\">Hobgoblin / Bugbear-like</span> <span class=\"fe-tag-pill\">Bard/Singer</span></div>\n        <div class=\"fe-details\" style=\"margin-top: 0.5rem;\">\n          <p><strong>Situation:</strong> Your closest companion is not humanoid (an animal, spirit, or construct).</p>\n        </div>\n      </div>\n      <div class=\"wicked-fe-card is-friend\">\n        <div class=\"fe-name\">Phaedra Lightwood</div>\n        <div class=\"fe-header\"><span class=\"fe-tag-pill\">female</span> <span class=\"fe-tag-pill\">Undead (Skeleton, Vampire, Wight, etc.)</span> <span class=\"fe-tag-pill\">Merchant / Smuggler</span></div>\n        <div class=\"fe-details\" style=\"margin-top: 0.5rem;\">\n          <p><strong>Situation:</strong> Your closest companion is not humanoid (an animal, spirit, or construct).</p>\n        </div>\n      </div></div><h3>Enemies</h3><div class=\"wicked-fe-grid\">\n      <div class=\"wicked-fe-card is-enemy\">\n        <div class=\"fe-name\">Alardin Stonecrest</div>\n        <div class=\"fe-header\"><span class=\"fe-tag-pill\">male</span> <span class=\"fe-tag-pill\">Troll / Giantkin</span> <span class=\"fe-tag-pill\">Alchemist / Poisoner</span></div>\n        <div class=\"fe-details\" style=\"margin-top: 0.5rem;\">\n          <p><strong>Situation:</strong> A powerful priest of a god of law believes you are destined to commit a great crime.</p>\n        </div>\n      </div>\n      <div class=\"wicked-fe-card is-enemy\">\n        <div class=\"fe-name\">Serath Frostholm</div>\n        <div class=\"fe-header\"><span class=\"fe-tag-pill\">female</span> <span class=\"fe-tag-pill\">Hobgoblin / Bugbear-like</span> <span class=\"fe-tag-pill\">Assassin</span></div>\n        <div class=\"fe-details\" style=\"margin-top: 0.5rem;\">\n          <p><strong>Situation:</strong> A corrupt city official wants you silenced.</p>\n        </div>\n      </div>\n      <div class=\"wicked-fe-card is-enemy\">\n        <div class=\"fe-name\">Davin Umbermoor</div>\n        <div class=\"fe-header\"><span class=\"fe-tag-pill\">male</span> <span class=\"fe-tag-pill\">Gnome / Smallfolk</span> <span class=\"fe-tag-pill\">Thief / Burglar</span></div>\n        <div class=\"fe-details\" style=\"margin-top: 0.5rem;\">\n          <p><strong>Situation:</strong> A cult devoted to an evil god believes you interfered with their plans.</p>\n        </div>\n      </div></div><h2>Romance</h2>\n      <div class=\"wicked-family-grid\">\n        <div class=\"wicked-family-card\">\n          <div class=\"card-label\">Romance Status</div>\n          <div class=\"card-value\"><strong>On the lookout for love</strong></div>\n        </div>\n      </div><h2>Appearance</h2>\n      <div class=\"wicked-family-card\">\n        <div class=\"card-label\">Physical Characteristics</div>\n        <div class=\"card-value\" style=\"margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;\">\n          <p><strong>Hair:</strong> Deep blue, Long and flowing</p><p><strong>Eyes:</strong> Brown</p><p><strong>Skin tone:</strong> Deep Ebony</p><p><strong>Personal style:</strong> Dark and mysterious garments</p>\n        </div>\n      </div><h2>Personality</h2>\n      <div class=\"wicked-family-card\">\n        <div class=\"card-label\">Persona &amp; Values</div>\n        <div class=\"card-value\" style=\"margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;\">\n          <p><strong>Defining trait:</strong> Calm and patient</p><p><strong>Values most:</strong> Personal freedom and independence</p><p><strong>Most valued object:</strong> A map or chart leading to a hidden location</p><p><strong>If it were lost:</strong> They obsessively recount how it was lost, unable to move on.</p><p><strong>Greatest fear:</strong> Losing a loved one</p><p><strong>Person they value most:</strong> A lost loved one they hope to reunite with</p><p><strong>Quirk:</strong> Is convinced they are being subtly tested by a god at all times.</p><p><strong>Faith:</strong> Tenebris — God of shadow and cold silence, neither death exactly nor darkness precisely, but something quieter than both.</p>\n        <div class=\"personality-trait-pairs\" style=\"margin-top: 0.75rem; border-top: 1px solid rgba(201, 160, 84, 0.15); padding-top: 0.5rem;\">\n          <strong style=\"font-size: 0.75rem; text-transform: uppercase; color: var(--dnd5e-color-gold-dim, #9a7d2e); letter-spacing: 0.05em;\">Trait Pairs</strong>\n          <ul style=\"margin: 0.25rem 0 0; padding-left: 1.25rem; font-size: 0.85rem;\">\n            <li><strong>Amorous / Chaste:</strong> 19 / 1</li><li><strong>Forgiving / Vengeful:</strong> 7 / 13</li><li><strong>Generous / Selfish:</strong> 17 / 3</li><li><strong>Honest / Deceitful:</strong> 1 / 19</li><li><strong>Just / Arbitrary:</strong> 20 / 0</li><li><strong>Merciful / Cruel:</strong> 19 / 1</li><li><strong>Modest / Proud:</strong> 18 / 2</li><li><strong>Prudent / Reckless:</strong> 18 / 2</li><li><strong>Temperate / Indulgent:</strong> 4 / 16</li><li><strong>Trusting / Suspicious:</strong> 12 / 8</li>\n          </ul>\n        </div>\n        </div>\n      </div><h2>Life Events</h2><div class=\"wicked-event-grid\">\n        <div class=\"wicked-event-card is-unlucky\">\n          <div class=\"event-title\">Event 1</div>\n          <div class=\"event-header\">\n            <span class=\"event-tag-pill\">Unlucky Event</span>\n          </div>\n          <div class=\"event-text\" style=\"margin-top: 0.5rem;\">\n            Lost a political or social position\n          </div>\n        </div>\n        <div class=\"wicked-event-card is-unlucky\">\n          <div class=\"event-title\">Event 2</div>\n          <div class=\"event-header\">\n            <span class=\"event-tag-pill\">Unlucky Event</span>\n          </div>\n          <div class=\"event-text\" style=\"margin-top: 0.5rem;\">\n            A close friend or lover was kidnapped or harmed\n          </div>\n        </div>\n        <div class=\"wicked-event-card is-lucky\">\n          <div class=\"event-title\">Event 3</div>\n          <div class=\"event-header\">\n            <span class=\"event-tag-pill\">Lucky Event</span>\n          </div>\n          <div class=\"event-text\" style=\"margin-top: 0.5rem;\">\n            Discovered a hidden talent or magical ability\n          </div>\n        </div></div>",
+      "useTraitPairs": true,
+      "traitPairs": {
+        "0": 19,
+        "1": 7,
+        "2": 17,
+        "3": 1,
+        "4": 20,
+        "5": 19,
+        "6": 18,
+        "7": 18,
+        "8": 4,
+        "9": 12
+      },
+      "backstoryJournalUuid": "JournalEntry.MPOPHFRXUcYtQOnW"
+    },
+    "campaign-codex": {
+      "linkedSheets": [
+        {
+          "name": "Bramwell Thorne - Journal",
+          "uuid": "Compendium.cv-wicked-campaigns.wicked-lore.JournalEntry.WkxFlWodAvjVX2E3"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783663570610,
+    "modifiedTime": 1783663625489,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "sort": 0,
+  "_key": "!actors!TiAsSio7p3t7Z1SP"
+}

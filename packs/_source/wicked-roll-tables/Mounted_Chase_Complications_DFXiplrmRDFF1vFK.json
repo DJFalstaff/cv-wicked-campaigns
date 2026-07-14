@@ -1,0 +1,212 @@
+{
+  "name": "Mounted Chase Complications",
+  "img": "icons/svg/d20-grey.svg",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to keep your seat as your mount startles at a sudden noise or movement. On a failed save, you have the &amp;Reference[Prone] condition, thrown from the saddle.",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "_id": "mKbszoqNVrf4F7e1",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912335,
+        "modifiedTime": 1783941912335,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!DFXiplrmRDFF1vFK.mKbszoqNVrf4F7e1"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as loose gravel or uneven ground unsettles your mount's footing. On a failed save, it counts as 10 feet of &amp;Reference[Difficult Terrain] for you.",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "_id": "SsEJX54mGRv0tH6m",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912335,
+        "modifiedTime": 1783941912335,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!DFXiplrmRDFF1vFK.SsEJX54mGRv0tH6m"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw to steer clear as another rider or beast cuts across your path. On a failed save, you collide and take [[/damage 1d4 type=bludgeoning]] damage.",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "_id": "oQohKQ1dUZbWy0hJ",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912335,
+        "modifiedTime": 1783941912335,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!DFXiplrmRDFF1vFK.oQohKQ1dUZbWy0hJ"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as low-hanging branches whip at you while you ride. On a failed save, you take [[/damage 1d4 type=slashing]] damage.",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "_id": "Ea8vFkDZrB2J1IYJ",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912335,
+        "modifiedTime": 1783941912335,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!DFXiplrmRDFF1vFK.Ea8vFkDZrB2J1IYJ"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save wis dc=15]] (Animal Handling) or [[/save dex dc=15]] saving throw (your choice) to keep control as your mount balks at a hazard and rears. On a failed save, you have the &amp;Reference[Prone] condition and your mount doesn't move this round.",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "_id": "U9wqiR0aGQUCnb8J",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912335,
+        "modifiedTime": 1783941912335,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!DFXiplrmRDFF1vFK.U9wqiR0aGQUCnb8J"
+    },
+    {
+      "type": "text",
+      "description": "Make a [[/save dex dc=10]] saving throw as loose tack or a slipping saddle throws off your balance. On a failed save, you have disadvantage on the next ability check you make before the chase ends.",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "_id": "IE0RFGFP8biAocqB",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912335,
+        "modifiedTime": 1783941912335,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!DFXiplrmRDFF1vFK.IE0RFGFP8biAocqB"
+    },
+    {
+      "type": "text",
+      "description": "There is no complication.",
+      "range": [
+        7,
+        12
+      ],
+      "weight": 1,
+      "_id": "7jyhLRio46vD3snd",
+      "name": "",
+      "img": null,
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1783941912335,
+        "modifiedTime": 1783941912335,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!tables.results!DFXiplrmRDFF1vFK.7jyhLRio46vD3snd"
+    }
+  ],
+  "_id": "DFXiplrmRDFF1vFK",
+  "description": "",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1783941912335,
+    "modifiedTime": 1783941912335,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!tables!DFXiplrmRDFF1vFK"
+}

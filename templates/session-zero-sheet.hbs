@@ -24,6 +24,17 @@
                         <span>{{this.playerName}}</span>
                     </div>
                 </div>
+                {{#if this.linkedPlayers.length}}
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; font-size: 0.72rem; color: #a89a82;">
+                    <span style="text-transform: uppercase; letter-spacing: 0.03em;">Involves</span>
+                    {{#each this.linkedPlayers}}
+                    <span style="display: flex; align-items: center; gap: 0.25rem; padding: 1px 8px 1px 2px; background: rgba(201,160,84,0.1); border: 1px solid rgba(201,160,84,0.25); border-radius: 999px;">
+                        {{#if this.img}}<img src="{{this.img}}" style="width: 16px; height: 16px; border-radius: 50%; object-fit: cover;">{{/if}}
+                        <span>{{this.name}}</span>
+                    </span>
+                    {{/each}}
+                </div>
+                {{/if}}
                 <div class="session-zero-answer-html" style="font-size: 0.9rem; color: #d5d5d5;">{{{this.answerHtml}}}</div>
                 {{#if this.timestampLabel}}
                 <div style="font-size: 0.7rem; color: #888; margin-top: auto;">{{this.timestampLabel}}</div>

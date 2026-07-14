@@ -7894,6 +7894,53 @@ async function promptDiscardSuit(deck, suit, label) {
   ui.notifications.info(`Discarded ${remaining.length} remaining ${label} card${remaining.length === 1 ? "" : "s"} from "${deck.name}".`);
 }
 
+// General-purpose deck utility, independent of Session Zero entirely - suits are read live off
+// whatever cards actually remain in the deck (deck.availableCards) rather than any hardcoded
+// list, so this works for any Cards deck, not just the specific tarot deck Session Zero expects.
+async function promptDiscardBySuitDialog(deck) {
+  const suitCounts = new Map();
+  for (const c of deck.availableCards) {
+    if (!c.suit) continue;
+    suitCounts.set(c.suit, (suitCounts.get(c.suit) ?? 0) + 1);
+  }
+  if (!suitCounts.size) {
+    ui.notifications.warn(`"${deck.name}" has no cards with a suit set to discard by.`);
+    return;
+  }
+
+  const suitOptions = [...suitCounts.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([suit, count]) => `<option value="${esc(suit)}">${esc(suit)} (${count})</option>`)
+    .join("");
+
+  const choice = await foundry.applications.api.DialogV2.wait({
+    window: { title: `Discard by Suit: ${deck.name}`, icon: "fas fa-layer-group" },
+    content: `
+      <div class="form-group">
+        <label>Suit</label>
+        <select name="suit">${suitOptions}</select>
+      </div>
+      <p style="opacity: 0.8; font-size: 0.85em;">Discards every card of the chosen suit still in the deck to the scene's discard pile.</p>
+    `,
+    buttons: [
+      { action: "discard", label: "Discard", icon: "fas fa-trash", callback: (event, button) => button.form.elements.suit.value },
+    ],
+    rejectClose: false,
+  }).catch(() => null);
+  if (!choice) return;
+
+  const pile = findDiscardPileForScene();
+  if (!pile) {
+    ui.notifications.warn(`No discard pile is configured for this scene (Complete Card Management's canvas pile isn't set).`);
+    return;
+  }
+
+  const toDiscard = deck.availableCards.filter((c) => c.suit === choice);
+  if (!toDiscard.length) return;
+  await deck.pass(pile, toDiscard.map((c) => c.id), { action: "discard" });
+  ui.notifications.info(`Discarded ${toDiscard.length} "${choice}" card${toDiscard.length === 1 ? "" : "s"} from "${deck.name}".`);
+}
+
 // Runs after every recorded answer - checks the deck-wide tiers plus the per-player Major Arcana
 // tier against their GM-set limits, and prompts to discard the remainder of a tier's cards the
 // first time (and only the first time) its limit is reached.
@@ -8411,11 +8458,20 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
   };
 
   async _prepareContext(options) {
+    // Same "every other PC in the combat" filter rollForOtherPlayers uses for its relationship
+    // d8 check - reused here so tagging who a card is about draws from the same live roster.
+    const combat = this.combatant.parent;
+    const otherPlayers = (combat?.combatants ?? [])
+      .filter((c) => c.actor?.type === "character" && c.id !== this.combatant.id)
+      .map((c) => ({ id: c.id, name: c.actor?.name ?? c.name, img: c.actor?.img ?? c.img }));
+
     return {
       cardImage: this.card.img,
       cardName: this.card.name,
       playerName: this.combatant.actor?.name ?? this.combatant.name,
       playerImg: this.combatant.actor?.img ?? this.combatant.img,
+      otherPlayers,
+      hasOtherPlayers: otherPlayers.length > 0,
     };
   }
 
@@ -8426,6 +8482,12 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
       ui.notifications.warn("Give the entry a title before recording it.");
       return;
     }
+
+    const linkedPlayers = Array.from(form.querySelectorAll('input[name="linkedPlayer"]:checked')).map((el) => ({
+      name: el.dataset.name,
+      img: el.dataset.img,
+    }));
+
     await addSessionZeroEntry(this.summary, {
       title,
       answerHtml: form.elements.answerHtml.value,
@@ -8433,6 +8495,7 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
       suit: this.card.suit ?? null,
       playerName: this.combatant.actor?.name ?? this.combatant.name,
       playerImg: this.combatant.actor?.img ?? this.combatant.img,
+      linkedPlayers,
       timestamp: Date.now(),
     });
     ui.notifications.info(`Recorded "${title}" in "${this.summary.name}".`);
@@ -8592,29 +8655,41 @@ function onRenderCardHud(hud, html) {
 
   const card = hud.card;
 
-  if (card instanceof Cards && card.type === "deck" && game.settings.get("cv-wicked-campaigns", "sessionZeroEnabled")) {
-    const active = findActiveSessionZeroForDeck(card);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "control-icon";
-    if (active) {
-      button.dataset.tooltip = `End Session Zero Game (${active.name})`;
-      button.innerHTML = `<i class="fa-solid fa-flag-checkered"></i>`;
-      button.addEventListener("click", () => endSessionZeroGame(card));
-    } else {
-      button.dataset.tooltip = "Start Session Zero Game";
-      button.innerHTML = `<i class="fa-solid fa-clipboard-question"></i>`;
-      button.addEventListener("click", () => startSessionZeroGame(card));
-    }
-    middle.appendChild(button);
+  if (card instanceof Cards && card.type === "deck") {
+    // Independent of Session Zero entirely - a general deck utility, not gated behind that
+    // setting the way Start/End/Reset below are.
+    const discardSuitButton = document.createElement("button");
+    discardSuitButton.type = "button";
+    discardSuitButton.className = "control-icon";
+    discardSuitButton.dataset.tooltip = "Discard by Suit";
+    discardSuitButton.innerHTML = `<i class="fa-solid fa-layer-group"></i>`;
+    discardSuitButton.addEventListener("click", () => promptDiscardBySuitDialog(card));
+    middle.appendChild(discardSuitButton);
 
-    const resetButton = document.createElement("button");
-    resetButton.type = "button";
-    resetButton.className = "control-icon";
-    resetButton.dataset.tooltip = "Reset Deck (recall all cards, then theme on top, major arcana/skulls shuffled next, rest shuffled)";
-    resetButton.innerHTML = `<i class="fa-solid fa-rotate-left"></i>`;
-    resetButton.addEventListener("click", () => resetDeck(card));
-    middle.appendChild(resetButton);
+    if (game.settings.get("cv-wicked-campaigns", "sessionZeroEnabled")) {
+      const active = findActiveSessionZeroForDeck(card);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "control-icon";
+      if (active) {
+        button.dataset.tooltip = `End Session Zero Game (${active.name})`;
+        button.innerHTML = `<i class="fa-solid fa-flag-checkered"></i>`;
+        button.addEventListener("click", () => endSessionZeroGame(card));
+      } else {
+        button.dataset.tooltip = "Start Session Zero Game";
+        button.innerHTML = `<i class="fa-solid fa-clipboard-question"></i>`;
+        button.addEventListener("click", () => startSessionZeroGame(card));
+      }
+      middle.appendChild(button);
+
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.className = "control-icon";
+      resetButton.dataset.tooltip = "Reset Deck (recall all cards, then theme on top, major arcana/skulls shuffled next, rest shuffled)";
+      resetButton.innerHTML = `<i class="fa-solid fa-rotate-left"></i>`;
+      resetButton.addEventListener("click", () => resetDeck(card));
+      middle.appendChild(resetButton);
+    }
     return;
   }
 

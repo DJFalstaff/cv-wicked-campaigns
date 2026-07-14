@@ -11,6 +11,20 @@
             <label>Title</label>
             <input type="text" name="title" value="{{cardName}}" autofocus>
         </div>
+        {{#if hasOtherPlayers}}
+        <div class="form-group">
+            <label>Involves</label>
+            <div class="sz-player-pill-row">
+                {{#each otherPlayers}}
+                <label class="sz-player-pill">
+                    <input type="checkbox" name="linkedPlayer" value="{{this.id}}" data-name="{{this.name}}" data-img="{{this.img}}">
+                    {{#if this.img}}<img src="{{this.img}}">{{/if}}
+                    <span>{{this.name}}</span>
+                </label>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
         <prose-mirror name="answerHtml" value="" style="flex: 1;"></prose-mirror>
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" data-action="cancel" class="qbw-btn">Cancel</button>

@@ -648,10 +648,12 @@ export async function exportSessionZeroSummaryPdf(summary) {
     doc.setFont(undefined, "normal");
     doc.setFontSize(9.5);
     const answerLines = doc.splitTextToSize(answerText, textWidth);
+    const involvesText = entry.linkedPlayers?.length ? `Involves: ${entry.linkedPlayers.map((p) => p.name).join(", ")}` : "";
     const titleHeight = 12 * 1.15;
     const playerHeight = entry.playerName ? 8.5 * 1.3 : 0;
+    const involvesHeight = involvesText ? 8 * 1.3 : 0;
     const answerHeight = answerLines.length * (9.5 * 1.15);
-    const blockHeight = Math.max(thumbH, titleHeight + playerHeight + answerHeight + 6);
+    const blockHeight = Math.max(thumbH, titleHeight + playerHeight + involvesHeight + answerHeight + 6);
     layout.ensureSpace(blockHeight + 14);
 
     const topY = layout.y;
@@ -676,6 +678,15 @@ export async function exportSessionZeroSummaryPdf(summary) {
       doc.setFontSize(8.5);
       doc.setTextColor(...WICKED_DARK_THEME.muted);
       doc.text(entry.playerName, textX, ty);
+    }
+
+    if (involvesText) {
+      ty += involvesHeight;
+      doc.setFont(undefined, "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...WICKED_DARK_THEME.muted);
+      doc.text(involvesText, textX, ty);
+      doc.setFont(undefined, "normal");
     }
 
     ty += 6;

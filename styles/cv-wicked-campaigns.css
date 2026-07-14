@@ -1775,6 +1775,50 @@
     100% { opacity: 0; transform: translate(-50%, -12px); }
 }
 
+/* "Involves" player-tag pills in the Session Zero answer dialog - plain checkboxes wrapped in a
+   label, restyled as toggle pills. Uses :has() to reflect the checked state on the label itself,
+   since a bare checkbox input has no visual presence once the native appearance is removed. */
+.sz-player-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.sz-player-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 3px 10px 3px 4px;
+    font-size: 0.8rem;
+    color: #b5b5b5;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(201, 160, 84, 0.25);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sz-player-pill:hover {
+    border-color: rgba(201, 160, 84, 0.5);
+}
+
+.sz-player-pill:has(input:checked) {
+    background: rgba(201, 160, 84, 0.18);
+    border-color: #c9a054;
+    color: #fff;
+}
+
+.sz-player-pill input[type="checkbox"] {
+    margin: 0;
+}
+
+.sz-player-pill img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 /* NPC Motive Drivers Styling */
 .motives-widget {
     margin-top: 0.5rem;

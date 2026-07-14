@@ -36,10 +36,16 @@
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <img src="{{this.img}}" style="width: 28px; height: 28px; border-radius: 4px; object-fit: cover;" />
                 <span style="flex: 1; font-size: 0.9rem; font-weight: bold; color: #fff;">{{this.name}}</span>
-                <button type="button" data-action="openNpcRevealDialog" title="Send a discovery check to the current PC" style="padding: 2px 8px; font-size: 0.72rem; background: rgba(201,160,84,0.1); border: 1px solid rgba(201,160,84,0.3); border-radius: 3px; color: #c9a054; cursor: pointer;">
+                <i class="fa-solid fa-xmark" data-action="removeNpc" title="Remove from scene" style="color: #e08a75; cursor: pointer; opacity: 0.7;"></i>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <button type="button" data-action="openNpcRevealDialog" title="Send a discovery check to the current PC" style="flex: 1; padding: 2px 8px; font-size: 0.72rem; background: rgba(201,160,84,0.1); border: 1px solid rgba(201,160,84,0.3); border-radius: 3px; color: #c9a054; cursor: pointer;">
                     <i class="fa-solid fa-dice-d20"></i> Reveal Check
                 </button>
-                <i class="fa-solid fa-xmark" data-action="removeNpc" title="Remove from scene" style="color: #e08a75; cursor: pointer; opacity: 0.7;"></i>
+                <button type="button" data-action="openGeneralCheckDialog" title="Send a plain skill check to the current PC, not tied to any motive" style="flex: 1; padding: 2px 8px; font-size: 0.72rem; background: rgba(201,160,84,0.1); border: 1px solid rgba(201,160,84,0.3); border-radius: 3px; color: #c9a054; cursor: pointer;">
+                    <i class="fa-solid fa-dice-d20"></i> General Check
+                </button>
             </div>
 
             <div style="display: flex; align-items: center; gap: 1rem;">

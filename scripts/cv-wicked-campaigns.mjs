@@ -6485,6 +6485,7 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
             adjustFailure: DramaGMPanel.#onAdjustFailure,
             toggleMotiveReveal: DramaGMPanel.#onToggleMotiveReveal,
             openNpcRevealDialog: DramaGMPanel.#onOpenNpcRevealDialog,
+            openGeneralCheckDialog: DramaGMPanel.#onOpenGeneralCheckDialog,
             openMotiveCheckDialog: DramaGMPanel.#onOpenMotiveCheckDialog,
             endConflict: DramaGMPanel.#onEndConflict,
         },
@@ -6722,6 +6723,86 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
         await postDramaCheckPrompt(currentPCCombatant.actor, choice.skill, choice.dc, choice.rollMode, `Find out what motivates <strong>${actor.name}</strong>`);
     }
 
+    // A plain skill check against the NPC, not tied to discovering or leveraging any specific
+    // motive - e.g. a flat Perception or Insight roll, or a Persuasion attempt that isn't playing
+    // to anything in particular. Same dialog shape as Reveal Check, just neutrally framed.
+    static async #onOpenGeneralCheckDialog(event, target) {
+        const actorId = target.closest("[data-npc-id]")?.dataset.npcId;
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+
+        const currentPCActor = this.combat.combatant?.actor ?? null;
+        const noPcWarning = currentPCActor
+            ? ""
+            : `<p style="color: #e08a75; font-size: 0.85rem; margin: 0 0 0.5rem;">No PC currently has the turn - advance to a PC's turn before sending a check.</p>`;
+
+        const skillOptions = Object.entries(CONFIG.DND5E.skills)
+            .map(([key, cfg]) => `<option value="${key}" ${key === "per" ? "selected" : ""}>${cfg.label}</option>`)
+            .join("");
+
+        const choice = await foundry.applications.api.DialogV2.wait({
+            window: { title: `General Check: ${actor.name}` },
+            classes: ["wicked-campaigns"],
+            position: { width: 460 },
+            content: `
+                ${noPcWarning}
+                <div class="form-group">
+                    <label>Skill</label>
+                    <select name="skill" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">${skillOptions}</select>
+                </div>
+                <div class="form-group">
+                    <label>DC</label>
+                    <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                        <input type="number" name="dc" value="12" min="1" max="30" style="flex: 1; min-width: 64px; font-size: 1rem; padding: 6px 8px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
+                        <button type="button" data-dc="10" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Easy</button>
+                        <button type="button" data-dc="15" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Average</button>
+                        <button type="button" data-dc="20" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Hard</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Roll Mode</label>
+                    <select name="rollMode" style="width: 100%; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">
+                        <option value="normal">Normal</option>
+                        <option value="advantage">Advantage</option>
+                        <option value="disadvantage">Disadvantage</option>
+                    </select>
+                </div>
+            `,
+            buttons: [
+                {
+                    action: "send",
+                    label: "Send Check",
+                    icon: "fa-solid fa-dice-d20",
+                    callback: (evt, button) => ({ skill: button.form.elements.skill.value, dc: Number(button.form.elements.dc.value), rollMode: button.form.elements.rollMode.value }),
+                },
+            ],
+            render: (event, dialog) => {
+                dialog.element.querySelectorAll(".drama-dc-quick").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        dialog.element.querySelector('input[name="dc"]').value = btn.dataset.dc;
+                    });
+                });
+            },
+            rejectClose: false,
+        }).catch(() => null);
+
+        if (!choice) return;
+
+        const currentPCCombatant = this.combat.combatant ?? null;
+        if (!currentPCCombatant?.actor) {
+            ui.notifications.warn("No PC currently has the turn - advance to a PC's turn before sending a check.");
+            return;
+        }
+
+        await currentPCCombatant.setFlag("cv-wicked-campaigns", "pendingCheck", {
+            skill: choice.skill,
+            dc: choice.dc,
+            rollMode: choice.rollMode,
+            npcName: actor.name,
+        });
+        await postDramaCheckPrompt(currentPCCombatant.actor, choice.skill, choice.dc, choice.rollMode, `Roll against <strong>${actor.name}</strong>`);
+    }
+
     // Per-motive "leverage this in conversation" check - distinct from the NPC-level Reveal Check
     // dialog above (which is about *discovering* a motive, not exploiting a known one) and from
     // the NPC sheet's own standalone Temptation Save roll (a GM-only roll for the NPC's
@@ -6764,11 +6845,11 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
                 </div>
                 <div class="form-group">
                     <label>DC</label>
-                    <div style="display: flex; gap: 0.4rem; align-items: center;">
-                        <input type="number" name="dc" value="${suggestion.dc}" min="1" max="30" style="flex: 1; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
-                        <button type="button" data-dc="10" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Easy</button>
-                        <button type="button" data-dc="15" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Average</button>
-                        <button type="button" data-dc="20" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Hard</button>
+                    <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                        <input type="number" name="dc" value="${suggestion.dc}" min="1" max="30" style="flex: 1; min-width: 64px; font-size: 1rem; padding: 6px 8px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
+                        <button type="button" data-dc="10" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Easy</button>
+                        <button type="button" data-dc="15" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Average</button>
+                        <button type="button" data-dc="20" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Hard</button>
                     </div>
                     <p style="font-size: 0.7rem; color: #a89a82; margin: 4px 0 0;">Suggested from ${motiveLabel} (${motiveValue}): DC ${suggestion.dc}${modeNote}.</p>
                 </div>

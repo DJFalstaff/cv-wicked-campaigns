@@ -1,4 +1,4 @@
-<div class="social-conflict-gm-panel" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem;">
+<div class="drama-gm-panel" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem;">
 
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0.5rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px;">
         <span style="font-size: 0.85rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">{{sceneName}}</span>
@@ -6,7 +6,7 @@
     </div>
 
     {{#if hasCombatants}}
-    <ul class="sc-turn-list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem;">
+    <ul class="drama-turn-list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem;">
         {{#each combatants}}
         <li data-combatant-id="{{this.id}}" data-action="setTurn" title="Make it {{this.name}}'s turn" style="display: flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; background: {{#if this.isCurrentTurn}}rgba(201, 160, 84, 0.15){{else}}rgba(0, 0, 0, 0.15){{/if}}; border: 1px solid {{#if this.isCurrentTurn}}rgba(201, 160, 84, 0.5){{else}}rgba(201, 160, 84, 0.1){{/if}}; border-radius: 12px; cursor: pointer;">
             <img src="{{this.img}}" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover;" />
@@ -25,7 +25,7 @@
     </div>
     {{/if}}
 
-    <div class="sc-npc-roster" style="display: flex; flex-direction: column; gap: 0.6rem;">
+    <div class="drama-npc-roster" style="display: flex; flex-direction: column; gap: 0.6rem;">
         {{#unless hasNpcs}}
         <p style="font-size: 0.8rem; color: #a89a82; font-style: italic;">No NPCs in this scene yet.</p>
         {{/unless}}
@@ -90,7 +90,7 @@
             {{/if}}
 
             {{#if this.hasTargetable}}
-            <div class="sc-dc-calc" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.4rem; background: rgba(0,0,0,0.2); border: 1px dashed rgba(201,160,84,0.2); border-radius: 4px; flex-wrap: wrap;">
+            <div class="drama-dc-calc" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.4rem; background: rgba(0,0,0,0.2); border: 1px dashed rgba(201,160,84,0.2); border-radius: 4px; flex-wrap: wrap;">
                 <span style="font-size: 0.7rem; color: #a89a82; text-transform: uppercase;">DC Calc</span>
                 <select data-role="motive-select" style="font-size: 0.75rem; padding: 2px 4px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px;">
                     <option value="" data-value="0">(Blind Roll)</option>
@@ -124,7 +124,7 @@
     {{/if}}
 
     <button type="button" data-action="endConflict" style="width: 100%; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; background: rgba(163, 74, 58, 0.12); border: 1px solid rgba(163, 74, 58, 0.35); border-radius: 4px; color: #e08a75;">
-        <i class="fa-solid fa-flag-checkered"></i> End Social Conflict
+        <i class="fa-solid fa-flag-checkered"></i> End Drama Scene
     </button>
 
 </div>

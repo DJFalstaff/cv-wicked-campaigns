@@ -4956,20 +4956,20 @@ Hooks.once('init', async function() {
       default: []
     });
 
-    // Gates the social conflict keybinding and all its Combat lifecycle hooks - same
+    // Gates the drama tracker keybinding and all its Combat lifecycle hooks - same
     // checked-live-in-every-handler idiom as chaseTrackerEnabled above.
-    game.settings.register("cv-wicked-campaigns", "socialConflictEnabled", {
-      name: "Social Conflict Tracker",
-      hint: "Enables the Social Conflict Tracker: turns a Combat into a scene with several NPCs a party can approach in any order (e.g. a masquerade ball) - discovery checks, per-motive DC modifiers, temptation saves, and per-NPC success/failure tracking, plus an auto-opening player HUD.",
+    game.settings.register("cv-wicked-campaigns", "dramaEnabled", {
+      name: "Drama Tracker",
+      hint: "Enables the Drama Tracker: turns a Combat into a scene with several NPCs a party can approach in any order (e.g. a masquerade ball) - discovery checks, per-motive DC modifiers, temptation saves, and per-NPC success/failure tracking, plus an auto-opening player HUD.",
       scope: "world",
       config: true,
       type: Boolean,
       default: true
     });
 
-    // Saved social conflict setups: [{ id, name, participants: [{ actorUuid, role }] }], where
+    // Saved drama tracker setups: [{ id, name, participants: [{ actorUuid, role }] }], where
     // role is "pc" or "npc" - same shape/portability rationale as chasePresets above.
-    game.settings.register("cv-wicked-campaigns", "socialConflictPresets", {
+    game.settings.register("cv-wicked-campaigns", "dramaPresets", {
       scope: "world",
       config: false,
       type: Array,
@@ -5084,16 +5084,16 @@ Hooks.once('init', async function() {
         restricted: true
     });
 
-    // Keybinding to open Social Conflict Setup (GM only)
-    game.keybindings.register("cv-wicked-campaigns", "openSocialConflictSetup", {
-        name: "Open Social Conflict Setup",
-        hint: "Open the Social Conflict Tracker setup dialog to start a new social scene (GM only).",
+    // Keybinding to open Drama Tracker Setup (GM only)
+    game.keybindings.register("cv-wicked-campaigns", "openDramaSetup", {
+        name: "Open Drama Tracker Setup",
+        hint: "Open the Drama Tracker setup dialog to start a new dramatic scene (GM only).",
         editable: [{ key: "KeyS", modifiers: ["SHIFT"] }],
         onDown: () => {
-            if (!game.user.isGM || !game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) return;
-            const active = game.combats.find((c) => c.getFlag("cv-wicked-campaigns", "isSocialConflict"));
-            if (active) SocialConflictGMPanel.open(active);
-            else new SocialConflictSetupDialog().render(true);
+            if (!game.user.isGM || !game.settings.get("cv-wicked-campaigns", "dramaEnabled")) return;
+            const active = game.combats.find((c) => c.getFlag("cv-wicked-campaigns", "isDrama"));
+            if (active) DramaGMPanel.open(active);
+            else new DramaSetupDialog().render(true);
         },
         restricted: true
     });
@@ -5559,10 +5559,10 @@ Hooks.once('ready', async function() {
             if (activeChase) ChaseGMPanel.open(activeChase);
         }
 
-        // Same reconnect behavior for an active social conflict.
-        if (game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) {
-            const activeConflict = game.combats.find(isSocialConflictCombat);
-            if (activeConflict) SocialConflictGMPanel.open(activeConflict);
+        // Same reconnect behavior for an active drama scene.
+        if (game.settings.get("cv-wicked-campaigns", "dramaEnabled")) {
+            const activeConflict = game.combats.find(isDramaCombat);
+            if (activeConflict) DramaGMPanel.open(activeConflict);
         }
     } else {
         // Non-GM reconnect: reopen the player HUD if a chase/conflict is active and this user owns
@@ -5574,10 +5574,10 @@ Hooks.once('ready', async function() {
             }
         }
 
-        if (game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) {
-            const activeConflict = game.combats.find(isSocialConflictCombat);
+        if (game.settings.get("cv-wicked-campaigns", "dramaEnabled")) {
+            const activeConflict = game.combats.find(isDramaCombat);
             if (activeConflict && activeConflict.combatants.some((c) => c.actor?.isOwner)) {
-                SocialConflictPlayerHUD.open(activeConflict);
+                DramaPlayerHUD.open(activeConflict);
             }
         }
     }
@@ -6206,7 +6206,7 @@ Hooks.on("deleteCombat", (combat) => {
     ChasePlayerHUD.closeIfOpen();
 });
 
-// ---- Social Conflict Tracker: core logic -----------------------------------
+// ---- Drama Tracker: core logic -----------------------------------
 // Emulates a scene where the party can approach several NPCs in any order (e.g. a masquerade
 // ball), using the existing Motive Drivers system (the NPC sheet's Motives tab) as the underlying
 // resolution math: discovery checks reveal a motive per the tiers in the rules doc, social checks
@@ -6222,11 +6222,11 @@ Hooks.on("deleteCombat", (combat) => {
 // success/failure adjustments use a single scoped flag path (Foundry deep-merges into objects but
 // replaces arrays wholesale) without needing the read-modify-write queue the widgets required.
 
-function isSocialConflictCombat(combat) {
-  return combat?.getFlag("cv-wicked-campaigns", "isSocialConflict") === true;
+function isDramaCombat(combat) {
+  return combat?.getFlag("cv-wicked-campaigns", "isDrama") === true;
 }
 
-function getSocialConflictCandidateTokens() {
+function getDramaCandidateTokens() {
   if (canvas.tokens?.controlled?.length) return canvas.tokens.controlled;
   return canvas.tokens?.placeables ?? [];
 }
@@ -6259,10 +6259,10 @@ function cycleMotiveRevealTier(current) {
   return "hidden";
 }
 
-async function startSocialConflict({ pcTokenIds, npcActorUuids, name }) {
+async function startDrama({ pcTokenIds, npcActorUuids, name }) {
   const pcTokens = pcTokenIds.map((id) => canvas.tokens.get(id)).filter((t) => t?.actor);
   if (!pcTokens.length) {
-    ui.notifications.warn("Select at least one PC to start a social conflict.");
+    ui.notifications.warn("Select at least one PC to start a drama scene.");
     return null;
   }
   if (!npcActorUuids.length) {
@@ -6277,7 +6277,7 @@ async function startSocialConflict({ pcTokenIds, npcActorUuids, name }) {
     npcs[actor.id] = { actorUuid, successes: 0, failures: 0 };
   }
 
-  // isSocialConflict/sceneName/npcs must be present in the CREATE data itself, not set via a
+  // isDrama/sceneName/npcs must be present in the CREATE data itself, not set via a
   // follow-up setFlag() - the createCombat hook (which every client uses to decide whether to
   // auto-open its window) fires at creation time, before any later update would land. Same
   // requirement as startChase above.
@@ -6285,8 +6285,8 @@ async function startSocialConflict({ pcTokenIds, npcActorUuids, name }) {
     scene: canvas.scene?.id ?? null,
     flags: {
       "cv-wicked-campaigns": {
-        isSocialConflict: true,
-        sceneName: name || "Social Conflict",
+        isDrama: true,
+        sceneName: name || "Drama Scene",
         npcs,
       },
     },
@@ -6302,7 +6302,7 @@ async function startSocialConflict({ pcTokenIds, npcActorUuids, name }) {
   await combat.rollAll();
   await combat.startCombat();
 
-  SocialConflictGMPanel.open(combat);
+  DramaGMPanel.open(combat);
   return combat;
 }
 
@@ -6310,7 +6310,7 @@ async function startSocialConflict({ pcTokenIds, npcActorUuids, name }) {
 // and card styling already established by the NPC sheet's own "roll-motive" action, so a
 // Temptation Save triggered from the conflict tracker looks identical to one triggered from the
 // sheet directly.
-async function rollSocialConflictTemptation(actor, motiveId, rollType) {
+async function rollDramaTemptation(actor, motiveId, rollType) {
   const motives = actor.getFlag("cv-wicked-campaigns", "motives") || {};
   const data = motives[motiveId];
   if (!data) return;
@@ -6351,7 +6351,7 @@ async function rollSocialConflictTemptation(actor, motiveId, rollType) {
 
   await roll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor }),
-    flavor: `${actor.name} rolls against their ${name} drive${typeLabel} (Social Conflict)`,
+    flavor: `${actor.name} rolls against their ${name} drive${typeLabel} (Drama Tracker)`,
     content,
   });
 }
@@ -6363,7 +6363,7 @@ async function rollSocialConflictTemptation(actor, motiveId, rollType) {
 // real roll dialog on THEIR client, using their own actor's modifiers, pre-loaded with the DC and
 // roll mode set here. Sending a check does not reveal anything by itself - the GM reads the result
 // in chat and decides separately whether to flip a motive's reveal-state toggle.
-async function sendSocialConflictDiscoveryCheckRequest(actor, skill, dc, rollMode, npcName) {
+async function sendDramaDiscoveryCheckRequest(actor, skill, dc, rollMode, npcName) {
   const skillLabel = CONFIG.DND5E.skills[skill]?.label ?? skill;
   await ChatMessage.create({
     flavor: `Find out what motivates ${npcName}`,
@@ -6386,35 +6386,35 @@ async function sendSocialConflictDiscoveryCheckRequest(actor, skill, dc, rollMod
   });
 }
 
-class SocialConflictSetupDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
     constructor(options = {}) {
         super(options);
         this.loadedPresetId = null;
     }
 
     static DEFAULT_OPTIONS = {
-        id: "social-conflict-setup-dialog",
-        classes: ["wicked-campaigns", "social-conflict-setup-dialog"],
-        window: { title: "Start a Social Conflict", icon: "fa-solid fa-masks-theater" },
+        id: "drama-setup-dialog",
+        classes: ["wicked-campaigns", "drama-setup-dialog"],
+        window: { title: "Start a Drama Scene", icon: "fa-solid fa-masks-theater" },
         position: { width: 380, height: "auto" },
         actions: {
-            start: SocialConflictSetupDialog.#onStart,
-            loadPreset: SocialConflictSetupDialog.#onLoadPreset,
-            deletePreset: SocialConflictSetupDialog.#onDeletePreset,
-            saveAsPreset: SocialConflictSetupDialog.#onSaveAsPreset,
+            start: DramaSetupDialog.#onStart,
+            loadPreset: DramaSetupDialog.#onLoadPreset,
+            deletePreset: DramaSetupDialog.#onDeletePreset,
+            saveAsPreset: DramaSetupDialog.#onSaveAsPreset,
         },
     };
 
     static PARTS = {
-        main: { template: "modules/cv-wicked-campaigns/templates/social-conflict-setup.hbs" },
+        main: { template: "modules/cv-wicked-campaigns/templates/drama-setup.hbs" },
     };
 
     // A token's actor already says whether it's a PC ("character") or an NPC ("npc") - no need to
     // ask the GM to classify each one by hand. Tokens of any other actor type (group, vehicle,
-    // ...) are simply not shown; they don't make sense as social-conflict participants either way.
+    // ...) are simply not shown; they don't make sense as drama participants either way.
     async _prepareContext(options) {
-        const tokens = getSocialConflictCandidateTokens().filter((t) => t.actor);
-        const presets = game.settings.get("cv-wicked-campaigns", "socialConflictPresets") || [];
+        const tokens = getDramaCandidateTokens().filter((t) => t.actor);
+        const presets = game.settings.get("cv-wicked-campaigns", "dramaPresets") || [];
         const preset = presets.find((p) => p.id === this.loadedPresetId) ?? null;
 
         const pcUuids = new Set((preset?.participants ?? []).filter((p) => p.role === "pc").map((p) => p.actorUuid));
@@ -6452,7 +6452,7 @@ class SocialConflictSetupDialog extends foundry.applications.api.HandlebarsAppli
         const { name, pcTokenIds, npcTokenIds } = this._readFormSelections(target.closest("form"));
         const npcActorUuids = npcTokenIds.map((id) => getBaseActorUuid(canvas.tokens.get(id))).filter(Boolean);
 
-        const combat = await startSocialConflict({ pcTokenIds, npcActorUuids, name });
+        const combat = await startDrama({ pcTokenIds, npcActorUuids, name });
         if (combat) this.close();
     }
 
@@ -6469,13 +6469,13 @@ class SocialConflictSetupDialog extends foundry.applications.api.HandlebarsAppli
 
         const confirmed = await foundry.applications.api.DialogV2.confirm({
             window: { title: "Delete Preset" },
-            content: "<p>Delete this saved social conflict preset? This cannot be undone.</p>",
+            content: "<p>Delete this saved drama preset? This cannot be undone.</p>",
             rejectClose: false,
         }).catch(() => false);
         if (!confirmed) return;
 
-        const presets = (game.settings.get("cv-wicked-campaigns", "socialConflictPresets") || []).filter((p) => p.id !== id);
-        await game.settings.set("cv-wicked-campaigns", "socialConflictPresets", presets);
+        const presets = (game.settings.get("cv-wicked-campaigns", "dramaPresets") || []).filter((p) => p.id !== id);
+        await game.settings.set("cv-wicked-campaigns", "dramaPresets", presets);
         if (this.loadedPresetId === id) this.loadedPresetId = null;
         this.render();
     }
@@ -6490,8 +6490,8 @@ class SocialConflictSetupDialog extends foundry.applications.api.HandlebarsAppli
         }
 
         const name = await foundry.applications.api.DialogV2.prompt({
-            window: { title: "Save Social Conflict Preset" },
-            content: `<div class="form-group"><label>Preset Name</label><input type="text" name="presetName" value="New Social Conflict" autofocus></div>`,
+            window: { title: "Save Drama Preset" },
+            content: `<div class="form-group"><label>Preset Name</label><input type="text" name="presetName" value="New Drama Scene" autofocus></div>`,
             ok: {
                 icon: "fas fa-check",
                 label: "Save",
@@ -6506,45 +6506,45 @@ class SocialConflictSetupDialog extends foundry.applications.api.HandlebarsAppli
             ...npcTokenIds.map((id) => ({ actorUuid: getBaseActorUuid(canvas.tokens.get(id)), role: "npc" })),
         ];
 
-        const presets = foundry.utils.deepClone(game.settings.get("cv-wicked-campaigns", "socialConflictPresets") || []);
+        const presets = foundry.utils.deepClone(game.settings.get("cv-wicked-campaigns", "dramaPresets") || []);
         const preset = { id: foundry.utils.randomID(), name, participants };
         presets.push(preset);
-        await game.settings.set("cv-wicked-campaigns", "socialConflictPresets", presets);
+        await game.settings.set("cv-wicked-campaigns", "dramaPresets", presets);
 
         this.loadedPresetId = preset.id;
-        ui.notifications.info(`Saved social conflict preset "${name}".`);
+        ui.notifications.info(`Saved drama preset "${name}".`);
         this.render();
     }
 }
 
-class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
     constructor(combat, options = {}) {
         super(options);
         this.combat = combat;
     }
 
     static DEFAULT_OPTIONS = {
-        id: "social-conflict-gm-panel",
-        classes: ["wicked-campaigns", "social-conflict-gm-panel-dialog"],
-        window: { title: "Social Conflict", icon: "fa-solid fa-masks-theater", resizable: true },
+        id: "drama-gm-panel",
+        classes: ["wicked-campaigns", "drama-gm-panel-dialog"],
+        window: { title: "Drama Tracker", icon: "fa-solid fa-masks-theater", resizable: true },
         position: { width: 480, height: 680 },
         actions: {
-            nextTurn: SocialConflictGMPanel.#onNextTurn,
-            previousTurn: SocialConflictGMPanel.#onPreviousTurn,
-            setTurn: SocialConflictGMPanel.#onSetTurn,
-            addNpc: SocialConflictGMPanel.#onAddNpc,
-            removeNpc: SocialConflictGMPanel.#onRemoveNpc,
-            adjustSuccess: SocialConflictGMPanel.#onAdjustSuccess,
-            adjustFailure: SocialConflictGMPanel.#onAdjustFailure,
-            toggleMotiveReveal: SocialConflictGMPanel.#onToggleMotiveReveal,
-            openNpcRevealDialog: SocialConflictGMPanel.#onOpenNpcRevealDialog,
-            rollTemptation: SocialConflictGMPanel.#onRollTemptation,
-            endConflict: SocialConflictGMPanel.#onEndConflict,
+            nextTurn: DramaGMPanel.#onNextTurn,
+            previousTurn: DramaGMPanel.#onPreviousTurn,
+            setTurn: DramaGMPanel.#onSetTurn,
+            addNpc: DramaGMPanel.#onAddNpc,
+            removeNpc: DramaGMPanel.#onRemoveNpc,
+            adjustSuccess: DramaGMPanel.#onAdjustSuccess,
+            adjustFailure: DramaGMPanel.#onAdjustFailure,
+            toggleMotiveReveal: DramaGMPanel.#onToggleMotiveReveal,
+            openNpcRevealDialog: DramaGMPanel.#onOpenNpcRevealDialog,
+            rollTemptation: DramaGMPanel.#onRollTemptation,
+            endConflict: DramaGMPanel.#onEndConflict,
         },
     };
 
     static PARTS = {
-        main: { template: "modules/cv-wicked-campaigns/templates/social-conflict-gm-panel.hbs", scrollable: [".sc-npc-roster"] },
+        main: { template: "modules/cv-wicked-campaigns/templates/drama-gm-panel.hbs", scrollable: [".drama-npc-roster"] },
     };
 
     async _prepareContext(options) {
@@ -6610,7 +6610,7 @@ class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicati
             .sort((a, b) => a.name.localeCompare(b.name));
 
         return {
-            sceneName: this.combat.getFlag("cv-wicked-campaigns", "sceneName") || "Social Conflict",
+            sceneName: this.combat.getFlag("cv-wicked-campaigns", "sceneName") || "Drama Scene",
             round: this.combat.round,
             combatants,
             hasCombatants: combatants.length > 0,
@@ -6623,7 +6623,7 @@ class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicati
 
     async _onRender(context, options) {
         await super._onRender(context, options);
-        this.element.querySelectorAll(".sc-dc-calc").forEach((calc) => {
+        this.element.querySelectorAll(".drama-dc-calc").forEach((calc) => {
             const motiveSelect = calc.querySelector('[data-role="motive-select"]');
             const baseDcInput = calc.querySelector('[data-role="base-dc"]');
             const resultEl = calc.querySelector('[data-role="final-dc"]');
@@ -6744,9 +6744,9 @@ class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicati
                     <label>DC</label>
                     <div style="display: flex; gap: 0.4rem; align-items: center;">
                         <input type="number" name="dc" value="15" min="1" max="30" style="flex: 1;">
-                        <button type="button" data-dc="10" class="sc-dc-quick">Easy</button>
-                        <button type="button" data-dc="15" class="sc-dc-quick">Average</button>
-                        <button type="button" data-dc="20" class="sc-dc-quick">Hard</button>
+                        <button type="button" data-dc="10" class="drama-dc-quick">Easy</button>
+                        <button type="button" data-dc="15" class="drama-dc-quick">Average</button>
+                        <button type="button" data-dc="20" class="drama-dc-quick">Hard</button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -6767,7 +6767,7 @@ class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicati
                 },
             ],
             render: (event, dialog) => {
-                dialog.element.querySelectorAll(".sc-dc-quick").forEach((btn) => {
+                dialog.element.querySelectorAll(".drama-dc-quick").forEach((btn) => {
                     btn.addEventListener("click", () => {
                         dialog.element.querySelector('input[name="dc"]').value = btn.dataset.dc;
                     });
@@ -6783,7 +6783,7 @@ class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicati
             return;
         }
 
-        await sendSocialConflictDiscoveryCheckRequest(currentPCActor, choice.skill, choice.dc, choice.rollMode, actor.name);
+        await sendDramaDiscoveryCheckRequest(currentPCActor, choice.skill, choice.dc, choice.rollMode, actor.name);
     }
 
     static async #onRollTemptation(event, target) {
@@ -6792,13 +6792,13 @@ class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicati
         const rollType = target.dataset.rollType || "normal";
         const actor = game.actors.get(actorId);
         if (!actor) return;
-        await rollSocialConflictTemptation(actor, motiveId, rollType);
+        await rollDramaTemptation(actor, motiveId, rollType);
     }
 
     static async #onEndConflict() {
         const confirmed = await foundry.applications.api.DialogV2.confirm({
-            window: { title: "End Social Conflict" },
-            content: "<p>End this social conflict? This deletes the scene's Combat encounter. NPC motives and their reveal states are unaffected.</p>",
+            window: { title: "End Drama Scene" },
+            content: "<p>End this drama scene? This deletes the scene's Combat encounter. NPC motives and their reveal states are unaffected.</p>",
             rejectClose: false,
         }).catch(() => false);
         if (!confirmed) return;
@@ -6806,40 +6806,40 @@ class SocialConflictGMPanel extends foundry.applications.api.HandlebarsApplicati
     }
 
     static open(combat) {
-        const existing = foundry.applications.instances.get("social-conflict-gm-panel");
+        const existing = foundry.applications.instances.get("drama-gm-panel");
         if (existing) {
             existing.combat = combat;
             existing.render(true);
             return existing;
         }
-        const app = new SocialConflictGMPanel(combat);
+        const app = new DramaGMPanel(combat);
         app.render(true);
         return app;
     }
 
     static closeIfOpen() {
-        foundry.applications.instances.get("social-conflict-gm-panel")?.close();
+        foundry.applications.instances.get("drama-gm-panel")?.close();
     }
 }
 
-class SocialConflictPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+class DramaPlayerHUD extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
     constructor(combat, options = {}) {
         super(options);
         this.combat = combat;
     }
 
     static DEFAULT_OPTIONS = {
-        id: "social-conflict-player-hud",
-        classes: ["wicked-campaigns", "social-conflict-player-hud-dialog"],
-        window: { title: "Social Conflict", icon: "fa-solid fa-masks-theater", resizable: true },
+        id: "drama-player-hud",
+        classes: ["wicked-campaigns", "drama-player-hud-dialog"],
+        window: { title: "Drama!", icon: "fa-solid fa-masks-theater", resizable: true },
         position: { width: 320, height: 460 },
         actions: {
-            rollInitiative: SocialConflictPlayerHUD.#onRollInitiative,
+            rollInitiative: DramaPlayerHUD.#onRollInitiative,
         },
     };
 
     static PARTS = {
-        main: { template: "modules/cv-wicked-campaigns/templates/social-conflict-player-hud.hbs", scrollable: [".sc-hud-npc-list"] },
+        main: { template: "modules/cv-wicked-campaigns/templates/drama-player-hud.hbs", scrollable: [".drama-hud-npc-list"] },
     };
 
     async _prepareContext(options) {
@@ -6874,7 +6874,7 @@ class SocialConflictPlayerHUD extends foundry.applications.api.HandlebarsApplica
         npcs.sort((a, b) => a.name.localeCompare(b.name));
 
         return {
-            sceneName: this.combat.getFlag("cv-wicked-campaigns", "sceneName") || "Social Conflict",
+            sceneName: this.combat.getFlag("cv-wicked-campaigns", "sceneName") || "Drama Scene",
             round: this.combat.round,
             turns: this.combat.turns.map((c) => ({
                 id: c.id,
@@ -6894,66 +6894,66 @@ class SocialConflictPlayerHUD extends foundry.applications.api.HandlebarsApplica
     }
 
     static open(combat) {
-        const existing = foundry.applications.instances.get("social-conflict-player-hud");
+        const existing = foundry.applications.instances.get("drama-player-hud");
         if (existing) {
             existing.combat = combat;
             existing.render(true);
             return existing;
         }
-        const app = new SocialConflictPlayerHUD(combat);
+        const app = new DramaPlayerHUD(combat);
         app.render(true);
         return app;
     }
 
     static closeIfOpen() {
-        foundry.applications.instances.get("social-conflict-player-hud")?.close();
+        foundry.applications.instances.get("drama-player-hud")?.close();
     }
 }
 
-function refreshOpenSocialConflictApps(combat) {
-    const gmPanel = foundry.applications.instances.get("social-conflict-gm-panel");
+function refreshOpenDramaApps(combat) {
+    const gmPanel = foundry.applications.instances.get("drama-gm-panel");
     if (gmPanel?.combat?.id === combat.id) gmPanel.render();
-    const playerHud = foundry.applications.instances.get("social-conflict-player-hud");
+    const playerHud = foundry.applications.instances.get("drama-player-hud");
     if (playerHud?.combat?.id === combat.id) playerHud.render();
 }
 
 Hooks.on("createCombat", (combat) => {
-    if (!game.settings.get("cv-wicked-campaigns", "socialConflictEnabled") || !isSocialConflictCombat(combat)) return;
-    if (game.user.isGM) SocialConflictGMPanel.open(combat);
+    if (!game.settings.get("cv-wicked-campaigns", "dramaEnabled") || !isDramaCombat(combat)) return;
+    if (game.user.isGM) DramaGMPanel.open(combat);
 });
 
 Hooks.on("createCombatant", (combatant) => {
     const combat = combatant.parent;
-    if (!game.settings.get("cv-wicked-campaigns", "socialConflictEnabled") || !isSocialConflictCombat(combat)) return;
-    if (!game.user.isGM && combatant.actor?.isOwner) SocialConflictPlayerHUD.open(combat);
-    refreshOpenSocialConflictApps(combat);
+    if (!game.settings.get("cv-wicked-campaigns", "dramaEnabled") || !isDramaCombat(combat)) return;
+    if (!game.user.isGM && combatant.actor?.isOwner) DramaPlayerHUD.open(combat);
+    refreshOpenDramaApps(combat);
 });
 
 Hooks.on("updateCombat", (combat) => {
-    if (!isSocialConflictCombat(combat)) return;
-    refreshOpenSocialConflictApps(combat);
+    if (!isDramaCombat(combat)) return;
+    refreshOpenDramaApps(combat);
 });
 
 Hooks.on("updateCombatant", (combatant) => {
-    if (!isSocialConflictCombat(combatant.parent)) return;
-    refreshOpenSocialConflictApps(combatant.parent);
+    if (!isDramaCombat(combatant.parent)) return;
+    refreshOpenDramaApps(combatant.parent);
 });
 
 Hooks.on("deleteCombat", (combat) => {
-    if (!isSocialConflictCombat(combat)) return;
-    SocialConflictGMPanel.closeIfOpen();
-    SocialConflictPlayerHUD.closeIfOpen();
+    if (!isDramaCombat(combat)) return;
+    DramaGMPanel.closeIfOpen();
+    DramaPlayerHUD.closeIfOpen();
 });
 
-// Also refresh open Social Conflict apps whenever an NPC's motives change (revealed state,
+// Also refresh open Drama Tracker apps whenever an NPC's motives change (revealed state,
 // value, label) - e.g. the GM edits a motive directly on the NPC sheet mid-scene rather than
 // through the discovery-check buttons - so the GM panel/player HUD never show stale data.
 Hooks.on("updateActor", (actor, changes) => {
-    if (!game.settings.get("cv-wicked-campaigns", "socialConflictEnabled")) return;
+    if (!game.settings.get("cv-wicked-campaigns", "dramaEnabled")) return;
     if (!foundry.utils.hasProperty(changes, "flags.cv-wicked-campaigns.motives")) return;
-    const activeConflict = game.combats.find(isSocialConflictCombat);
+    const activeConflict = game.combats.find(isDramaCombat);
     if (activeConflict && activeConflict.getFlag("cv-wicked-campaigns", "npcs")?.[actor.id]) {
-        refreshOpenSocialConflictApps(activeConflict);
+        refreshOpenDramaApps(activeConflict);
     }
 });
 

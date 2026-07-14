@@ -1,11 +1,11 @@
-<div class="social-conflict-player-hud" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem;">
+<div class="drama-player-hud" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem;">
 
     <div style="text-align: center; padding: 0.3rem 0.5rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.2); border-radius: 4px;">
         <span style="font-size: 0.85rem; font-weight: bold; color: #c9a054; text-transform: uppercase;">{{sceneName}}</span>
         <div style="font-size: 0.72rem; color: #a89a82;">Round {{round}}</div>
     </div>
 
-    <ul class="sc-hud-turn-list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+    <ul class="drama-hud-turn-list" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem;">
         {{#each turns}}
         <li style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.5rem; background: {{#if this.isCurrentTurn}}rgba(201, 160, 84, 0.12){{else}}transparent{{/if}}; border-radius: 3px;">
             {{#if this.isCurrentTurn}}<i class="fa-solid fa-caret-right" style="color: #c9a054;"></i>{{else}}<span style="width: 14px; display: inline-block;"></span>{{/if}}
@@ -20,7 +20,7 @@
     </button>
     {{/if}}
 
-    <div class="sc-hud-npc-list" style="display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-height: 0; overflow-y: auto;">
+    <div class="drama-hud-npc-list" style="display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-height: 0; overflow-y: auto;">
         {{#unless hasNpcs}}
         <p style="font-size: 0.78rem; color: #a89a82; font-style: italic;">No one to talk to yet.</p>
         {{/unless}}

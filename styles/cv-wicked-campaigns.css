@@ -1688,28 +1688,28 @@
     overflow-y: auto;
 }
 
-/* Social Conflict Tracker - same fixed-height/scrollable-roster fix as the Chase GM panel/player
+/* Drama Tracker - same fixed-height/scrollable-roster fix as the Chase GM panel/player
    HUD above (flex:1 + min-height:0 so the NPC roster scrolls within the window instead of the
    window growing past the viewport). */
-.social-conflict-gm-panel-dialog .window-content,
-.social-conflict-player-hud-dialog .window-content {
+.drama-gm-panel-dialog .window-content,
+.drama-player-hud-dialog .window-content {
     height: 100%;
 }
 
-.social-conflict-gm-panel,
-.social-conflict-player-hud {
+.drama-gm-panel,
+.drama-player-hud {
     height: 100%;
 }
 
-.social-conflict-gm-panel .sc-npc-roster,
-.social-conflict-player-hud .sc-hud-npc-list {
+.drama-gm-panel .drama-npc-roster,
+.drama-player-hud .drama-hud-npc-list {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
 }
 
-.social-conflict-gm-panel button:hover,
-.social-conflict-player-hud button:hover {
+.drama-gm-panel button:hover,
+.drama-player-hud button:hover {
     filter: brightness(1.2);
 }
 

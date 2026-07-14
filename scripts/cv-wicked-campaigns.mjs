@@ -6662,7 +6662,7 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
         const choice = await foundry.applications.api.DialogV2.wait({
             window: { title: `Reveal Check: ${actor.name}` },
             classes: ["wicked-campaigns"],
-            position: { width: 420 },
+            position: { width: 460 },
             content: `
                 ${noPcWarning}
                 <div class="form-group">
@@ -6671,11 +6671,11 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
                 </div>
                 <div class="form-group">
                     <label>DC</label>
-                    <div style="display: flex; gap: 0.4rem; align-items: center;">
-                        <input type="number" name="dc" value="15" min="1" max="30" style="flex: 1; font-size: 0.85rem; padding: 4px 6px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
-                        <button type="button" data-dc="10" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Easy</button>
-                        <button type="button" data-dc="15" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Average</button>
-                        <button type="button" data-dc="20" class="drama-dc-quick" style="padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Hard</button>
+                    <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                        <input type="number" name="dc" value="15" min="1" max="30" style="flex: 1; min-width: 64px; font-size: 1rem; padding: 6px 8px; background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; text-align: center;">
+                        <button type="button" data-dc="10" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Easy</button>
+                        <button type="button" data-dc="15" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Average</button>
+                        <button type="button" data-dc="20" class="drama-dc-quick" style="flex-shrink: 0; padding: 4px 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(201,160,84,0.2); border-radius: 4px; color: #c9a054; cursor: pointer;">Hard</button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -6755,7 +6755,7 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
         const choice = await foundry.applications.api.DialogV2.wait({
             window: { title: `Persuade: ${motiveLabel}` },
             classes: ["wicked-campaigns"],
-            position: { width: 420 },
+            position: { width: 460 },
             content: `
                 ${noPcWarning}
                 <div class="form-group">

@@ -15,21 +15,85 @@
   "compatibility": {
     "minimum": "14",
     "verified": "14",
-        "maximum": "14"
+    "maximum": "14"
   },
   "relationships": {
     "requires": [
       {
         "id": "campaign-codex",
         "type": "module",
+        "compatibility": {},
         "reason": "Backstories saved from the Lifepath Wizard are stored as Campaign Codex journal entries."
+      },
+      {
+        "id": "complete-card-management",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "tagger",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "monks-active-tiles",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "dice-so-nice",
+        "type": "module",
+        "compatibility": {}
       }
     ],
     "recommends": [
       {
         "id": "lib-wrapper",
         "type": "module",
+        "compatibility": {},
         "reason": "Lets our own image viewer replace Foundry's native image popout everywhere (actor portraits, item art, journal images, etc), not just from our own card button."
+      },
+      {
+        "id": "calendaria",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "spell-book",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "dnd-dungeon-masters-guide",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "dnd-monster-manual",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "dnd-players-handbook",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "cv-iname-thee",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "hero-mancer",
+        "type": "module",
+        "compatibility": {}
+      }
+    ],
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {}
       }
     ]
   },
@@ -75,6 +139,7 @@
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       },
+      "system": "dnd5e",
       "flags": {}
     },
     {
@@ -86,6 +151,7 @@
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       },
+      "system": "dnd5e",
       "flags": {}
     },
     {
@@ -111,6 +177,66 @@
         "ASSISTANT": "OWNER"
       },
       "flags": {}
+    },
+    {
+      "name": "wicked-actors",
+      "label": "Wicked Actors",
+      "path": "packs/wicked-actors",
+      "type": "Actor",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "name": "wicked-scenes",
+      "label": "Wicked Scenes",
+      "path": "packs/wicked-scenes",
+      "type": "Scene",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "system": "dnd5e",
+      "flags": {}
+    },
+    {
+      "name": "wicked-playlists",
+      "label": "Wicked Playlists",
+      "path": "packs/wicked-playlists",
+      "type": "Playlist",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "system": "dnd5e",
+      "flags": {}
+    },
+    {
+      "name": "wicked-items",
+      "label": "Wicked Items",
+      "path": "packs/wicked-items",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "name": "wicked-cards",
+      "label": "Wicked Cards",
+      "path": "packs/wicked-cards",
+      "type": "Cards",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "system": "dnd5e",
+      "flags": {}
     }
   ],
   "packFolders": [
@@ -123,8 +249,14 @@
         "wicked-roll-tables",
         "wicked-macros",
         "wicked-lore",
-        "wicked-example-characters"
-      ]
+        "wicked-example-characters",
+        "wicked-actors",
+        "wicked-scenes",
+        "wicked-playlists",
+        "wicked-items",
+        "wicked-cards"
+      ],
+      "folders": []
     }
   ]
 }

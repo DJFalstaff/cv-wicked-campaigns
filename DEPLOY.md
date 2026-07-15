@@ -8,7 +8,7 @@ a separate Foundry install for testing.
 On this dev machine, in the module folder:
 
 ```
-npm run release
+npm run release 
 ```
 
 This compiles `packs/_source/*.json` into the compiled compendium packs and zips everything a

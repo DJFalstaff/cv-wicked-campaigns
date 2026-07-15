@@ -1,0 +1,3207 @@
+{
+  "name": "Tarot - Queen of Storms",
+  "type": "deck",
+  "_id": "NLIzNgjCfnxvb9NE",
+  "description": "<p>Tarot - Queen of Storms</p>",
+  "img": "modules/cv-wicked-campaigns/images/qos/00-QoS-Back.webp",
+  "system": {},
+  "cards": [
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/01-qos-theme-a.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Theme A",
+      "_id": "ZeFTVKgsGw10NUIU",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "theme",
+      "value": 1,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZeFTVKgsGw10NUIU",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/02-qos-theme-b.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Theme B",
+      "_id": "ZOwjzEjZbWnSbXyR",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "theme",
+      "value": 2,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 1,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZOwjzEjZbWnSbXyR",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/03-qos-the-fool.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Fool",
+      "_id": "donEVXUj9aCIk0rV",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 10,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.donEVXUj9aCIk0rV",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/04-qos-the-magicain.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Magician",
+      "_id": "iybRqSw4CwC2tFsK",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 18,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.iybRqSw4CwC2tFsK",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/05-qos-high-priestess.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The High Priestess",
+      "_id": "5O2hKvoTtqkMyFPY",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 17,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.5O2hKvoTtqkMyFPY",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/06-qos-empress.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Empress",
+      "_id": "nHCIqaYnuyAuRxYv",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 16,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.nHCIqaYnuyAuRxYv",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/06-qos-emperor.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Emperor",
+      "_id": "K7zLb4tjqlcHe6xT",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 15,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.K7zLb4tjqlcHe6xT",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/07-qos-hierophant.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Hierophant",
+      "_id": "B2LAg2L8ouXw3e91",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 11,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.B2LAg2L8ouXw3e91",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/08-qos-lovers.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Lovers",
+      "_id": "xh6xZRoVZV15nQhO",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 5,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.xh6xZRoVZV15nQhO",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/09-qos-chariot.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Chariot",
+      "_id": "EbN8xl4fLebeFFgK",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 12,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.EbN8xl4fLebeFFgK",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/10-qos-strength.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Strength",
+      "_id": "zYZmtZJvGMqSnyk0",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 19,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.zYZmtZJvGMqSnyk0",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/11-qos-hermit.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Hermit",
+      "_id": "dIQV9F1HNDAgexv5",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 9,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.dIQV9F1HNDAgexv5",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/12-qos-wheel-of-fortune.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Wheel of Fortune",
+      "_id": "CG1L7dKRCpowCdlt",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 2,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CG1L7dKRCpowCdlt",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/13-qos-justice.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Justice",
+      "_id": "eCkH51mQw3xHIE02",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 20,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.eCkH51mQw3xHIE02",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/14-qos-hanged-man.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Hanged Man",
+      "_id": "x06dSsxJuV064iPi",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 8,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.x06dSsxJuV064iPi",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/15-qos-death.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Death",
+      "_id": "ZFkusdd60gXuwAj1",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 7,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZFkusdd60gXuwAj1",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/16-qos-temperance.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Temperance",
+      "_id": "5sFJqMvMhgi4aoQ3",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 4,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.5sFJqMvMhgi4aoQ3",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/17-qos-devil.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Devil",
+      "_id": "o8BHsXf1O5qjoAJf",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 21,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880831,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.o8BHsXf1O5qjoAJf",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/18-qos-tower.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Tower",
+      "_id": "oFZL0h2tdp9IvZKn",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 13,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.oFZL0h2tdp9IvZKn",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/19-qos-star.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Star",
+      "_id": "4f97g2qr7AEnvGHq",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 3,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.4f97g2qr7AEnvGHq",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/20-qos-moon.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Moon",
+      "_id": "KBbxirsvmc34H8WU",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 23,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.KBbxirsvmc34H8WU",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/21-qos-sun.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Sun",
+      "_id": "nHEC40VL5RevjHq6",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 22,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.nHEC40VL5RevjHq6",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/22-qos-judgement.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Judgement",
+      "_id": "w8p8woLDuWn0mmGC",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 6,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.w8p8woLDuWn0mmGC",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/23-qos-world.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The World",
+      "_id": "2u5j9Iy9zYf7fAbQ",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "major arcana",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 14,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.2u5j9Iy9zYf7fAbQ",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/24-qos-sail-the-black.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Sail The Black",
+      "_id": "11vvakaY1gfKjm8R",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "moons",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 55,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.11vvakaY1gfKjm8R",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/25-qos-the-crews-creed.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "The Crew's Creed",
+      "_id": "CfUWtKZ9R2WEFNta",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "moons",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 64,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CfUWtKZ9R2WEFNta",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/26-qos-biggest-problem.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Biggest Problem",
+      "_id": "oxhfsHPXSxIbmtfe",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "moons",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 32,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.oxhfsHPXSxIbmtfe",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/27-qos-character-dietrich-sturmwald.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Dietrich Sturmwald",
+      "_id": "CKVXByiTu3D5VQ5Z",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 24,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CKVXByiTu3D5VQ5Z",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/28-qos-character-malachi-vestori.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Malachi Vestori",
+      "_id": "mFrIVMJI2MaEKC8x",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 26,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.mFrIVMJI2MaEKC8x",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/29-qos-character-benedict-brooke.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Benedict Brooke",
+      "_id": "7107hW7kfQCQKaVd",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 29,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.7107hW7kfQCQKaVd",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/30-qos-character-halima-al-hadid.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Halima al-Hadid",
+      "_id": "SjshLTRxbsXuVDKU",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 28,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SjshLTRxbsXuVDKU",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/31-qos-character-seraphina-lacroix.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Seraphina Lacroix",
+      "_id": "GDheWtukxSV8WVzC",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 31,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.GDheWtukxSV8WVzC",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/32-qos-character-valeria-violante.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Valeria Violante",
+      "_id": "0Ixqf2aaZGEckJxR",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 25,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.0Ixqf2aaZGEckJxR",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/33-qos-character-rajan-bahtera.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Rajan Bahtera",
+      "_id": "tsAr236CQO6eJK9w",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 27,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.tsAr236CQO6eJK9w",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/34-qos-character-abena-sarkozy.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Abena Sarkozy",
+      "_id": "3Jz9NNCFjTDnt2hk",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "skulls",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 30,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.3Jz9NNCFjTDnt2hk",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/35-qos-what-did-you-lose.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "What Did You Lose?",
+      "_id": "Iwq04eZRKrgSvmXK",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "mobius",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 56,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Iwq04eZRKrgSvmXK",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/36-qos-vendetta.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Vendetta",
+      "_id": "gdfi483HeODzyjPf",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "mobius",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 69,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.gdfi483HeODzyjPf",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/37-qos-regrets.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Regrets",
+      "_id": "xxEgTsC5mlHmAbp7",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "mobius",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 58,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880832,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.xxEgTsC5mlHmAbp7",
+      "cards": []
+    },
+    {
+      "name": "Weaker",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 44,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/38-qos-weaker.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "24BKFhsApIKbRGba",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.24BKFhsApIKbRGba",
+      "cards": []
+    },
+    {
+      "name": "Owe Life",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 71,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/40-qos-prompt-owe-life.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "tjVGbLeeLKe1Exn4",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.tjVGbLeeLKe1Exn4",
+      "cards": []
+    },
+    {
+      "name": "Save Who",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 49,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/39-qos-prompt-save-who.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "qxVVRY3OTN81c5MY",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.qxVVRY3OTN81c5MY",
+      "cards": []
+    },
+    {
+      "name": "Secret Envy",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 35,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/41-qos-prompt-secret-envy.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "m1RDcd0DhUtM8sw4",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.m1RDcd0DhUtM8sw4",
+      "cards": []
+    },
+    {
+      "name": "Stolen",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 39,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/42-qos-prompt-stolen.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "SdZqQSqWuIIB3EEx",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SdZqQSqWuIIB3EEx",
+      "cards": []
+    },
+    {
+      "name": "Biggest Lie",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 74,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/43-qos-prompt-biggest-lie.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "eBN8ciO9I7xgWiWb",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.eBN8ciO9I7xgWiWb",
+      "cards": []
+    },
+    {
+      "name": "Respect",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 46,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/44-qos-prompt-respect.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "RqvhnLRj60jtMiT4",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.RqvhnLRj60jtMiT4",
+      "cards": []
+    },
+    {
+      "name": "Crossed Paths",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 66,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/45-qos-prompt-crossed-paths.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "H1cHj1UVQAQpj0yH",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.H1cHj1UVQAQpj0yH",
+      "cards": []
+    },
+    {
+      "name": "Dark Favor",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 43,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/46-qos-prompt-dark-favor.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "FnZQViYm5b8ReeGM",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880833,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.FnZQViYm5b8ReeGM",
+      "cards": []
+    },
+    {
+      "name": "Cursed",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 34,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/47-qos-prompt-cursed.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "aieZ39vxOk0Dunl2",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.aieZ39vxOk0Dunl2",
+      "cards": []
+    },
+    {
+      "name": "Pity",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 36,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/48-qos-prompt-pity.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "qZq7MK7P1iNaBxRl",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.qZq7MK7P1iNaBxRl",
+      "cards": []
+    },
+    {
+      "name": "Gift",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 60,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/49-qos-prompt-pity.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "xUWta2TWRJVu0ypx",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.xUWta2TWRJVu0ypx",
+      "cards": []
+    },
+    {
+      "name": "Hobby",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 62,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/50-qos-prompt-hobby.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "ZKX74Fa12xPnBF1K",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZKX74Fa12xPnBF1K",
+      "cards": []
+    },
+    {
+      "name": "Misconception",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 65,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/51-qos-prompt-misconception.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "hE93UbixoKJp8yq7",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.hE93UbixoKJp8yq7",
+      "cards": []
+    },
+    {
+      "name": "Near Death Secret",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 48,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/52-qos-prompt-near-death-secret.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "S7tz0XhIEDOd8nTq",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.S7tz0XhIEDOd8nTq",
+      "cards": []
+    },
+    {
+      "name": "Scathing Words",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 42,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/53-qos-prompt-scathing-words.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "KjkNZS5j4FMemc6W",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.KjkNZS5j4FMemc6W",
+      "cards": []
+    },
+    {
+      "name": "Public Vs Private",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 40,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/54-qos-prompt-public-vs-private.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "QNnHOqrbhrWBJbA6",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.QNnHOqrbhrWBJbA6",
+      "cards": []
+    },
+    {
+      "name": "Nickname",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 47,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/55-qos-prompt-nickname.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "S641sej0h9TKuLnV",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.S641sej0h9TKuLnV",
+      "cards": []
+    },
+    {
+      "name": "Innocent Death",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 68,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/56-qos-prompt-innocent-death.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "5G6rDZXWKCpXUNr6",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.5G6rDZXWKCpXUNr6",
+      "cards": []
+    },
+    {
+      "name": "Dark Rumor",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 50,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/57-qos-prompt-dark-rumor.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "puECzXdf9wfQYYPi",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.puECzXdf9wfQYYPi",
+      "cards": []
+    },
+    {
+      "name": "Trust",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 57,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/58-qos-prompt-trust.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "2ZcYJ5sM2Kepf8a7",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.2ZcYJ5sM2Kepf8a7",
+      "cards": []
+    },
+    {
+      "name": "The Watch",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 73,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/59-qos-prompt-the-watch.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "Fic1UhafWrckFiVf",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Fic1UhafWrckFiVf",
+      "cards": []
+    },
+    {
+      "name": "The Bet",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 70,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/60-qos-prompt-the-bet.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "VW2On5iHEwh52ORM",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.VW2On5iHEwh52ORM",
+      "cards": []
+    },
+    {
+      "name": "Old Hatred",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 61,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/61-qos-prompt-old-hatred.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "PVZjyf1kBGLIn4Qz",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.PVZjyf1kBGLIn4Qz",
+      "cards": []
+    },
+    {
+      "name": "Off The Manifest",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 51,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/62-qos-prompt-off-the-manifest.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "SmhWi2bNPZLq0SwI",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SmhWi2bNPZLq0SwI",
+      "cards": []
+    },
+    {
+      "name": "Letter Home",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 53,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/63-qos-prompt-letter-home.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "IBXanplXKsuC7a5M",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.IBXanplXKsuC7a5M",
+      "cards": []
+    },
+    {
+      "name": "Guard My Back",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 33,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/65-qos-prompt-guard-my-back.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "mpU3hxUl24Ocll96",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.mpU3hxUl24Ocll96",
+      "cards": []
+    },
+    {
+      "name": "Froze Up",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 41,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/66-qos-prompt-froze-up.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "w2vjXJHsvXRJPo3t",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.w2vjXJHsvXRJPo3t",
+      "cards": []
+    },
+    {
+      "name": "Horrifying Rescue",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 67,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/64-qos-prompt-horrifying-rescue.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "UmAVDiFAQpHyE4NC",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.UmAVDiFAQpHyE4NC",
+      "cards": []
+    },
+    {
+      "name": "Cover Up",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 63,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/67-qos-prompt-cover-up.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "GqKS3YFI4w8ndVQ8",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.GqKS3YFI4w8ndVQ8",
+      "cards": []
+    },
+    {
+      "name": "Subtle Signal",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 54,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/68-qos-prompt-subtle-signal.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "JAcISFopcyyuDA6Y",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.JAcISFopcyyuDA6Y",
+      "cards": []
+    },
+    {
+      "name": "Rule Of The Sea",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 45,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/69-qos-prompt-rule-of-the-sea.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "z06W6ov6MHbrZZAi",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.z06W6ov6MHbrZZAi",
+      "cards": []
+    },
+    {
+      "name": "Left Behind",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 38,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/70-qos-prompt-left-behind.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "qWrI2VJXpRMygt2t",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.qWrI2VJXpRMygt2t",
+      "cards": []
+    },
+    {
+      "name": "How We Met",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 59,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/71-qos-prompt-how-we-met.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "VxmCMs1vGPiseVxv",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.VxmCMs1vGPiseVxv",
+      "cards": []
+    },
+    {
+      "name": "Greatest Fear",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 37,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/72-qos-prompt-greatest-fear.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "8ElXJRfYqQAPKyfY",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {
+        "complete-card-management": {}
+      },
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.8ElXJRfYqQAPKyfY",
+      "cards": []
+    },
+    {
+      "name": "Comforting Lie",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 52,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/73-qos-prompt-comforting-lie.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "l6660kOh3roNBC4E",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.l6660kOh3roNBC4E",
+      "cards": []
+    },
+    {
+      "name": "Broken Promise",
+      "type": "base",
+      "suit": "roses",
+      "value": null,
+      "sort": 72,
+      "faces": [
+        {
+          "img": "modules/cv-wicked-campaigns/images/qos/74-qos-prompt-broken-promise.webp",
+          "name": "",
+          "text": ""
+        }
+      ],
+      "back": {
+        "img": null,
+        "name": "",
+        "text": ""
+      },
+      "face": 0,
+      "_id": "L6EXf8xqGvC99o5O",
+      "description": "",
+      "system": {},
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.364",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1784106880828,
+        "modifiedTime": 1784106880834,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.L6EXf8xqGvC99o5O",
+      "cards": []
+    }
+  ],
+  "rotation": 0,
+  "displayCount": false,
+  "folder": "8nVQnsehUNkCrvf9",
+  "flags": {
+    "complete-card-management": {},
+    "core": {
+      "sheetClass": "complete-card-management.DeckSheet"
+    },
+    "cv-wicked-campaigns": {}
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1784106880828,
+    "modifiedTime": 1784106880834,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "width": null,
+  "height": null,
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "sort": 0,
+  "_key": "!cards!NLIzNgjCfnxvb9NE"
+}

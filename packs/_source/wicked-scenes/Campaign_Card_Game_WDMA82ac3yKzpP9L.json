@@ -1,0 +1,304 @@
+{
+  "name": "Campaign Card Game",
+  "_id": "WDMA82ac3yKzpP9L",
+  "navigation": false,
+  "thumb": "worlds/hero-test/assets/scenes/thumb-2GgyegE_N_R0FUgEblC8ww.webp",
+  "width": 5504,
+  "height": 3072,
+  "padding": 0.5,
+  "shiftX": 0,
+  "shiftY": 0,
+  "initial": {
+    "x": 5957,
+    "y": 3254,
+    "scale": 0.211
+  },
+  "initialLevel": "defaultLevel0000",
+  "grid": {
+    "type": 0,
+    "size": 200,
+    "style": "solidLines",
+    "thickness": 1,
+    "color": "#000000",
+    "alpha": 0.2,
+    "distance": 5,
+    "units": "ft"
+  },
+  "tokenVision": false,
+  "fog": {
+    "mode": 1,
+    "colors": {
+      "explored": null,
+      "unexplored": null
+    }
+  },
+  "environment": {
+    "darknessLevel": 0,
+    "darknessLock": false,
+    "globalLight": {
+      "enabled": false,
+      "alpha": 0.5,
+      "bright": false,
+      "color": null,
+      "coloration": 1,
+      "luminosity": 0,
+      "saturation": 0,
+      "contrast": 0,
+      "shadows": 0,
+      "darkness": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "cycle": true,
+    "base": {
+      "hue": 0,
+      "intensity": 0,
+      "luminosity": 0,
+      "saturation": 0,
+      "shadows": 0
+    },
+    "dark": {
+      "hue": 0.7138888888888889,
+      "intensity": 0,
+      "luminosity": -0.25,
+      "saturation": 0,
+      "shadows": 0
+    }
+  },
+  "transition": {
+    "type": "fade",
+    "duration": 1500,
+    "activeOnly": false
+  },
+  "drawings": [],
+  "tokens": [],
+  "levels": [
+    "defaultLevel0000"
+  ],
+  "lights": [],
+  "notes": [],
+  "sounds": [],
+  "regions": [
+    {
+      "color": "#28c7cc",
+      "elevation": {
+        "bottom": 0,
+        "top": 20,
+        "topInclusive": false
+      },
+      "levels": [
+        "defaultLevel0000"
+      ],
+      "restriction": {
+        "enabled": false,
+        "type": "move",
+        "priority": 0
+      },
+      "attachment": {
+        "token": null
+      },
+      "visibility": 4,
+      "highlightMode": "shapes",
+      "displayMeasurements": false,
+      "hidden": false,
+      "name": "Region",
+      "_id": "wkfjMYWEcNhHT1qI",
+      "shapes": [
+        {
+          "type": "circle",
+          "x": 5558,
+          "y": 3161,
+          "radius": 1300,
+          "hole": false,
+          "gridBased": false
+        }
+      ],
+      "behaviors": [
+        {
+          "name": "Execute Macro",
+          "type": "executeMacro",
+          "_id": "rL9T1w4cCPhpaw7Y",
+          "system": {
+            "events": [
+              "tokenEnter"
+            ],
+            "uuid": "Macro.2TJgjBAaOB6gdrul",
+            "everyone": true
+          },
+          "disabled": false,
+          "flags": {},
+          "_stats": {
+            "coreVersion": "14.364",
+            "systemId": "dnd5e",
+            "systemVersion": "5.3.3",
+            "createdTime": 1784106810288,
+            "modifiedTime": 1784106810288,
+            "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+            "compendiumSource": null,
+            "duplicateSource": null,
+            "exportSource": null
+          },
+          "_key": "!scenes.regions.behaviors!WDMA82ac3yKzpP9L.wkfjMYWEcNhHT1qI.rL9T1w4cCPhpaw7Y"
+        }
+      ],
+      "locked": false,
+      "flags": {
+        "tagger": {
+          "tags": []
+        }
+      },
+      "_shapeConstraints": null,
+      "ownership": {
+        "default": 0
+      },
+      "_key": "!scenes.regions!WDMA82ac3yKzpP9L.wkfjMYWEcNhHT1qI"
+    }
+  ],
+  "tiles": [],
+  "walls": [],
+  "playlist": null,
+  "playlistSound": null,
+  "journal": null,
+  "journalEntryPage": null,
+  "weather": "",
+  "folder": "YcaXdUc4WpdzpmuE",
+  "flags": {
+    "calendaria": {
+      "darknessSync": "disabled",
+      "brightnessMultiplier": 1,
+      "darknessWeatherSync": "disabled",
+      "darknessMoonSync": "disabled",
+      "ambienceSync": "disabled",
+      "colorShiftSync": "disabled",
+      "climateZoneOverride": "",
+      "weatherFxOverride": "inherit",
+      "fxmasterTopDownOverride": "default",
+      "fxmasterSplashOverride": "default",
+      "weatherSoundDisabled": false,
+      "weatherFxLevels": [],
+      "hudHideForPlayers": true
+    },
+    "complete-card-management": {
+      "canvasPile": "lpkOhzr2Lq0kFmHn",
+      "cardCollection": [
+        "Cards.vBBvQdYebJPmE8bd.Card.yswSosIfN5eJ8DHl",
+        "Cards.vBBvQdYebJPmE8bd.Card.PxZG2PiSfWoEIP6q",
+        "Cards.vBBvQdYebJPmE8bd.Card.OWwAi1GVE5l6PyIi",
+        "Cards.vBBvQdYebJPmE8bd.Card.NNPb1NyOI7H8rcHw",
+        "Cards.vBBvQdYebJPmE8bd.Card.QdzRaCdpsMPNYN0a",
+        "Cards.vBBvQdYebJPmE8bd.Card.sCnlZTfenyqKfR6K",
+        "Cards.vBBvQdYebJPmE8bd.Card.86B4EA1OFh8PN7SX",
+        "Cards.vBBvQdYebJPmE8bd.Card.KgUh94IY6JiFxfu9",
+        "Cards.vBBvQdYebJPmE8bd.Card.eDjZqpiGjXIKA3XW",
+        "Cards.vBBvQdYebJPmE8bd.Card.i2ClmRtQuITVPCjt",
+        "Cards.vBBvQdYebJPmE8bd.Card.ZzvZok1vDnyCMbZ5",
+        "Cards.vBBvQdYebJPmE8bd.Card.LUQXR8DvLz8FtDCv",
+        "Cards.vBBvQdYebJPmE8bd.Card.mNY5eRVUlxKsiobw",
+        "Cards.vBBvQdYebJPmE8bd.Card.usYElHZ7fxN6W1Rp",
+        "Cards.vBBvQdYebJPmE8bd.Card.p7nLb33xHqaSGvbs",
+        "Cards.vBBvQdYebJPmE8bd.Card.pk2Bo0lzknCgk5g8",
+        "Cards.vBBvQdYebJPmE8bd.Card.UDSseFa3PjJAH6Yw",
+        "Cards.vBBvQdYebJPmE8bd.Card.aaRcRuMo06mDX6ev",
+        "Cards.vBBvQdYebJPmE8bd.Card.xY15oWZvGvXXBkzp",
+        "Cards.vBBvQdYebJPmE8bd.Card.WJKYfBC5Ub05THyq",
+        "Cards.vBBvQdYebJPmE8bd.Card.sW9PRoAMZNHPX21C",
+        "Cards.vBBvQdYebJPmE8bd.Card.zp2yVywrRFSJQfyx",
+        "Cards.vBBvQdYebJPmE8bd.Card.LTf2DAxPycgazZCY",
+        "Cards.vBBvQdYebJPmE8bd.Card.Url8GVZcLuiorenU",
+        "Cards.vBBvQdYebJPmE8bd.Card.dEsAtQNP05LqcKsD",
+        "Cards.vBBvQdYebJPmE8bd.Card.0l0ALinSjbwWQlAC",
+        "Cards.vBBvQdYebJPmE8bd.Card.UkEjKrJvQKSmvvsf",
+        "Cards.vBBvQdYebJPmE8bd.Card.jUj9W4UdyQtyBtth",
+        "Cards.vBBvQdYebJPmE8bd.Card.vZwEo43C7EH7f1Gn",
+        "Cards.vBBvQdYebJPmE8bd.Card.lJqiSWAQbHZKuzFt",
+        "Cards.vBBvQdYebJPmE8bd.Card.7lRTwNZEvddgHJVt",
+        "Cards.vBBvQdYebJPmE8bd.Card.wNKaLATjCtGy8wFo",
+        "Cards.vBBvQdYebJPmE8bd.Card.Ro1vHGmSdtDCpnam",
+        "Cards.vBBvQdYebJPmE8bd.Card.o3Lyc1rgA9tjTKGN",
+        "Cards.vBBvQdYebJPmE8bd.Card.e4VzXlh72PtDl9ey",
+        "Cards.vBBvQdYebJPmE8bd.Card.nccYq54ofYv0EaFU",
+        "Cards.vBBvQdYebJPmE8bd.Card.3mBjr77k2JCfyWBL",
+        "Cards.vBBvQdYebJPmE8bd.Card.Ki16jeBJ9yN841XS",
+        "Cards.vBBvQdYebJPmE8bd.Card.6NZ9KVeOuH4UxzZ9",
+        "Cards.vBBvQdYebJPmE8bd.Card.3dZQE8T0tfKBP7i0",
+        "Cards.vBBvQdYebJPmE8bd.Card.GnRkoFEWlmBNoKnx",
+        "Cards.vBBvQdYebJPmE8bd.Card.HT55iZctNn9TSID7",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.yswSosIfN5eJ8DHl",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.sCnlZTfenyqKfR6K",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.ZzvZok1vDnyCMbZ5",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.hg1IoBcY6YQn9I1K",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.FugmBucuwlXWb7o2",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.0ev5fL2niO1hEyo7",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.0AeFyqQbvotFXuwC",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.UoXeb19TdqiJDYOG",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.hvYPSNo0hVLMFG6h",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.F6SDR6hYcIyCu0Xo",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.bEvkReqzEcX2HDUt",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.LNshn89fOn4u26Z6",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.ODfhNFWHFn63VVne",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.7FbK59IVyfTsEVkH",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.xicymwE0SIVRGTaG",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.CC5gUCHVLevnR2al",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.SzIpySjeUmAuv6yO",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.b6uWisCXmu3As8Ts",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.d4GzZF2mdG4DN9QA",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.SBBDT0etthf9nKLG",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.DPcGGYL9Tb4O2Jvb",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.xmGL7JV1jhDuqlAR",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.wpOSZEfjAGpAhkt0",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.mJYlFIh42dfxUJzP",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.0S7Z9BIqp4UCOXBQ",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.9pGG5lfJGs0gczXK",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.y3fGjIqYYaDrEMiK",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.z5W2GjnG5DLX7nvV",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.LgqLCZeGdl03rRfy",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.k8goBpAOGIWy9mTo",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.ECHL1FAtY1nbt7iC",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.VTcwELholKrLdGF9",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.mye78ROtWC5fLDf2",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.T7YYuWqXm5utVVBX",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.unZGodg275UB94W7",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.iQlSVg19Ylpm7hNk",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.5EobZnDxuRNbsQH9",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.VA9W4Xdc3m5FCPSO",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.ppe4QPLsmoXWaD9N",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.I5M6qh2A7QuiphbK",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.fq8s3escMJ8mUfj5",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.Eq7y7DXW8FTM2oeC",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.hXtzwCi2cdUBzGJz",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.H1vrkeISn96T4xsw",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.XpM5ySVspdZ2XicG",
+        "Cards.lpkOhzr2Lq0kFmHn.Card.Fy9kdFivebQ6c1fg",
+        "Cards.NLIzNgjCfnxvb9NE.Card.9YmCDlJeBqovjr2S",
+        "Cards.NLIzNgjCfnxvb9NE.Card.4TNQYxnIiLmJi031",
+        "Cards.NLIzNgjCfnxvb9NE.Card.30tC3LUTorOfKa9M"
+      ]
+    },
+    "fxmaster": {
+      "directionConventionMigrationVersion": 1,
+      "parameterRangeMigrationVersion": 1
+    }
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1784106810288,
+    "modifiedTime": 1784106810289,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "navName": "",
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
+  "active": false,
+  "navOrder": 0,
+  "sort": 0,
+  "_key": "!scenes!WDMA82ac3yKzpP9L",
+  "templates": []
+}

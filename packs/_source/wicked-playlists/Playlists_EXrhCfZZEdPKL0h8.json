@@ -1,0 +1,23 @@
+{
+  "type": "Playlist",
+  "folder": null,
+  "name": "Playlists",
+  "color": null,
+  "sorting": "a",
+  "_id": "EXrhCfZZEdPKL0h8",
+  "description": "",
+  "sort": 0,
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "createdTime": 1784133831664,
+    "modifiedTime": 1784133831664,
+    "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!folders!EXrhCfZZEdPKL0h8"
+}

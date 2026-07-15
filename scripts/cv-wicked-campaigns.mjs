@@ -5879,6 +5879,22 @@ async function resolveChaseRound(combat) {
     }
 }
 
+// Clicking "Start" turns the Setup dialog into the GM Panel for the same scene - carrying the
+// window's screen position across that handoff reads as a continuation rather than a new window
+// popping up somewhere unrelated. Clamped since the GM Panel is a fixed, noticeably taller box
+// (see ChaseGMPanel/DramaGMPanel DEFAULT_OPTIONS) than the Setup dialog's own "auto" height, so a
+// dialog tucked near a screen edge doesn't drag the panel half off-screen with it.
+function clampWindowPosition(top, left, width, height) {
+    const maxLeft = Math.max(0, window.innerWidth - width);
+    const maxTop = Math.max(0, window.innerHeight - height);
+    return { top: Math.min(Math.max(top, 0), maxTop), left: Math.min(Math.max(left, 0), maxLeft) };
+}
+
+// Handoff for the position above - set synchronously right before Combat.create() (which fires
+// the createCombat hook that actually opens the GM Panel), consumed and cleared by that hook.
+let pendingChasePanelPosition = null;
+let pendingDramaPanelPosition = null;
+
 class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
     constructor(options = {}) {
         super(options);
@@ -5956,6 +5972,7 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
             return;
         }
 
+        pendingChasePanelPosition = { top: this.position.top, left: this.position.left };
         const combat = await startChase({ tokenIds, quarryTokenId, tableUuid, quarrySpeedOverride });
         if (combat) this.close();
     }
@@ -6184,7 +6201,7 @@ class ChaseGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
         await this.combat.delete();
     }
 
-    static open(combat) {
+    static open(combat, position = null) {
         const existing = foundry.applications.instances.get("chase-gm-panel");
         if (existing) {
             existing.combat = combat;
@@ -6192,7 +6209,10 @@ class ChaseGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
             existing.render(true);
             return existing;
         }
-        const app = new ChaseGMPanel(combat);
+        const { width, height } = ChaseGMPanel.DEFAULT_OPTIONS.position;
+        const hasPosition = Number.isFinite(position?.top) && Number.isFinite(position?.left);
+        const options = hasPosition ? { position: clampWindowPosition(position.top, position.left, width, height) } : {};
+        const app = new ChaseGMPanel(combat, options);
         app.render(true);
         return app;
     }
@@ -6290,7 +6310,8 @@ Hooks.on("createCombat", (combat) => {
     // GM-only here: combatants (and therefore ownership) don't exist yet at this point, since
     // they're added via a separate createEmbeddedDocuments call after Combat.create() resolves -
     // see the createCombatant hook below for the player side of auto-open.
-    if (game.user.isGM) ChaseGMPanel.open(combat);
+    if (game.user.isGM) ChaseGMPanel.open(combat, pendingChasePanelPosition);
+    pendingChasePanelPosition = null;
 });
 
 Hooks.on("createCombatant", (combatant) => {
@@ -6536,6 +6557,7 @@ class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
         const { name, description, pcTokenIds, npcTokenIds } = this._readFormSelections(target.closest("form"));
         const npcActorUuids = npcTokenIds.map((id) => getBaseActorUuid(canvas.tokens.get(id))).filter(Boolean);
 
+        pendingDramaPanelPosition = { top: this.position.top, left: this.position.left };
         const combat = await startDrama({ pcTokenIds, npcActorUuids, name, description });
         if (combat) this.close();
     }
@@ -7054,14 +7076,17 @@ class DramaGMPanel extends foundry.applications.api.HandlebarsApplicationMixin(f
         await this.combat.delete();
     }
 
-    static open(combat) {
+    static open(combat, position = null) {
         const existing = foundry.applications.instances.get("drama-gm-panel");
         if (existing) {
             existing.combat = combat;
             existing.render(true);
             return existing;
         }
-        const app = new DramaGMPanel(combat);
+        const { width, height } = DramaGMPanel.DEFAULT_OPTIONS.position;
+        const hasPosition = Number.isFinite(position?.top) && Number.isFinite(position?.left);
+        const options = hasPosition ? { position: clampWindowPosition(position.top, position.left, width, height) } : {};
+        const app = new DramaGMPanel(combat, options);
         app.render(true);
         return app;
     }
@@ -7200,7 +7225,8 @@ function refreshOpenDramaApps(combat) {
 
 Hooks.on("createCombat", (combat) => {
     if (!game.settings.get("cv-wicked-campaigns", "dramaEnabled") || !isDramaCombat(combat)) return;
-    if (game.user.isGM) DramaGMPanel.open(combat);
+    if (game.user.isGM) DramaGMPanel.open(combat, pendingDramaPanelPosition);
+    pendingDramaPanelPosition = null;
 
     // For the whole table, not just scene participants - combatants don't even exist yet at this
     // point (added via a separate createEmbeddedDocuments call after Combat.create() resolves), so

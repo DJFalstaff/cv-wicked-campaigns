@@ -1625,7 +1625,7 @@ async function getOrCreateBackstoryJournal(npcJournal) {
   }
 
   if (!game.user.isGM) {
-    ui.notifications.warn(`Your Personal Info and Background were saved, but the Campaign Codex backstory entry could not be created. Ask your GM to open the character sheet once to initialize it.`);
+    ui.notifications.warn(`Your Personal Info and Background were saved, but the Campaign Codex backstory entry could not be created because it requires GM permissions. This normally sets itself up automatically the next time your GM has the world open - if it still isn't showing up after that, ask your GM to check the browser console (F12) for a "Wicked Campaigns" error.`, { permanent: true });
     return null;
   }
 
@@ -1658,6 +1658,23 @@ async function getOrCreateBackstoryJournal(npcJournal) {
 
   return journal;
 }
+
+// Both the NPC entry and its backstory journal require GM-level document-creation permission,
+// which a player never has - so instead of waiting for a player to hit that wall while saving
+// their backstory (see the two "Ask your GM..." warnings above/below), provision both up front
+// the moment a new PC exists. By the time a player opens their sheet, there's nothing left to
+// lazily create. Existing PCs from before this hook existed are caught by the one-time backfill
+// in the ready hook instead (see "appliedCampaignCodexBackfill").
+Hooks.on("createActor", async (actor) => {
+  if (!game.user.isGM || actor.type !== "character" || !actor.hasPlayerOwner) return;
+  if (!isCampaignCodexActive()) return;
+  try {
+    const npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
+    if (npcJournal) await getOrCreateBackstoryJournal(npcJournal);
+  } catch (err) {
+    console.error("Wicked Campaigns | Failed to auto-create Campaign Codex entry for new character.", actor, err);
+  }
+});
 
 // Surgically replaces one friend/enemy card's rendered "Situation" line in the already-rendered
 // biography HTML, by position (the Nth card matching `cardSelector` matches that section's
@@ -2036,7 +2053,7 @@ async function saveBackstoryToCampaignCodex(actor, html, relatedPeople = [], fri
   let npcJournal = findNpcJournalForActorSync(actor);
   if (!npcJournal) {
     if (!game.user.isGM) {
-      ui.notifications.warn(`Your Personal Info and Background were saved to ${actor.name}, but the Campaign Codex entry could not be created. Ask your GM to open ${actor.name}'s sheet once to initialize it.`);
+      ui.notifications.warn(`Your Personal Info and Background were saved to ${actor.name}, but the Campaign Codex entry could not be created because it requires GM permissions. This normally sets itself up automatically the next time your GM has the world open - if it still isn't showing up after that, ask your GM to check the browser console (F12) for a "Wicked Campaigns" error.`, { permanent: true });
       return;
     }
     npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
@@ -4868,6 +4885,15 @@ Hooks.once('init', async function() {
       default: false
     });
 
+    // One-time backfill: provisions Campaign Codex entries for PCs that already existed before
+    // the createActor auto-provisioning hook was added, same shape as the two flags above.
+    game.settings.register("cv-wicked-campaigns", "appliedCampaignCodexBackfill", {
+      scope: "world",
+      config: false,
+      type: Boolean,
+      default: false
+    });
+
     // Gates the "iName Thee Helper" button on the Backstory sheet - off by default since it
     // depends on iName Thee being installed/active and a GM being online to relay through.
     game.settings.register("cv-wicked-campaigns", "inameTheeIntegration", {
@@ -5540,6 +5566,23 @@ Hooks.once('ready', async function() {
                 console.error("Wicked Campaigns | Failed to include the wicked-lore compendium.", err);
             } finally {
                 await game.settings.set("cv-wicked-campaigns", "appliedDefaultIncludedCompendium", true);
+            }
+        }
+
+        // Catches up PCs created before the createActor auto-provisioning hook existed (or
+        // created while Campaign Codex was inactive) - without this, those characters would be
+        // stuck forever hitting the "ask your GM" warnings since nothing else ever revisits them.
+        if (isCampaignCodexActive() && !game.settings.get("cv-wicked-campaigns", "appliedCampaignCodexBackfill")) {
+            try {
+                const pcs = game.actors.filter((a) => a.type === "character" && a.hasPlayerOwner);
+                for (const actor of pcs) {
+                    const npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
+                    if (npcJournal) await getOrCreateBackstoryJournal(npcJournal);
+                }
+            } catch (err) {
+                console.error("Wicked Campaigns | Failed to backfill Campaign Codex entries for existing characters.", err);
+            } finally {
+                await game.settings.set("cv-wicked-campaigns", "appliedCampaignCodexBackfill", true);
             }
         }
 
@@ -7197,10 +7240,7 @@ function handleActorSheetRender(sheet, html, data) {
     console.log("Wicked Campaigns | handleActorSheetRender fired", { sheet, html, data });
 
     const el = html instanceof HTMLElement ? html : html[0];
-    if (!el) {
-        console.warn("Wicked Campaigns | handleActorSheetRender: No HTML element found.");
-        return;
-    }
+    if (!el) return;
 
     // Applied directly to the sheet root based on its actual rendered background (see
     // sheetBackgroundIsLight) rather than any dnd5e class or setting, both of which can be stale
@@ -7337,10 +7377,7 @@ function handleActorSheetRender(sheet, html, data) {
 
             slider.addEventListener("input", (event) => {
                 event.stopPropagation();
-                if (!isSheetEditable) {
-                    console.warn("Wicked Campaigns | Motive slider input ignored: sheet is not editable.");
-                    return;
-                }
+                if (!isSheetEditable) return;
                 const val = parseInt(slider.value, 10);
                 console.log(`Wicked Campaigns | Motive slider ${key} input: ${val}`);
                 if (numInput) numInput.value = val;
@@ -7349,10 +7386,7 @@ function handleActorSheetRender(sheet, html, data) {
 
             slider.addEventListener("change", async (event) => {
                 event.stopPropagation();
-                if (!isSheetEditable) {
-                    console.warn("Wicked Campaigns | Motive slider change ignored: sheet is not editable.");
-                    return;
-                }
+                if (!isSheetEditable) return;
                 const val = parseInt(slider.value, 10);
                 console.log(`Wicked Campaigns | Saving motive ${key} value directly to flag: ${val}`);
                 await sheet.actor.setFlag("cv-wicked-campaigns", `motives.${key}.value`, val);

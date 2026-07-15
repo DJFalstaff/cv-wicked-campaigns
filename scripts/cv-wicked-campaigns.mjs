@@ -1659,24 +1659,41 @@ async function getOrCreateBackstoryJournal(npcJournal) {
   return journal;
 }
 
+// Find-or-create the Campaign Codex NPC + backstory journals for a player-owned PC and grant the
+// player ownership. GM-only: journal creation and ownership writes both require it. Idempotent -
+// the find-or-create calls short-circuit when the entries already exist and the ownership sync
+// no-ops when it's already correct - so this is safe to run repeatedly (on createActor, on every
+// GM load, or in response to a player's live provisioning request).
+async function provisionCampaignCodexEntryForActor(actor) {
+  const npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
+  if (!npcJournal) return;
+  const backstoryJournal = await getOrCreateBackstoryJournal(npcJournal);
+  // Granting ownership is itself a document-ownership write, which only the GM (or an existing
+  // owner) can perform - doing it on the GM's client is what lets the player's own future save
+  // succeed instead of hitting the same permission wall one step later.
+  await syncActorLinkedOwnership(actor, npcJournal, backstoryJournal);
+}
+
+// A non-GM can't create the Campaign Codex journals or grant themselves ownership. Rather than
+// leave them stuck until a full world reload, ask the active GM's client to provision it live over
+// the socket (handled in the ready hook), and tell the player to save again once it's set up. If
+// no GM is online, the catch-up pass on the next GM load covers it instead.
+function requestGmCampaignCodexProvision(actor) {
+  game.socket.emit(CARD_IMAGE_SHARE_CHANNEL, { type: "requestCampaignCodexProvision", actorUuid: actor.uuid });
+  ui.notifications.warn(`Your Personal Info and Background were saved to ${actor.name}. Its Campaign Codex entry needs a GM to finish setting up - if one is online, that is happening now, so save again in a moment. If it still does not take, ask your GM to reload the world or check the console (F12) for a "Wicked Campaigns" error.`, { permanent: true });
+}
+
 // Both the NPC entry and its backstory journal require GM-level document-creation permission,
 // which a player never has - so instead of waiting for a player to hit that wall while saving
-// their backstory (see the two "Ask your GM..." warnings above/below), provision both up front
-// the moment a new PC exists. By the time a player opens their sheet, there's nothing left to
-// lazily create. Existing PCs from before this hook existed are caught by the one-time backfill
-// in the ready hook instead (see "appliedCampaignCodexOwnershipBackfillV2").
+// their backstory (see the "Ask your GM..." warnings below), provision both up front the moment a
+// new PC exists. By the time a player opens their sheet, there's nothing left to lazily create.
+// Existing PCs from before this hook existed - or that gain a player owner only later - are caught
+// by the catch-up pass that runs on every GM load (see the ready hook).
 Hooks.on("createActor", async (actor) => {
   if (!game.user.isGM || actor.type !== "character" || !actor.hasPlayerOwner) return;
   if (!isCampaignCodexActive()) return;
   try {
-    const npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
-    if (!npcJournal) return;
-    const backstoryJournal = await getOrCreateBackstoryJournal(npcJournal);
-    // Granting ownership is itself a document-ownership write, which only the GM (or an
-    // existing owner) can perform - doing it here, on the GM's own client, is what lets the
-    // player's own future save actually succeed instead of hitting the same permission wall
-    // one step later.
-    await syncActorLinkedOwnership(actor, npcJournal, backstoryJournal);
+    await provisionCampaignCodexEntryForActor(actor);
   } catch (err) {
     console.error("Wicked Campaigns | Failed to auto-create Campaign Codex entry for new character.", actor, err);
   }
@@ -2059,7 +2076,7 @@ async function saveBackstoryToCampaignCodex(actor, html, relatedPeople = [], fri
   let npcJournal = findNpcJournalForActorSync(actor);
   if (!npcJournal) {
     if (!game.user.isGM) {
-      ui.notifications.warn(`Your Personal Info and Background were saved to ${actor.name}, but the Campaign Codex entry could not be created because it requires GM permissions. This normally sets itself up automatically the next time your GM has the world open - if it still isn't showing up after that, ask your GM to check the browser console (F12) for a "Wicked Campaigns" error.`, { permanent: true });
+      requestGmCampaignCodexProvision(actor);
       return;
     }
     npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
@@ -2071,7 +2088,7 @@ async function saveBackstoryToCampaignCodex(actor, html, relatedPeople = [], fri
   // up yet, so a player gets a clear message instead of a raw "lacks permission" error out of
   // the rename/update calls that follow.
   if (!game.user.isGM && !npcJournal.testUserPermission(game.user, "OWNER")) {
-    ui.notifications.warn(`Your Personal Info and Background were saved to ${actor.name}, but you don't have permission yet to update its Campaign Codex entry. This normally grants itself automatically the next time your GM has the world open - if it still isn't working after that, ask your GM to check the browser console (F12) for a "Wicked Campaigns" error.`, { permanent: true });
+    requestGmCampaignCodexProvision(actor);
     return;
   }
 
@@ -5626,25 +5643,24 @@ Hooks.once('ready', async function() {
             }
         }
 
-        // Catches up PCs created before the createActor auto-provisioning hook existed (or
-        // created while Campaign Codex was inactive) - without this, those characters would be
-        // stuck forever hitting the "ask your GM" warnings since nothing else ever revisits them.
-        if (isCampaignCodexActive() && !game.settings.get("cv-wicked-campaigns", "appliedCampaignCodexOwnershipBackfillV2")) {
-            // Per-actor try/catch, not one try around the whole loop - one actor throwing
-            // shouldn't abort the rest, and the "finally" below marks this done unconditionally,
-            // so a loop-wide failure would otherwise mean some PCs never get a second chance.
+        // Catch-up pass for PCs that don't have (or don't own) their Campaign Codex entry yet -
+        // e.g. created before the createActor hook existed, created while Campaign Codex was
+        // inactive, or given a player owner only later. Runs on every GM load, not once: the
+        // find-or-create calls short-circuit for PCs already set up, so re-running it is cheap and
+        // idempotent, and it's the only thing that ever revisits a PC whose entry went missing
+        // after the old one-time backfill had already run. (The world setting
+        // "appliedCampaignCodexOwnershipBackfillV2" is left registered but no longer gates this.)
+        if (isCampaignCodexActive()) {
+            // Per-actor try/catch, not one around the whole loop - one actor throwing shouldn't
+            // abort the rest.
             const pcs = game.actors.filter((a) => a.type === "character" && a.hasPlayerOwner);
             for (const actor of pcs) {
                 try {
-                    const npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
-                    if (!npcJournal) continue;
-                    const backstoryJournal = await getOrCreateBackstoryJournal(npcJournal);
-                    await syncActorLinkedOwnership(actor, npcJournal, backstoryJournal);
+                    await provisionCampaignCodexEntryForActor(actor);
                 } catch (err) {
-                    console.error(`Wicked Campaigns | Failed to backfill the Campaign Codex entry for "${actor.name}".`, err);
+                    console.error(`Wicked Campaigns | Failed to provision the Campaign Codex entry for "${actor.name}".`, err);
                 }
             }
-            await game.settings.set("cv-wicked-campaigns", "appliedCampaignCodexOwnershipBackfillV2", true);
         }
 
         if (!game.settings.get("cv-wicked-campaigns", "chaseTablesSeeded")) {
@@ -5696,6 +5712,21 @@ Hooks.once('ready', async function() {
             }
         });
     }
+
+    // Live provisioning: when a player saves a backstory but can't create or own its Campaign
+    // Codex entry, they emit a request (see requestGmCampaignCodexProvision) that the single active
+    // GM's client fulfils here - so it no longer has to wait for a full world reload. Gated to
+    // game.users.activeGM so exactly one GM acts even when several are online.
+    game.socket.on(CARD_IMAGE_SHARE_CHANNEL, async (payload) => {
+        if (payload?.type !== "requestCampaignCodexProvision") return;
+        if (game.user !== game.users.activeGM || !isCampaignCodexActive()) return;
+        try {
+            const actor = await fromUuid(payload.actorUuid);
+            if (actor) await provisionCampaignCodexEntryForActor(actor);
+        } catch (err) {
+            console.error("Wicked Campaigns | Failed to provision a Campaign Codex entry from a player request.", err);
+        }
+    });
 });
 
 // ---- Chase Tracker: core logic --------------------------------------------

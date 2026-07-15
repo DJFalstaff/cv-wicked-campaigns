@@ -3254,6 +3254,17 @@ class LifepathWizard extends foundry.applications.api.ApplicationV2 {
 
   get title() { return `Lifepath Wizard — ${this.actor?.name ?? ""}`; }
 
+  // Dozens of call sites throughout this wizard call this.render() as each step/field changes,
+  // and steps vary wildly in height - with "auto" height, Foundry recenters the window on every
+  // one of them, fighting the GM/player having dragged it (same issue as DramaSetupDialog etc.).
+  // Overriding render() once here fixes every call site instead of wrapping each individually.
+  async render(...args) {
+    const { top, left } = this.position;
+    const result = await super.render(...args);
+    if (Number.isFinite(top) && Number.isFinite(left)) this.setPosition({ top, left });
+    return result;
+  }
+
   async _renderHTML() {
     injectStyles();
     const s = this.step;
@@ -5384,8 +5395,15 @@ Hooks.once('init', async function() {
 
                             const roll = await new Roll(formula).evaluate({ async: true });
                             const isSuccess = roll.total <= targetValue;
-                            
+
                             const resultText = isSuccess ? "Driven to Act!" : "Indifferent / Resisted";
+
+                            // Individual die results, with any discarded (2d20kh/kl) one struck through -
+                            // makes it easy to eyeball that Advantage/Disadvantage is keeping the right
+                            // die while testing.
+                            const dieResultsHtml = (roll.dice[0]?.results || [])
+                                .map((r) => `<span style="${r.active ? "" : "text-decoration: line-through; opacity: 0.5;"}">${r.result}</span>`)
+                                .join(", ");
 
                             const content = `
                                 <div class="dnd5e chat-card wicked-trait-card" style="font-family: 'Signika', sans-serif;">
@@ -5400,6 +5418,9 @@ Hooks.once('init', async function() {
                                             </div>
                                             <div style="font-weight: bold; color: ${isSuccess ? '#f44336' : '#4caf50'};">${resultText}</div>
                                         </div>
+                                        <p style="margin: 0.35rem 0 0; font-size: 0.7rem; opacity: 0.7; text-align: center;">
+                                            <code>${formula}</code>${dieResultsHtml ? ` &rarr; ${dieResultsHtml}` : ""}
+                                        </p>
                                     </div>
                                 </div>
                             `;
@@ -5939,11 +5960,18 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
         if (combat) this.close();
     }
 
-    static #onLoadPreset(event, target) {
+    // See DramaSetupDialog#rerenderKeepingPosition - same "auto" height, same fix.
+    async #rerenderKeepingPosition() {
+        const { top, left } = this.position;
+        await this.render();
+        if (Number.isFinite(top) && Number.isFinite(left)) this.setPosition({ top, left });
+    }
+
+    static async #onLoadPreset(event, target) {
         const id = target.closest("form").querySelector('select[name="presetId"]')?.value || null;
         if (!id) return;
         this.loadedPresetId = id;
-        this.render();
+        await this.#rerenderKeepingPosition();
     }
 
     static async #onDeletePreset(event, target) {
@@ -5960,7 +5988,7 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
         const presets = (game.settings.get("cv-wicked-campaigns", "chasePresets") || []).filter((p) => p.id !== id);
         await game.settings.set("cv-wicked-campaigns", "chasePresets", presets);
         if (this.loadedPresetId === id) this.loadedPresetId = null;
-        this.render();
+        await this.#rerenderKeepingPosition();
     }
 
     static async #onSaveAsPreset(event, target) {
@@ -5996,7 +6024,7 @@ class ChaseSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
 
         this.loadedPresetId = preset.id;
         ui.notifications.info(`Saved chase preset "${name}".`);
-        this.render();
+        await this.#rerenderKeepingPosition();
     }
 }
 
@@ -6512,11 +6540,22 @@ class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
         if (combat) this.close();
     }
 
-    static #onLoadPreset(event, target) {
+    // The dialog's "auto" height means Foundry recomputes its centered position on every render
+    // whenever the content's height changes (e.g. loading a preset adds/removes rows) - which
+    // reads as the window jumping back to center even after the GM has dragged it elsewhere.
+    // Capturing/reapplying top+left across the render sidesteps that regardless of what's
+    // actually triggering the recompute.
+    async #rerenderKeepingPosition() {
+        const { top, left } = this.position;
+        await this.render();
+        if (Number.isFinite(top) && Number.isFinite(left)) this.setPosition({ top, left });
+    }
+
+    static async #onLoadPreset(event, target) {
         const id = target.closest("form").querySelector('select[name="presetId"]')?.value || null;
         if (!id) return;
         this.loadedPresetId = id;
-        this.render();
+        await this.#rerenderKeepingPosition();
     }
 
     static async #onDeletePreset(event, target) {
@@ -6533,7 +6572,7 @@ class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
         const presets = (game.settings.get("cv-wicked-campaigns", "dramaPresets") || []).filter((p) => p.id !== id);
         await game.settings.set("cv-wicked-campaigns", "dramaPresets", presets);
         if (this.loadedPresetId === id) this.loadedPresetId = null;
-        this.render();
+        await this.#rerenderKeepingPosition();
     }
 
     static async #onSaveAsPreset(event, target) {
@@ -6569,7 +6608,7 @@ class DramaSetupDialog extends foundry.applications.api.HandlebarsApplicationMix
 
         this.loadedPresetId = preset.id;
         ui.notifications.info(`Saved drama preset "${name}".`);
-        this.render();
+        await this.#rerenderKeepingPosition();
     }
 }
 
@@ -7686,6 +7725,15 @@ class FatePoolManager extends foundry.applications.api.HandlebarsApplicationMixi
     }
   };
 
+  // See LifepathWizard/DramaSetupDialog - "auto" height recenters the window on every render as
+  // the fate total changes, fighting the GM having dragged it.
+  async render(...args) {
+    const { top, left } = this.position;
+    const result = await super.render(...args);
+    if (Number.isFinite(top) && Number.isFinite(left)) this.setPosition({ top, left });
+    return result;
+  }
+
   async _prepareContext(options) {
     const activeRoster = findActivePartyRosterSync();
     const parties = getAllPartyRosters()
@@ -7884,11 +7932,19 @@ class TurnOrderReassignApp extends turnOrderReassignBase {
     });
   }
 
+  // See DramaSetupDialog#rerenderKeepingPosition - "auto" height recenters the window on every
+  // render whenever content height changes, which fights against the GM having dragged it.
+  async #rerenderKeepingPosition(force = false) {
+    const { top, left } = this.position;
+    await this.render(force);
+    if (Number.isFinite(top) && Number.isFinite(left)) this.setPosition({ top, left });
+  }
+
   async _applyOrder() {
     const count = this.order.length;
     const updates = this.order.map((id, index) => ({ _id: id, initiative: count - index }));
     await this.combat.updateEmbeddedDocuments("Combatant", updates);
-    this.render(true);
+    await this.#rerenderKeepingPosition(true);
   }
 
   // Delegates entirely to endSessionZeroGame() - same confirmation dialog and chat-wipe warning
@@ -7899,12 +7955,12 @@ class TurnOrderReassignApp extends turnOrderReassignBase {
 
   static async #onNextTurn() {
     await this.combat.nextTurn();
-    this.render();
+    await this.#rerenderKeepingPosition();
   }
 
   static async #onPreviousTurn() {
     await this.combat.previousTurn();
-    this.render();
+    await this.#rerenderKeepingPosition();
   }
 
   static open(combat, summary, deck) {

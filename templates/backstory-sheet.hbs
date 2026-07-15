@@ -1,4 +1,11 @@
 <form class="backstory-sheet-content" autocomplete="off" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem; height: 100%;">
+    {{#if helperRunning}}
+    <div class="wicked-oracle-banner">
+        <i class="fa-solid fa-dharmachakra"></i>
+        <span>The Oracles are spinning your fate...</span>
+    </div>
+    {{/if}}
+
     {{#if editable}}
     <div style="display: flex; justify-content: flex-end; gap: 0.4rem;">
         {{#if showHelperButton}}

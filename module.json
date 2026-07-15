@@ -87,6 +87,11 @@
         "id": "hero-mancer",
         "type": "module",
         "compatibility": {}
+      },
+      {
+        "id": "bbmm",
+        "type": "module",
+        "compatibility": {}
       }
     ],
     "systems": [

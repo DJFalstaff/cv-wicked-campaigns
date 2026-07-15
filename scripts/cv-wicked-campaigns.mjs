@@ -1664,13 +1664,19 @@ async function getOrCreateBackstoryJournal(npcJournal) {
 // their backstory (see the two "Ask your GM..." warnings above/below), provision both up front
 // the moment a new PC exists. By the time a player opens their sheet, there's nothing left to
 // lazily create. Existing PCs from before this hook existed are caught by the one-time backfill
-// in the ready hook instead (see "appliedCampaignCodexBackfill").
+// in the ready hook instead (see "appliedCampaignCodexOwnershipBackfillV2").
 Hooks.on("createActor", async (actor) => {
   if (!game.user.isGM || actor.type !== "character" || !actor.hasPlayerOwner) return;
   if (!isCampaignCodexActive()) return;
   try {
     const npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
-    if (npcJournal) await getOrCreateBackstoryJournal(npcJournal);
+    if (!npcJournal) return;
+    const backstoryJournal = await getOrCreateBackstoryJournal(npcJournal);
+    // Granting ownership is itself a document-ownership write, which only the GM (or an
+    // existing owner) can perform - doing it here, on the GM's own client, is what lets the
+    // player's own future save actually succeed instead of hitting the same permission wall
+    // one step later.
+    await syncActorLinkedOwnership(actor, npcJournal, backstoryJournal);
   } catch (err) {
     console.error("Wicked Campaigns | Failed to auto-create Campaign Codex entry for new character.", actor, err);
   }
@@ -2060,6 +2066,15 @@ async function saveBackstoryToCampaignCodex(actor, html, relatedPeople = [], fri
   }
   if (!npcJournal) return;
 
+  // Ownership normally arrives ahead of time via the createActor/backfill auto-provisioning
+  // (see below) - this is a fallback for a journal that predates that, or that hasn't caught
+  // up yet, so a player gets a clear message instead of a raw "lacks permission" error out of
+  // the rename/update calls that follow.
+  if (!game.user.isGM && !npcJournal.testUserPermission(game.user, "OWNER")) {
+    ui.notifications.warn(`Your Personal Info and Background were saved to ${actor.name}, but you don't have permission yet to update its Campaign Codex entry. This normally grants itself automatically the next time your GM has the world open - if it still isn't working after that, ask your GM to check the browser console (F12) for a "Wicked Campaigns" error.`, { permanent: true });
+    return;
+  }
+
   // Campaign Codex names a freshly-created NPC entry "<Actor> - Journal" by default - drop the
   // suffix right after creation so it just reads "<Actor>". Only fires while the name still
   // matches that exact default, so a GM's own later rename is never overwritten.
@@ -2069,6 +2084,12 @@ async function saveBackstoryToCampaignCodex(actor, html, relatedPeople = [], fri
 
   const journal = await getOrCreateBackstoryJournal(npcJournal);
   if (!journal) return;
+
+  // Must run before the update below, not after - JournalEntry#update requires OWNER
+  // ownership, so a player can't write their own backstory until this has granted it at
+  // least once (e.g. via the createActor/backfill auto-provisioning, or right here as a
+  // fallback for journals that predate that ownership grant).
+  await syncActorLinkedOwnership(actor, npcJournal, journal);
 
   const updateData = {
     "flags.campaign-codex.data.description": html,
@@ -2094,8 +2115,6 @@ async function saveBackstoryToCampaignCodex(actor, html, relatedPeople = [], fri
   // action) sticks across re-rolls instead of being overwritten on every save.
   if (journal.img !== npcJournal.img) updateData.img = npcJournal.img;
   await journal.update(updateData);
-
-  await syncActorLinkedOwnership(actor, npcJournal, journal);
 }
 
 // Only mother/father/siblings actually live inside this family, so only their concepts get this
@@ -2433,11 +2452,12 @@ async function addBackstoryToParty(backstoryUuid) {
 // member left the party).
 function resolveOwningPlayerIds(actor) {
   if (!actor) return [];
-  return Object.keys(actor.ownership || {}).filter((userId) => {
-    if (actor.ownership[userId] < CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER) return false;
-    const user = game.users.get(userId);
-    return !!user && !user.isGM;
-  });
+  // testUserPermission (the actor's *effective* permission for each user), not a raw ownership-
+  // key lookup - a player can own an actor via an "ownership.default" grant with no per-user
+  // entry at all, which a plain Object.keys(actor.ownership) scan would silently miss.
+  return game.users
+    .filter((user) => !user.isGM && actor.testUserPermission(user, "OWNER"))
+    .map((user) => user.id);
 }
 
 async function syncOwnershipForPlayers(doc, playerIds) {
@@ -2450,7 +2470,9 @@ async function syncOwnershipForPlayers(doc, playerIds) {
     // are re-derived below.
     if (game.users.get(userId)?.isGM) next[userId] = level;
   }
-  for (const userId of playerIds) next[userId] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
+  // OWNER, not OBSERVER - these players need to actually save their own backstory
+  // (JournalEntry#update requires OWNER; OBSERVER is read-only), not just view it.
+  for (const userId of playerIds) next[userId] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
   if (JSON.stringify(next) === JSON.stringify(current)) return false;
   await doc.update({ ownership: next });
   return true;
@@ -2539,13 +2561,16 @@ class BackstorySheet extends backstorySheetBase {
 
     const pendingSuggestions = this.document.getFlag("cv-wicked-campaigns", "pendingSuggestions") || {};
     context.hasPendingSuggestions = Object.values(pendingSuggestions).some((arr) => arr?.length);
+    // Persisted (not local component state) so the "Oracles" banner survives the sheet being
+    // closed and reopened while the reconcile call is still running - see #onINameTheeHelper.
+    context.helperRunning = this.document.getFlag("cv-wicked-campaigns", "helperRunning") === true;
 
     const inameThee = game.modules.get("cv-iname-thee");
     const hasAnyRelationshipData = Object.values(HELPER_SECTIONS).some((cfg) => cfg.getEntries(this.document).length);
     // Only offered when there's nothing already pending review - avoids piling up multiple
     // overlapping runs before the first batch has even been looked at.
     context.showHelperButton =
-      this.isEditable && hasAnyRelationshipData && !context.hasPendingSuggestions &&
+      this.isEditable && hasAnyRelationshipData && !context.hasPendingSuggestions && !context.helperRunning &&
       !!inameThee?.active && game.settings.get("cv-wicked-campaigns", "inameTheeIntegration") &&
       !!game.users.activeGM && !!inameThee.api?.canUse?.();
     return context;
@@ -2629,6 +2654,7 @@ class BackstorySheet extends backstorySheetBase {
     const docName = doc.name;
     const docUuid = doc.uuid;
     ui.notifications.info(`iName Thee Helper is reviewing "${docName}" in the background…`);
+    await doc.setFlag("cv-wicked-campaigns", "helperRunning", true);
 
     inameThee.api.reconcileBackstory({ backstoryHtml: data.description || "", sections: sectionsToCheck, items, sectionInstructions })
       .then(async (results) => {
@@ -2683,6 +2709,13 @@ class BackstorySheet extends backstorySheetBase {
       })
       .catch((err) => {
         ui.notifications.warn(`iName Thee Helper failed for "${docName}": ${err?.message ?? "Something went wrong."}`);
+      })
+      .finally(async () => {
+        // Runs on every outcome (success, "no clashes", or failure) so the "Oracles" banner never
+        // gets stuck up - re-fetched rather than reusing `doc`/`freshDoc` since either closure's
+        // copy may be stale by now, and the document may have been deleted entirely.
+        const closingDoc = await fromUuid(docUuid).catch(() => null);
+        await closingDoc?.unsetFlag("cv-wicked-campaigns", "helperRunning").catch(() => {});
       });
   }
 
@@ -4887,7 +4920,7 @@ Hooks.once('init', async function() {
 
     // One-time backfill: provisions Campaign Codex entries for PCs that already existed before
     // the createActor auto-provisioning hook was added, same shape as the two flags above.
-    game.settings.register("cv-wicked-campaigns", "appliedCampaignCodexBackfill", {
+    game.settings.register("cv-wicked-campaigns", "appliedCampaignCodexOwnershipBackfillV2", {
       scope: "world",
       config: false,
       type: Boolean,
@@ -5333,16 +5366,19 @@ Hooks.once('init', async function() {
                             const rollType = target.dataset.rollType || "normal";
                             const targetValue = Math.abs(value);
 
-                            // Setup formula based on advantage/disadvantage for roll-under saves.
-                            // Advantage: 2d20 keep lowest (2d20kl)
-                            // Disadvantage: 2d20 keep highest (2d20kh)
+                            // Roll-under save, so "Advantage" needs the formula that makes HIGH rolls
+                            // more likely (2d20kh) - matching the normal D&D meaning of Advantage on a
+                            // save (helps you resist), not the raw dice-mechanics meaning of "advantage
+                            // at rolling low". Disadvantage is the reverse (2d20kl, more likely to
+                            // succumb). See "Advantage & Disadvantage (Roll-Under Mechanics)" in
+                            // motive_drivers_rules.html for the full explanation.
                             let formula = "1d20";
                             let typeLabel = "";
                             if (rollType === "advantage") {
-                                formula = "2d20kl";
+                                formula = "2d20kh";
                                 typeLabel = " (Advantage)";
                             } else if (rollType === "disadvantage") {
-                                formula = "2d20kh";
+                                formula = "2d20kl";
                                 typeLabel = " (Disadvantage)";
                             }
 
@@ -5362,7 +5398,7 @@ Hooks.once('init', async function() {
                                                 <i class="fa-solid fa-dice-d20" style="font-size: 1.35rem; color: #c9a054;"></i>
                                                 <span class="roll-value" style="font-size: 1.2rem; font-weight: bold;">${roll.total}</span>
                                             </div>
-                                            <div style="font-weight: bold; color: ${isSuccess ? '#4caf50' : '#f44336'};">${resultText}</div>
+                                            <div style="font-weight: bold; color: ${isSuccess ? '#f44336' : '#4caf50'};">${resultText}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -5572,18 +5608,22 @@ Hooks.once('ready', async function() {
         // Catches up PCs created before the createActor auto-provisioning hook existed (or
         // created while Campaign Codex was inactive) - without this, those characters would be
         // stuck forever hitting the "ask your GM" warnings since nothing else ever revisits them.
-        if (isCampaignCodexActive() && !game.settings.get("cv-wicked-campaigns", "appliedCampaignCodexBackfill")) {
-            try {
-                const pcs = game.actors.filter((a) => a.type === "character" && a.hasPlayerOwner);
-                for (const actor of pcs) {
+        if (isCampaignCodexActive() && !game.settings.get("cv-wicked-campaigns", "appliedCampaignCodexOwnershipBackfillV2")) {
+            // Per-actor try/catch, not one try around the whole loop - one actor throwing
+            // shouldn't abort the rest, and the "finally" below marks this done unconditionally,
+            // so a loop-wide failure would otherwise mean some PCs never get a second chance.
+            const pcs = game.actors.filter((a) => a.type === "character" && a.hasPlayerOwner);
+            for (const actor of pcs) {
+                try {
                     const npcJournal = await game.campaignCodex.findOrCreateNPCJournalForActor(actor);
-                    if (npcJournal) await getOrCreateBackstoryJournal(npcJournal);
+                    if (!npcJournal) continue;
+                    const backstoryJournal = await getOrCreateBackstoryJournal(npcJournal);
+                    await syncActorLinkedOwnership(actor, npcJournal, backstoryJournal);
+                } catch (err) {
+                    console.error(`Wicked Campaigns | Failed to backfill the Campaign Codex entry for "${actor.name}".`, err);
                 }
-            } catch (err) {
-                console.error("Wicked Campaigns | Failed to backfill Campaign Codex entries for existing characters.", err);
-            } finally {
-                await game.settings.set("cv-wicked-campaigns", "appliedCampaignCodexBackfill", true);
             }
+            await game.settings.set("cv-wicked-campaigns", "appliedCampaignCodexOwnershipBackfillV2", true);
         }
 
         if (!game.settings.get("cv-wicked-campaigns", "chaseTablesSeeded")) {

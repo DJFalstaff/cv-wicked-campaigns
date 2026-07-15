@@ -257,6 +257,8 @@
 
         .badge-public { background: rgba(76, 175, 80, 0.15); color: var(--green); border: 1px solid var(--green); }
         .badge-gated { background: rgba(201, 160, 84, 0.15); color: var(--gold); border: 1px solid var(--gold); }
+        .badge-green { background: rgba(76, 175, 80, 0.15); color: var(--green); border: 1px solid var(--green); }
+        .badge-red { background: rgba(244, 67, 54, 0.15); color: var(--red); border: 1px solid var(--red); }
 
         /* Calculator UI Widget */
         .calc-widget {
@@ -523,16 +525,16 @@
             </div>
             
             <ul>
-                <li><strong>Success (Roll &le; Value)</strong>: The NPC succumbs to their urge/fear and acts accordingly.</li>
-                <li><strong>Failure (Roll &gt; Value)</strong>: The NPC maintains discipline and resists the drive.</li>
-                <li>A value of 20 is an automatic fail to resist; a value of 0 means they never act on it.</li>
+                <li><span class="badge badge-red">Driven to Act!</span> <strong>Roll &le; Value</strong>: The NPC succumbs to their urge/fear and acts accordingly.</li>
+                <li><span class="badge badge-green">Resisted</span> <strong>Roll &gt; Value</strong>: The NPC maintains discipline and resists the drive.</li>
+                <li>A value of 20 means the NPC always acts on it; a value of 0 means they never act on it.</li>
             </ul>
 
             <p style="margin-top: 1.5rem; font-weight: 600;">Advantage & Disadvantage (Roll-Under Mechanics):</p>
-            <p>Because Temptation Saves succeed on rolling <em>low</em>, Advantage and Disadvantage formulas are mathematically inverted to preserve the statistical meaning:</p>
+            <p>Because this is a roll-<em>under</em> save, Advantage and Disadvantage formulas are mathematically inverted from a normal roll-over check, so that <strong>Advantage still means "better for the NPC's willpower"</strong> - just like any other saving throw:</p>
             <ul>
-                <li><strong>Advantage (Green d20 Icon)</strong>: Rolls <strong><code>2d20kl</code></strong> (Keep Lowest). Keeping the lowest result increases the likelihood of rolling under the target, making the NPC <em>more likely to succumb</em> to the temptation.</li>
-                <li><strong>Disadvantage (Red d20 Icon)</strong>: Rolls <strong><code>2d20kh</code></strong> (Keep Highest). Keeping the highest result decreases the likelihood of rolling under, making the NPC <em>more likely to resist</em> the temptation.</li>
+                <li><strong>Advantage (Green d20 Icon)</strong>: Rolls <strong><code>2d20kh</code></strong> (Keep Highest). Keeping the highest result decreases the likelihood of rolling under the target, making the NPC <em>more likely to resist</em> the temptation.</li>
+                <li><strong>Disadvantage (Red d20 Icon)</strong>: Rolls <strong><code>2d20kl</code></strong> (Keep Lowest). Keeping the lowest result increases the likelihood of rolling under, making the NPC <em>more likely to succumb</em> to the temptation.</li>
             </ul>
         </section>
 

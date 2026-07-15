@@ -563,6 +563,41 @@
     color: var(--wicked-gold, #c9a054);
 }
 
+/* Shown on BackstorySheet while the iName Thee Helper's reconcile call is in flight (see the
+   "helperRunning" flag in #onINameTheeHelper) - that call can take a while, and the sheet stays
+   open and editable the whole time, so this needs to read as "still working" at a glance rather
+   than a frozen/broken button. Persisted as a flag rather than local component state so it
+   survives the sheet being closed and reopened mid-request. */
+.wicked-oracle-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid rgba(201, 160, 84, 0.35);
+    background: linear-gradient(90deg,
+        rgba(201, 160, 84, 0.06), rgba(201, 160, 84, 0.22), rgba(201, 160, 84, 0.06));
+    background-size: 200% 100%;
+    animation: wicked-oracle-shimmer 2.4s linear infinite;
+    color: var(--wicked-gold, #c9a054);
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.85rem;
+}
+
+.wicked-oracle-banner i {
+    animation: wicked-oracle-spin 2.2s linear infinite;
+}
+
+@keyframes wicked-oracle-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes wicked-oracle-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* Collapsible wrapper around the chip row above - a fully fleshed-out backstory can easily have a
    dozen+ related people (parents, siblings, friends, enemies, a lover), which as a permanently
    open wrapped row pushed the actual backstory text down several lines before you could even see

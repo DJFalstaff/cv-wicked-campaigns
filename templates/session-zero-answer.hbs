@@ -25,6 +25,14 @@
             </div>
         </div>
         {{/if}}
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label>Answer</label>
+            {{#if speechSupported}}
+            <button type="button" data-action="mic" class="qbw-mic" data-tooltip="Dictate (voice to text)" aria-label="Dictate (voice to text)">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+            {{/if}}
+        </div>
         <prose-mirror name="answerHtml" value="" style="flex: 1;"></prose-mirror>
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" data-action="cancel" class="qbw-btn">Cancel</button>

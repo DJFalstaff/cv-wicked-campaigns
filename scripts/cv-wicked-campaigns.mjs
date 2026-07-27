@@ -296,7 +296,7 @@ function enrichSayLink(match) {
 
 // ---- Styles --------------------------------------------------------------
 const STYLE_ID = "qos-lifepath-styles";
-const STYLE_VERSION = "8";
+const STYLE_VERSION = "9";
 function injectStyles() {
   let style = document.getElementById(STYLE_ID);
   if (style && style.dataset.qbwVersion === STYLE_VERSION) return;
@@ -467,6 +467,33 @@ function injectStyles() {
     .qbw-primary:hover {
       background: var(--dnd5e-color-gold-hover, #dfb462);
       color: #000;
+    }
+    .qbw-mic {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: var(--color-bg-btn, rgba(255, 255, 255, 0.05));
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .qbw-mic:hover {
+      border-color: var(--gold);
+      background: var(--color-bg-btn-hover, rgba(255, 255, 255, 0.1));
+    }
+    .qbw-mic--recording {
+      background: #e5484d;
+      border-color: #e5484d;
+      color: #fff;
+      animation: qbw-mic-pulse 1.1s ease-in-out infinite;
+    }
+    @keyframes qbw-mic-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(229, 72, 77, 0.6); }
+      50% { box-shadow: 0 0 0 5px rgba(229, 72, 77, 0); }
     }
     .qbw-divider {
       height: 1px;
@@ -5185,6 +5212,20 @@ Hooks.once('init', async function() {
         restricted: true
     });
 
+    // Mirrors the mic button on the Session Zero "Record Answer" dialog. Only acts if that dialog
+    // is already open - doesn't open it itself. A local handler on the dialog itself (see
+    // SessionZeroAnswerApp#_onRender) also covers this key while the answer editor has focus, since
+    // Foundry suppresses global keybindings in that state.
+    game.keybindings.register("cv-wicked-campaigns", "toggleSessionZeroMic", {
+        name: "Toggle Session Zero mic",
+        hint: "Start or stop voice dictation into the Record Answer dialog's answer field, same as clicking its mic button.",
+        editable: [{ key: "KeyM", modifiers: ["ALT"] }],
+        onDown: () => {
+            const app = foundry.applications.instances.get("session-zero-answer");
+            app?.toggleDictation?.();
+        }
+    });
+
     // Register the Wicked Character Sheet: a subclass of dnd5e's own sheet
     // with our custom tabs added, registered as the default for PC actors
     // so players can still opt back into the vanilla sheet via Configure Sheet.
@@ -8621,7 +8662,38 @@ Hooks.once("init", () => {
 // (see #open below) - the combat tracker's current turn is how we know who's answering.
 const sessionZeroAnswerBase = foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2);
 
+// Short rising/falling tone confirming the mic started/stopped - Web Audio API, no sound file.
+// Same helper as cv-pseudo's assistant mic button, ported here for parity.
+let sessionZeroAudioCtx = null;
+function playMicBlip(up = true) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!sessionZeroAudioCtx) sessionZeroAudioCtx = new AudioCtx();
+    const ctx = sessionZeroAudioCtx;
+    if (ctx.state === "suspended") ctx.resume();
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(up ? 620 : 520, now);
+    osc.frequency.exponentialRampToValueAtTime(up ? 940 : 380, now + 0.07);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.13);
+  } catch {
+    /* audio unavailable - no blip */
+  }
+}
+
 class SessionZeroAnswerApp extends sessionZeroAnswerBase {
+  /** @type {?SpeechRecognition} Active speech-recognition session, if dictating. */
+  #recognition = null;
+
   constructor(card, summary, combatant, options = {}) {
     super(options);
     this.card = card;
@@ -8637,6 +8709,7 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
     actions: {
       submit: SessionZeroAnswerApp.#onSubmit,
       cancel: SessionZeroAnswerApp.#onCancel,
+      mic: SessionZeroAnswerApp.#onMic,
     },
   };
 
@@ -8659,7 +8732,114 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
       playerImg: this.combatant.actor?.img ?? this.combatant.img,
       otherPlayers,
       hasOtherPlayers: otherPlayers.length > 0,
+      speechSupported: Boolean(window.SpeechRecognition || window.webkitSpeechRecognition),
     };
+  }
+
+  /** @override */
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    // Alt+M works as a local handler too: Foundry suppresses global keybindings while a text/rich
+    // editor has focus (so they don't hijack typing), which is exactly the state this dialog opens
+    // into - the answer editor is the whole point of the window.
+    this.element.addEventListener("keydown", (event) => {
+      if (event.altKey && event.code === "KeyM") {
+        event.preventDefault();
+        this.#toggleDictation();
+      }
+    });
+  }
+
+  /** @override */
+  async close(options) {
+    this.#recognition?.stop();
+    return super.close(options);
+  }
+
+  /**
+   * Replace the answer editor with a freshly-initialized one carrying the given value. Unlike a plain
+   * textarea, `<prose-mirror>`'s internal ProseMirror document state is genuinely private (real `#`
+   * fields) once the editor is active, and its `.value` setter silently no-ops in that state - it only
+   * reads/writes the raw stored value while inactive. There's no supported way to patch a live active
+   * instance's content, so a full element swap (via its own public `create()` factory, fetched through
+   * the standard customElements registry - no private-field access needed) is the correct approach.
+   * @param {string} text
+   * @returns {void}
+   */
+  #setAnswerText(text) {
+    const old = this.element.querySelector('prose-mirror[name="answerHtml"]');
+    if (!old) return;
+    const ProseMirrorElement = customElements.get("prose-mirror");
+    const fresh = ProseMirrorElement.create({ name: "answerHtml", value: text });
+    fresh.style.cssText = old.style.cssText;
+    old.replaceWith(fresh);
+  }
+
+  /**
+   * Start or stop voice dictation into the answer editor. Starting always clears it first - reaching
+   * for the mic means composing the answer by voice, not continuing a stale draft. Only ever targets
+   * the answer editor, never the Title field. Uses final results only (not interim) since each update
+   * means swapping the editor element - fine once at the end, too disruptive mid-speech.
+   * @returns {void}
+   */
+  #toggleDictation() {
+    if (this.#recognition) {
+      this.#recognition.stop();
+      return;
+    }
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) {
+      ui.notifications.warn("Voice input isn't available in this browser.");
+      return;
+    }
+    this.#setAnswerText("");
+
+    const recognition = new Recognition();
+    recognition.lang = game.i18n?.lang || "en-US";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onresult = (event) => {
+      let text = "";
+      for (const result of event.results) text += result[0].transcript;
+      this.#setAnswerText(text);
+    };
+    const finish = () => {
+      this.#recognition = null;
+      this.#setMicActive(false);
+      playMicBlip(false);
+    };
+    recognition.onend = finish;
+    recognition.onerror = finish;
+
+    this.#recognition = recognition;
+    this.#setMicActive(true);
+    playMicBlip(true);
+    recognition.start();
+  }
+
+  /**
+   * Reflect dictation state on the mic button.
+   * @param {boolean} active
+   * @returns {void}
+   */
+  #setMicActive(active) {
+    const button = this.element?.querySelector(".qbw-mic");
+    button?.classList.toggle("qbw-mic--recording", active);
+  }
+
+  /** @this {SessionZeroAnswerApp} */
+  static #onMic() {
+    this.#toggleDictation();
+  }
+
+  /**
+   * Public entry point for the global Alt+M keybinding (private fields aren't reachable from
+   * outside the class). Mirrors clicking the mic button.
+   * @returns {void}
+   */
+  toggleDictation() {
+    this.#toggleDictation();
   }
 
   static async #onSubmit(event, target) {

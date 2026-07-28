@@ -2,6 +2,10 @@
 
 All notable changes to Wicked Campaigns are documented here, newest first.
 
+## v14.0.5 — 2026-07-28
+- Added three new cards (with art) to the Tarot — Queen of Storms deck.
+- Updated content in The Unknown Lands adventure and a couple of scenes.
+
 ## v14.0.3 — 2026-07-27
 - Corrected `compatibility.verified` to the exact Foundry build number (the fix landed after v14.0.2 was already tagged, so this release actually ships it).
 

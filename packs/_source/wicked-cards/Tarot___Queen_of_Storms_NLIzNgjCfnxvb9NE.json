@@ -16,7 +16,7 @@
       ],
       "face": 0,
       "name": "Theme A",
-      "_id": "ZeFTVKgsGw10NUIU",
+      "_id": "Pd7fzm6pxne1Siek",
       "description": "",
       "type": "base",
       "system": {},
@@ -35,11 +35,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687436,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -47,7 +47,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZeFTVKgsGw10NUIU",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Pd7fzm6pxne1Siek",
       "cards": []
     },
     {
@@ -60,7 +60,7 @@
       ],
       "face": 0,
       "name": "Theme B",
-      "_id": "ZOwjzEjZbWnSbXyR",
+      "_id": "gdWIxkF9bm4rENk8",
       "description": "",
       "type": "base",
       "system": {},
@@ -79,11 +79,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687436,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -91,7 +91,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZOwjzEjZbWnSbXyR",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.gdWIxkF9bm4rENk8",
       "cards": []
     },
     {
@@ -104,7 +104,7 @@
       ],
       "face": 0,
       "name": "The Fool",
-      "_id": "donEVXUj9aCIk0rV",
+      "_id": "2PIY4YFF9TLPlG0C",
       "description": "",
       "type": "base",
       "system": {},
@@ -123,11 +123,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687436,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -135,7 +135,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.donEVXUj9aCIk0rV",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.2PIY4YFF9TLPlG0C",
       "cards": []
     },
     {
@@ -148,7 +148,7 @@
       ],
       "face": 0,
       "name": "The Magician",
-      "_id": "iybRqSw4CwC2tFsK",
+      "_id": "QYa6UCobVYKLMPSI",
       "description": "",
       "type": "base",
       "system": {},
@@ -167,11 +167,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -179,7 +179,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.iybRqSw4CwC2tFsK",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.QYa6UCobVYKLMPSI",
       "cards": []
     },
     {
@@ -192,7 +192,7 @@
       ],
       "face": 0,
       "name": "The High Priestess",
-      "_id": "5O2hKvoTtqkMyFPY",
+      "_id": "HJFvdRt9wisWkxTv",
       "description": "",
       "type": "base",
       "system": {},
@@ -209,11 +209,11 @@
       "sort": 17,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -221,7 +221,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.5O2hKvoTtqkMyFPY",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.HJFvdRt9wisWkxTv",
       "cards": []
     },
     {
@@ -234,7 +234,7 @@
       ],
       "face": 0,
       "name": "The Empress",
-      "_id": "nHCIqaYnuyAuRxYv",
+      "_id": "IndMgPn7ulmcI2B1",
       "description": "",
       "type": "base",
       "system": {},
@@ -253,11 +253,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -265,7 +265,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.nHCIqaYnuyAuRxYv",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.IndMgPn7ulmcI2B1",
       "cards": []
     },
     {
@@ -278,7 +278,7 @@
       ],
       "face": 0,
       "name": "The Emperor",
-      "_id": "K7zLb4tjqlcHe6xT",
+      "_id": "GTAfS48mv3G8LaeO",
       "description": "",
       "type": "base",
       "system": {},
@@ -297,11 +297,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -309,7 +309,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.K7zLb4tjqlcHe6xT",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.GTAfS48mv3G8LaeO",
       "cards": []
     },
     {
@@ -322,7 +322,7 @@
       ],
       "face": 0,
       "name": "The Hierophant",
-      "_id": "B2LAg2L8ouXw3e91",
+      "_id": "UpV42xIWO94i8oq9",
       "description": "",
       "type": "base",
       "system": {},
@@ -339,11 +339,11 @@
       "sort": 11,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -351,7 +351,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.B2LAg2L8ouXw3e91",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.UpV42xIWO94i8oq9",
       "cards": []
     },
     {
@@ -364,7 +364,7 @@
       ],
       "face": 0,
       "name": "The Lovers",
-      "_id": "xh6xZRoVZV15nQhO",
+      "_id": "Hrynuhb5TjnSsWBz",
       "description": "",
       "type": "base",
       "system": {},
@@ -381,11 +381,11 @@
       "sort": 5,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -393,7 +393,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.xh6xZRoVZV15nQhO",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Hrynuhb5TjnSsWBz",
       "cards": []
     },
     {
@@ -406,7 +406,7 @@
       ],
       "face": 0,
       "name": "The Chariot",
-      "_id": "EbN8xl4fLebeFFgK",
+      "_id": "rwy3ZGnWunehZ3VY",
       "description": "",
       "type": "base",
       "system": {},
@@ -425,11 +425,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -437,7 +437,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.EbN8xl4fLebeFFgK",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.rwy3ZGnWunehZ3VY",
       "cards": []
     },
     {
@@ -450,7 +450,7 @@
       ],
       "face": 0,
       "name": "Strength",
-      "_id": "zYZmtZJvGMqSnyk0",
+      "_id": "NRx96uofq5xdoZWw",
       "description": "",
       "type": "base",
       "system": {},
@@ -467,11 +467,11 @@
       "sort": 19,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -479,7 +479,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.zYZmtZJvGMqSnyk0",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.NRx96uofq5xdoZWw",
       "cards": []
     },
     {
@@ -492,7 +492,7 @@
       ],
       "face": 0,
       "name": "The Hermit",
-      "_id": "dIQV9F1HNDAgexv5",
+      "_id": "sMYyUrhZPAsGYhaS",
       "description": "",
       "type": "base",
       "system": {},
@@ -509,11 +509,11 @@
       "sort": 9,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -521,7 +521,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.dIQV9F1HNDAgexv5",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.sMYyUrhZPAsGYhaS",
       "cards": []
     },
     {
@@ -534,7 +534,7 @@
       ],
       "face": 0,
       "name": "Wheel of Fortune",
-      "_id": "CG1L7dKRCpowCdlt",
+      "_id": "3AZK1tKi26ds0VgB",
       "description": "",
       "type": "base",
       "system": {},
@@ -553,11 +553,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -565,7 +565,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CG1L7dKRCpowCdlt",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.3AZK1tKi26ds0VgB",
       "cards": []
     },
     {
@@ -578,7 +578,7 @@
       ],
       "face": 0,
       "name": "Justice",
-      "_id": "eCkH51mQw3xHIE02",
+      "_id": "ErLdUQvTHKbfECRY",
       "description": "",
       "type": "base",
       "system": {},
@@ -595,11 +595,11 @@
       "sort": 20,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687437,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -607,7 +607,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.eCkH51mQw3xHIE02",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ErLdUQvTHKbfECRY",
       "cards": []
     },
     {
@@ -620,7 +620,7 @@
       ],
       "face": 0,
       "name": "The Hanged Man",
-      "_id": "x06dSsxJuV064iPi",
+      "_id": "NwIJyKTlr5CmRryA",
       "description": "",
       "type": "base",
       "system": {},
@@ -639,11 +639,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -651,7 +651,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.x06dSsxJuV064iPi",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.NwIJyKTlr5CmRryA",
       "cards": []
     },
     {
@@ -664,7 +664,7 @@
       ],
       "face": 0,
       "name": "Death",
-      "_id": "ZFkusdd60gXuwAj1",
+      "_id": "j9CBJOf3btrK26ip",
       "description": "",
       "type": "base",
       "system": {},
@@ -683,11 +683,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -695,7 +695,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZFkusdd60gXuwAj1",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.j9CBJOf3btrK26ip",
       "cards": []
     },
     {
@@ -708,7 +708,7 @@
       ],
       "face": 0,
       "name": "Temperance",
-      "_id": "5sFJqMvMhgi4aoQ3",
+      "_id": "CP9QOiRYxX7mhkhK",
       "description": "",
       "type": "base",
       "system": {},
@@ -725,11 +725,11 @@
       "sort": 4,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -737,7 +737,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.5sFJqMvMhgi4aoQ3",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CP9QOiRYxX7mhkhK",
       "cards": []
     },
     {
@@ -750,7 +750,7 @@
       ],
       "face": 0,
       "name": "The Devil",
-      "_id": "o8BHsXf1O5qjoAJf",
+      "_id": "3HUAb7dhWHegAYG9",
       "description": "",
       "type": "base",
       "system": {},
@@ -769,11 +769,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880831,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -781,7 +781,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.o8BHsXf1O5qjoAJf",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.3HUAb7dhWHegAYG9",
       "cards": []
     },
     {
@@ -794,7 +794,7 @@
       ],
       "face": 0,
       "name": "The Tower",
-      "_id": "oFZL0h2tdp9IvZKn",
+      "_id": "UysgHmfXk8qoKVPh",
       "description": "",
       "type": "base",
       "system": {},
@@ -813,11 +813,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -825,7 +825,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.oFZL0h2tdp9IvZKn",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.UysgHmfXk8qoKVPh",
       "cards": []
     },
     {
@@ -838,7 +838,7 @@
       ],
       "face": 0,
       "name": "The Star",
-      "_id": "4f97g2qr7AEnvGHq",
+      "_id": "i9lMj7uYfbrGlwZn",
       "description": "",
       "type": "base",
       "system": {},
@@ -855,11 +855,11 @@
       "sort": 3,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -867,7 +867,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.4f97g2qr7AEnvGHq",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.i9lMj7uYfbrGlwZn",
       "cards": []
     },
     {
@@ -880,7 +880,7 @@
       ],
       "face": 0,
       "name": "The Moon",
-      "_id": "KBbxirsvmc34H8WU",
+      "_id": "SZyi6h4JiTO24jRQ",
       "description": "",
       "type": "base",
       "system": {},
@@ -899,11 +899,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -911,7 +911,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.KBbxirsvmc34H8WU",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SZyi6h4JiTO24jRQ",
       "cards": []
     },
     {
@@ -924,7 +924,7 @@
       ],
       "face": 0,
       "name": "The Sun",
-      "_id": "nHEC40VL5RevjHq6",
+      "_id": "FlLMEZ0ONhYvWMi9",
       "description": "",
       "type": "base",
       "system": {},
@@ -943,11 +943,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -955,7 +955,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.nHEC40VL5RevjHq6",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.FlLMEZ0ONhYvWMi9",
       "cards": []
     },
     {
@@ -968,7 +968,7 @@
       ],
       "face": 0,
       "name": "Judgement",
-      "_id": "w8p8woLDuWn0mmGC",
+      "_id": "s04LwriCt9wK6FLJ",
       "description": "",
       "type": "base",
       "system": {},
@@ -987,11 +987,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -999,7 +999,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.w8p8woLDuWn0mmGC",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.s04LwriCt9wK6FLJ",
       "cards": []
     },
     {
@@ -1012,7 +1012,7 @@
       ],
       "face": 0,
       "name": "The World",
-      "_id": "2u5j9Iy9zYf7fAbQ",
+      "_id": "78yo0ehQG6J5vF7v",
       "description": "",
       "type": "base",
       "system": {},
@@ -1031,11 +1031,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687438,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1043,7 +1043,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.2u5j9Iy9zYf7fAbQ",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.78yo0ehQG6J5vF7v",
       "cards": []
     },
     {
@@ -1056,7 +1056,7 @@
       ],
       "face": 0,
       "name": "Sail The Black",
-      "_id": "11vvakaY1gfKjm8R",
+      "_id": "VVBu8Ew2GU0S8mtp",
       "description": "",
       "type": "base",
       "system": {},
@@ -1075,11 +1075,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1087,7 +1087,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.11vvakaY1gfKjm8R",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.VVBu8Ew2GU0S8mtp",
       "cards": []
     },
     {
@@ -1100,7 +1100,7 @@
       ],
       "face": 0,
       "name": "The Crew's Creed",
-      "_id": "CfUWtKZ9R2WEFNta",
+      "_id": "tfr4yAnpd6YBfHQu",
       "description": "",
       "type": "base",
       "system": {},
@@ -1119,11 +1119,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1131,7 +1131,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CfUWtKZ9R2WEFNta",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.tfr4yAnpd6YBfHQu",
       "cards": []
     },
     {
@@ -1144,7 +1144,7 @@
       ],
       "face": 0,
       "name": "Biggest Problem",
-      "_id": "oxhfsHPXSxIbmtfe",
+      "_id": "OqGUAbKxGSHSaA8c",
       "description": "",
       "type": "base",
       "system": {},
@@ -1163,11 +1163,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1175,7 +1175,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.oxhfsHPXSxIbmtfe",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.OqGUAbKxGSHSaA8c",
       "cards": []
     },
     {
@@ -1188,7 +1188,7 @@
       ],
       "face": 0,
       "name": "Dietrich Sturmwald",
-      "_id": "CKVXByiTu3D5VQ5Z",
+      "_id": "aoM8lyGemcQuI9Zb",
       "description": "",
       "type": "base",
       "system": {},
@@ -1207,11 +1207,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1219,7 +1219,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CKVXByiTu3D5VQ5Z",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.aoM8lyGemcQuI9Zb",
       "cards": []
     },
     {
@@ -1232,7 +1232,7 @@
       ],
       "face": 0,
       "name": "Malachi Vestori",
-      "_id": "mFrIVMJI2MaEKC8x",
+      "_id": "t3sav9LoC7uvRTUD",
       "description": "",
       "type": "base",
       "system": {},
@@ -1251,11 +1251,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1263,7 +1263,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.mFrIVMJI2MaEKC8x",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.t3sav9LoC7uvRTUD",
       "cards": []
     },
     {
@@ -1276,7 +1276,7 @@
       ],
       "face": 0,
       "name": "Benedict Brooke",
-      "_id": "7107hW7kfQCQKaVd",
+      "_id": "EJKienrlkqfSaqWX",
       "description": "",
       "type": "base",
       "system": {},
@@ -1293,11 +1293,11 @@
       "sort": 29,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1305,7 +1305,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.7107hW7kfQCQKaVd",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.EJKienrlkqfSaqWX",
       "cards": []
     },
     {
@@ -1318,7 +1318,7 @@
       ],
       "face": 0,
       "name": "Halima al-Hadid",
-      "_id": "SjshLTRxbsXuVDKU",
+      "_id": "ADMNQ3V5j4iJ3nbT",
       "description": "",
       "type": "base",
       "system": {},
@@ -1337,11 +1337,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1349,7 +1349,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SjshLTRxbsXuVDKU",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ADMNQ3V5j4iJ3nbT",
       "cards": []
     },
     {
@@ -1362,7 +1362,7 @@
       ],
       "face": 0,
       "name": "Seraphina Lacroix",
-      "_id": "GDheWtukxSV8WVzC",
+      "_id": "SdmqlGzB2cu8Yitb",
       "description": "",
       "type": "base",
       "system": {},
@@ -1381,11 +1381,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1393,7 +1393,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.GDheWtukxSV8WVzC",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SdmqlGzB2cu8Yitb",
       "cards": []
     },
     {
@@ -1406,7 +1406,7 @@
       ],
       "face": 0,
       "name": "Valeria Violante",
-      "_id": "0Ixqf2aaZGEckJxR",
+      "_id": "gGP3fry4rpozf3ke",
       "description": "",
       "type": "base",
       "system": {},
@@ -1425,11 +1425,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1437,7 +1437,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.0Ixqf2aaZGEckJxR",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.gGP3fry4rpozf3ke",
       "cards": []
     },
     {
@@ -1450,7 +1450,7 @@
       ],
       "face": 0,
       "name": "Rajan Bahtera",
-      "_id": "tsAr236CQO6eJK9w",
+      "_id": "Ncp2rYMbtjMBdh8n",
       "description": "",
       "type": "base",
       "system": {},
@@ -1469,11 +1469,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1481,7 +1481,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.tsAr236CQO6eJK9w",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Ncp2rYMbtjMBdh8n",
       "cards": []
     },
     {
@@ -1494,7 +1494,7 @@
       ],
       "face": 0,
       "name": "Abena Sarkozy",
-      "_id": "3Jz9NNCFjTDnt2hk",
+      "_id": "bAMzZQj8KtdWmDtr",
       "description": "",
       "type": "base",
       "system": {},
@@ -1511,11 +1511,11 @@
       "sort": 30,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1523,7 +1523,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.3Jz9NNCFjTDnt2hk",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.bAMzZQj8KtdWmDtr",
       "cards": []
     },
     {
@@ -1536,7 +1536,7 @@
       ],
       "face": 0,
       "name": "What Did You Lose?",
-      "_id": "Iwq04eZRKrgSvmXK",
+      "_id": "ahjknsi3JTR4Eb0T",
       "description": "",
       "type": "base",
       "system": {},
@@ -1555,11 +1555,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1567,7 +1567,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Iwq04eZRKrgSvmXK",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ahjknsi3JTR4Eb0T",
       "cards": []
     },
     {
@@ -1580,7 +1580,7 @@
       ],
       "face": 0,
       "name": "Vendetta",
-      "_id": "gdfi483HeODzyjPf",
+      "_id": "Xlf4xRckVct1VGLd",
       "description": "",
       "type": "base",
       "system": {},
@@ -1599,11 +1599,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687439,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1611,7 +1611,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.gdfi483HeODzyjPf",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Xlf4xRckVct1VGLd",
       "cards": []
     },
     {
@@ -1624,7 +1624,7 @@
       ],
       "face": 0,
       "name": "Regrets",
-      "_id": "xxEgTsC5mlHmAbp7",
+      "_id": "YDn5KRg2lNfUNrwK",
       "description": "",
       "type": "base",
       "system": {},
@@ -1643,11 +1643,11 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880832,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
@@ -1655,7 +1655,7 @@
       },
       "width": null,
       "height": null,
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.xxEgTsC5mlHmAbp7",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.YDn5KRg2lNfUNrwK",
       "cards": []
     },
     {
@@ -1677,7 +1677,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "24BKFhsApIKbRGba",
+      "_id": "x5UiBSvbz3zb7UA8",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1685,17 +1685,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.24BKFhsApIKbRGba",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.x5UiBSvbz3zb7UA8",
       "cards": []
     },
     {
@@ -1717,7 +1717,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "tjVGbLeeLKe1Exn4",
+      "_id": "Mjoykb9lhne4scxI",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1725,17 +1725,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.tjVGbLeeLKe1Exn4",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Mjoykb9lhne4scxI",
       "cards": []
     },
     {
@@ -1757,7 +1757,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "qxVVRY3OTN81c5MY",
+      "_id": "E6td8XW6iTPBK1jT",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1765,17 +1765,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.qxVVRY3OTN81c5MY",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.E6td8XW6iTPBK1jT",
       "cards": []
     },
     {
@@ -1797,7 +1797,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "m1RDcd0DhUtM8sw4",
+      "_id": "n1ZhyPK0CDyzAmOH",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1807,17 +1807,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.m1RDcd0DhUtM8sw4",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.n1ZhyPK0CDyzAmOH",
       "cards": []
     },
     {
@@ -1839,7 +1839,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "SdZqQSqWuIIB3EEx",
+      "_id": "AdB2Bv5kcCIFgBEQ",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1849,17 +1849,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SdZqQSqWuIIB3EEx",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.AdB2Bv5kcCIFgBEQ",
       "cards": []
     },
     {
@@ -1881,7 +1881,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "eBN8ciO9I7xgWiWb",
+      "_id": "pZfKylypkgBXWwKR",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1889,17 +1889,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.eBN8ciO9I7xgWiWb",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.pZfKylypkgBXWwKR",
       "cards": []
     },
     {
@@ -1921,7 +1921,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "RqvhnLRj60jtMiT4",
+      "_id": "TwG0L8jXX0E44vlj",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1931,17 +1931,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.RqvhnLRj60jtMiT4",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.TwG0L8jXX0E44vlj",
       "cards": []
     },
     {
@@ -1963,7 +1963,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "H1cHj1UVQAQpj0yH",
+      "_id": "7lmHrXhvjqUScZ2J",
       "description": "",
       "system": {},
       "drawn": false,
@@ -1973,17 +1973,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.H1cHj1UVQAQpj0yH",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.7lmHrXhvjqUScZ2J",
       "cards": []
     },
     {
@@ -2005,7 +2005,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "FnZQViYm5b8ReeGM",
+      "_id": "dhAmtZMOxU4KRLPC",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2015,17 +2015,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880833,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.FnZQViYm5b8ReeGM",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.dhAmtZMOxU4KRLPC",
       "cards": []
     },
     {
@@ -2047,7 +2047,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "aieZ39vxOk0Dunl2",
+      "_id": "0GzJa9gjViHLc1Gu",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2057,17 +2057,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.aieZ39vxOk0Dunl2",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.0GzJa9gjViHLc1Gu",
       "cards": []
     },
     {
@@ -2089,7 +2089,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "qZq7MK7P1iNaBxRl",
+      "_id": "P4MiD1UXIpgdNAnf",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2097,17 +2097,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.qZq7MK7P1iNaBxRl",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.P4MiD1UXIpgdNAnf",
       "cards": []
     },
     {
@@ -2129,7 +2129,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "xUWta2TWRJVu0ypx",
+      "_id": "Oe0kP8n0YTH4HHjZ",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2137,17 +2137,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.xUWta2TWRJVu0ypx",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Oe0kP8n0YTH4HHjZ",
       "cards": []
     },
     {
@@ -2169,7 +2169,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "ZKX74Fa12xPnBF1K",
+      "_id": "I2mZazNDnuMiLlYj",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2177,17 +2177,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687440,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ZKX74Fa12xPnBF1K",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.I2mZazNDnuMiLlYj",
       "cards": []
     },
     {
@@ -2209,7 +2209,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "hE93UbixoKJp8yq7",
+      "_id": "MHNGaLbTHOaOmOWL",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2217,17 +2217,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.hE93UbixoKJp8yq7",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.MHNGaLbTHOaOmOWL",
       "cards": []
     },
     {
@@ -2249,7 +2249,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "S7tz0XhIEDOd8nTq",
+      "_id": "iU4Ec0S3t1ifyfS2",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2259,17 +2259,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.S7tz0XhIEDOd8nTq",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.iU4Ec0S3t1ifyfS2",
       "cards": []
     },
     {
@@ -2291,7 +2291,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "KjkNZS5j4FMemc6W",
+      "_id": "GdvxsUYidJ9cUVlD",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2301,17 +2301,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.KjkNZS5j4FMemc6W",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.GdvxsUYidJ9cUVlD",
       "cards": []
     },
     {
@@ -2333,7 +2333,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "QNnHOqrbhrWBJbA6",
+      "_id": "mtKzoNrG9bMj3kmB",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2343,17 +2343,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.QNnHOqrbhrWBJbA6",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.mtKzoNrG9bMj3kmB",
       "cards": []
     },
     {
@@ -2375,7 +2375,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "S641sej0h9TKuLnV",
+      "_id": "ftdurM2S7DzRDMsz",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2385,17 +2385,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.S641sej0h9TKuLnV",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.ftdurM2S7DzRDMsz",
       "cards": []
     },
     {
@@ -2417,7 +2417,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "5G6rDZXWKCpXUNr6",
+      "_id": "oUfA42qAOQk3HKPf",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2427,17 +2427,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.5G6rDZXWKCpXUNr6",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.oUfA42qAOQk3HKPf",
       "cards": []
     },
     {
@@ -2459,7 +2459,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "puECzXdf9wfQYYPi",
+      "_id": "MmtWLISsmdH9lGoj",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2467,17 +2467,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.puECzXdf9wfQYYPi",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.MmtWLISsmdH9lGoj",
       "cards": []
     },
     {
@@ -2499,7 +2499,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "2ZcYJ5sM2Kepf8a7",
+      "_id": "V4MPN6oGEbv6iGr3",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2509,17 +2509,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.2ZcYJ5sM2Kepf8a7",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.V4MPN6oGEbv6iGr3",
       "cards": []
     },
     {
@@ -2541,7 +2541,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "Fic1UhafWrckFiVf",
+      "_id": "t0vFpmsxtQKTEAqw",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2551,17 +2551,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Fic1UhafWrckFiVf",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.t0vFpmsxtQKTEAqw",
       "cards": []
     },
     {
@@ -2583,7 +2583,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "VW2On5iHEwh52ORM",
+      "_id": "F0iua0qQclI2D8Aw",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2593,17 +2593,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.VW2On5iHEwh52ORM",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.F0iua0qQclI2D8Aw",
       "cards": []
     },
     {
@@ -2625,7 +2625,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "PVZjyf1kBGLIn4Qz",
+      "_id": "trnYW0C4ekQwNz4a",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2633,17 +2633,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.PVZjyf1kBGLIn4Qz",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.trnYW0C4ekQwNz4a",
       "cards": []
     },
     {
@@ -2665,7 +2665,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "SmhWi2bNPZLq0SwI",
+      "_id": "LhRc4kqAWYR0aGQT",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2673,17 +2673,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SmhWi2bNPZLq0SwI",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.LhRc4kqAWYR0aGQT",
       "cards": []
     },
     {
@@ -2705,7 +2705,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "IBXanplXKsuC7a5M",
+      "_id": "cwKqnqCuEQc2auil",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2713,17 +2713,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.IBXanplXKsuC7a5M",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.cwKqnqCuEQc2auil",
       "cards": []
     },
     {
@@ -2745,7 +2745,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "mpU3hxUl24Ocll96",
+      "_id": "SZyix9QJg7wmEiuA",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2753,17 +2753,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.mpU3hxUl24Ocll96",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.SZyix9QJg7wmEiuA",
       "cards": []
     },
     {
@@ -2785,7 +2785,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "w2vjXJHsvXRJPo3t",
+      "_id": "Lvq4EqUwMURDELG6",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2795,17 +2795,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.w2vjXJHsvXRJPo3t",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Lvq4EqUwMURDELG6",
       "cards": []
     },
     {
@@ -2827,7 +2827,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "UmAVDiFAQpHyE4NC",
+      "_id": "Y6ZCtza9dZF7Qia9",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2835,17 +2835,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.UmAVDiFAQpHyE4NC",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.Y6ZCtza9dZF7Qia9",
       "cards": []
     },
     {
@@ -2867,7 +2867,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "GqKS3YFI4w8ndVQ8",
+      "_id": "xzEKdd3xArO7O38T",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2875,17 +2875,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.GqKS3YFI4w8ndVQ8",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.xzEKdd3xArO7O38T",
       "cards": []
     },
     {
@@ -2907,7 +2907,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "JAcISFopcyyuDA6Y",
+      "_id": "CdsUOS48gAa54Qfj",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2917,17 +2917,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.JAcISFopcyyuDA6Y",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CdsUOS48gAa54Qfj",
       "cards": []
     },
     {
@@ -2949,7 +2949,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "z06W6ov6MHbrZZAi",
+      "_id": "CQVL3HI34liaLGnd",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2957,17 +2957,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.z06W6ov6MHbrZZAi",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.CQVL3HI34liaLGnd",
       "cards": []
     },
     {
@@ -2989,7 +2989,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "qWrI2VJXpRMygt2t",
+      "_id": "A4rTfjmmuN3u9Xo0",
       "description": "",
       "system": {},
       "drawn": false,
@@ -2997,17 +2997,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687441,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.qWrI2VJXpRMygt2t",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.A4rTfjmmuN3u9Xo0",
       "cards": []
     },
     {
@@ -3029,7 +3029,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "VxmCMs1vGPiseVxv",
+      "_id": "VZcKP4YZiE0x2BvX",
       "description": "",
       "system": {},
       "drawn": false,
@@ -3039,17 +3039,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687442,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.VxmCMs1vGPiseVxv",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.VZcKP4YZiE0x2BvX",
       "cards": []
     },
     {
@@ -3071,7 +3071,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "8ElXJRfYqQAPKyfY",
+      "_id": "WOiFZGqMo5vWkgRF",
       "description": "",
       "system": {},
       "drawn": false,
@@ -3081,17 +3081,17 @@
         "complete-card-management": {}
       },
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687442,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.8ElXJRfYqQAPKyfY",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.WOiFZGqMo5vWkgRF",
       "cards": []
     },
     {
@@ -3113,7 +3113,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "l6660kOh3roNBC4E",
+      "_id": "THU5dt58sv7nZNtr",
       "description": "",
       "system": {},
       "drawn": false,
@@ -3121,17 +3121,17 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687442,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.l6660kOh3roNBC4E",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.THU5dt58sv7nZNtr",
       "cards": []
     },
     {
@@ -3153,7 +3153,7 @@
         "text": ""
       },
       "face": 0,
-      "_id": "L6EXf8xqGvC99o5O",
+      "_id": "UjjGzsEdbEfIMDnk",
       "description": "",
       "system": {},
       "drawn": false,
@@ -3161,47 +3161,175 @@
       "rotation": 0,
       "flags": {},
       "_stats": {
-        "coreVersion": "14.364",
+        "coreVersion": "14.365",
         "systemId": "dnd5e",
         "systemVersion": "5.3.3",
-        "createdTime": 1784106880828,
-        "modifiedTime": 1784106880834,
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687442,
         "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.L6EXf8xqGvC99o5O",
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.UjjGzsEdbEfIMDnk",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/75qosleftbehind.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Keeping Your Distance",
+      "_id": "MmuRM4o7bTHH7ncj",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "mobius",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687442,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.MmuRM4o7bTHH7ncj",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/76qossilverlinings.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Silver Linings",
+      "_id": "OU8IEuhEM3QUIMwK",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "mobius",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687442,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.OU8IEuhEM3QUIMwK",
+      "cards": []
+    },
+    {
+      "faces": [
+        {
+          "name": "",
+          "img": "modules/cv-wicked-campaigns/images/qos/77qosthequeensmark.webp",
+          "text": ""
+        }
+      ],
+      "face": 0,
+      "name": "Queen's Mark",
+      "_id": "IiZCOAoGx92LyzDV",
+      "description": "",
+      "type": "base",
+      "system": {},
+      "suit": "moons",
+      "value": null,
+      "back": {
+        "text": "",
+        "img": null,
+        "name": ""
+      },
+      "drawn": false,
+      "origin": null,
+      "rotation": 0,
+      "sort": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1785226687432,
+        "modifiedTime": 1785226687442,
+        "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null,
+      "_key": "!cards.cards!NLIzNgjCfnxvb9NE.IiZCOAoGx92LyzDV",
       "cards": []
     }
   ],
   "rotation": 0,
   "displayCount": false,
   "folder": "8nVQnsehUNkCrvf9",
+  "ownership": {
+    "default": 0,
+    "fMn2Y9q9aMPbOfJL": 3
+  },
   "flags": {
-    "complete-card-management": {},
+    "complete-card-management": {
+      "primaryOwner": ""
+    },
     "core": {
       "sheetClass": "complete-card-management.DeckSheet"
     },
     "cv-wicked-campaigns": {}
   },
   "_stats": {
-    "coreVersion": "14.364",
+    "coreVersion": "14.365",
     "systemId": "dnd5e",
     "systemVersion": "5.3.3",
-    "createdTime": 1784106880828,
-    "modifiedTime": 1784106880834,
+    "createdTime": 1785226687432,
+    "modifiedTime": 1785226687432,
     "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
-    "exportSource": null,
     "compendiumSource": null,
-    "duplicateSource": null
+    "duplicateSource": null,
+    "exportSource": null
   },
   "width": null,
   "height": null,
-  "ownership": {
-    "default": 0,
-    "fMn2Y9q9aMPbOfJL": 3
-  },
   "sort": 0,
   "_key": "!cards!NLIzNgjCfnxvb9NE"
 }

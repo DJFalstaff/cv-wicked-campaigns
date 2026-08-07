@@ -3089,8 +3089,9 @@ class SessionZeroSheet extends sessionZeroSheetBase {
       rename: SessionZeroSheet.#onRename,
       "export-pdf": SessionZeroSheet.#onExportPdf,
       "view-card-image": SessionZeroSheet.#onViewCardImage,
-      "add-note": SessionZeroSheet.#onAddNote,
-      "delete-note": SessionZeroSheet.#onDeleteNote,
+      "add-contribution": SessionZeroSheet.#onAddContribution,
+      "delete-contribution": SessionZeroSheet.#onDeleteContribution,
+      "edit-title": SessionZeroSheet.#onEditTitle,
       share: SessionZeroSheet.#onShare,
       "delete-entry": SessionZeroSheet.#onDeleteEntry,
     },
@@ -3105,16 +3106,16 @@ class SessionZeroSheet extends sessionZeroSheetBase {
     context.entries = readSessionZeroEntries(this.document).map((entry) => ({
       ...entry,
       timestampLabel: entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "",
-      // Anyone who can see the summary can add to it - that's the whole point of threading notes
-      // rather than keeping the GM as sole scribe. The write itself is relayed if they can't
-      // modify the journal directly.
-      canNote: true,
-      notes: (entry.notes || []).map((note) => ({
-        ...note,
-        timestampLabel: note.timestamp ? new Date(note.timestamp).toLocaleString() : "",
-        // Mirrors the check re-applied GM-side in deleteSessionZeroNote - shown here purely so the
-        // button doesn't appear when it would be rejected.
-        canDelete: game.user.isGM || note.authorId === game.user.id,
+      // Anyone who can read the summary can add to any card. That is the flat model: there is no
+      // privileged first answer, so there is nobody who has to go first before others may speak.
+      canContribute: true,
+      titleIsCardName: (entry.title ?? "") === (entry.cardName ?? ""),
+      contributions: (entry.contributions || []).map((c) => ({
+        ...c,
+        timestampLabel: c.timestamp ? new Date(c.timestamp).toLocaleString() : "",
+        // Mirrors the check re-applied GM-side in deleteSessionZeroContribution - shown here only
+        // so the button does not appear when it would be refused.
+        canDelete: game.user.isGM || c.authorId === game.user.id,
       })),
     }));
     context.editable = this.isEditable;
@@ -3172,22 +3173,46 @@ class SessionZeroSheet extends sessionZeroSheetBase {
     await deleteSessionZeroEntry(this.document, target.dataset.entryId);
   }
 
-  static async #onAddNote(event, target) {
-    const entryId = target.dataset.entryId;
-    const entry = readSessionZeroEntries(this.document).find((e) => e.id === entryId);
+  static async #onAddContribution(event, target) {
+    const entry = readSessionZeroEntries(this.document).find((e) => e.id === target.dataset.entryId);
     if (!entry) return;
-    SessionZeroAnswerApp.openNote(this.document, entry);
+    // Re-resolve the live Card so a contribution added from the sheet lands on the same slot as
+    // one added from the card's own HUD.
+    const card = entry.cardId ? game.cards.contents.flatMap((s) => s.cards.contents).find((c) => c.id === entry.cardId) : null;
+    SessionZeroAnswerApp.open(card ?? { id: entry.cardId, name: entry.cardName, img: entry.cardImage, suit: entry.suit }, this.document);
   }
 
-  static async #onDeleteNote(event, target) {
-    const { entryId, noteId } = target.dataset;
+  static async #onDeleteContribution(event, target) {
+    const { entryId, contributionId } = target.dataset;
     const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: "Delete Note", icon: "fa-solid fa-trash" },
-      content: "<p>Delete this note? This can't be undone.</p>",
+      window: { title: "Delete Contribution", icon: "fa-solid fa-trash" },
+      content: "<p>Delete this contribution? This can't be undone.</p>",
       rejectClose: false,
     }).catch(() => false);
     if (!confirmed) return;
-    await deleteSessionZeroNote(this.document, entryId, noteId);
+    await deleteSessionZeroContribution(this.document, entryId, contributionId);
+  }
+
+  // The title is what the TABLE decided, not what the card is called - "Bishgun fears the sea"
+  // rather than "Weaker". It defaults to the card's name so it is never blank, and the GM curates
+  // it, because it is the line the summary is read back by.
+  static async #onEditTitle(event, target) {
+    const entryId = target.dataset.entryId;
+    const entry = readSessionZeroEntries(this.document).find((e) => e.id === entryId);
+    if (!entry) return;
+    const next = await foundry.applications.api.DialogV2.prompt({
+      window: { title: `Title: ${entry.cardName}`, icon: "fa-solid fa-pen" },
+      content: `
+        <p style="font-size: 0.85rem; color: #b5b5b5; margin-top: 0;">
+          What the table decided about this card. Shown as the heading when reading the summary back.
+        </p>
+        <div class="form-group"><label>Title</label>
+          <input type="text" name="title" value="${esc(entry.title ?? "")}" autofocus></div>`,
+      ok: { icon: "fas fa-check", label: "Save", callback: (e, button) => button.form.elements.title.value },
+      rejectClose: false,
+    }).catch(() => null);
+    if (next === null) return;
+    await updateSessionZeroEntryMeta(this.document, entryId, { title: next });
   }
 
   // Same reasoning as BackstorySheet/PartySheet's #onRename: this custom template has no name
@@ -3281,7 +3306,34 @@ async function createSessionZeroSummary(name = "Session Zero Summary", limits = 
 function normalizeSessionZeroEntry(entry, index) {
   const normalized = { ...entry };
   if (!normalized.id) normalized.id = `legacy-${index}-${normalized.timestamp ?? 0}`;
-  if (!Array.isArray(normalized.notes)) normalized.notes = [];
+
+  // A card's slot now holds one flat list of contributions, all equal and all attributed - the
+  // GM's words are a contribution like anyone else's, not a headline the rest hang off.
+  //
+  // Older summaries stored the GM's answer as the entry's own `answerHtml` with everyone else's
+  // additions in `notes[]`. Fold both into one ordered list rather than migrating on write: the
+  // summary is edited from several clients through a relay, so a rewrite pass racing live appends
+  // is a real hazard, and this stays correct whether or not the flattening was ever saved.
+  if (!Array.isArray(normalized.contributions)) {
+    const folded = [];
+    if (normalized.answerHtml?.trim()) {
+      folded.push({
+        id: `${normalized.id}-answer`,
+        authorId: normalized.authorId ?? null,
+        // Pre-flattening entries recorded whose TURN it was, not who typed - that is the closest
+        // honest attribution available, and better than dropping it.
+        authorName: normalized.authorName ?? normalized.playerName ?? "GM",
+        authorColor: null,
+        html: normalized.answerHtml,
+        timestamp: normalized.timestamp ?? 0,
+      });
+    }
+    for (const note of normalized.notes || []) folded.push({ ...note });
+    normalized.contributions = folded.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
+  }
+
+  if (!normalized.cardName) normalized.cardName = normalized.title || "(card)";
+  if (!Array.isArray(normalized.linkedPlayers)) normalized.linkedPlayers = [];
   return normalized;
 }
 
@@ -3364,29 +3416,41 @@ function sanitizeSessionZeroHtml(html) {
 // verified sender, so a crafted payload could otherwise inject arbitrary keys into the flag - and,
 // more importantly, claim someone else's authorship. Author is always stamped from the resolved
 // User, never read from the payload.
+// A card's slot. Holds what the card IS (image, suit, name), what the table decided about it
+// (title), who the fiction involves, and the contributions themselves. Everything except `title`
+// and `linkedPlayers` is derived from the card rather than typed.
 function buildSessionZeroEntry(raw, user) {
+  const cardName = String(raw?.cardName ?? "").trim().slice(0, 200) || "(card)";
   return {
     id: foundry.utils.randomID(),
-    notes: [],
-    authorId: user.id,
-    authorName: user.name,
-    title: String(raw?.title ?? "").trim().slice(0, 200) || "(untitled)",
-    answerHtml: sanitizeSessionZeroHtml(raw?.answerHtml),
+    cardName,
+    // Defaults to the card's own name so it is never blank, but is meant to be overwritten with
+    // what the table actually decided - "Bishgun fears the sea" reads back far better than
+    // "Weaker" when the summary is a list of twenty cards.
+    title: String(raw?.title ?? "").trim().slice(0, 200) || cardName,
     cardImage: typeof raw?.cardImage === "string" ? raw.cardImage : null,
     suit: typeof raw?.suit === "string" ? raw.suit : null,
-    playerName: String(raw?.playerName ?? user.name).slice(0, 200),
+    // Whose turn the card came up on. Recorded for the tier maths (Arcana and Roses are capped per
+    // player) - NOT an author, and no longer implies who wrote anything.
+    playerName: String(raw?.playerName ?? "").slice(0, 200),
     playerImg: typeof raw?.playerImg === "string" ? raw.playerImg : null,
-    linkedPlayers: Array.isArray(raw?.linkedPlayers)
-      ? raw.linkedPlayers.slice(0, 20).map((p) => ({
-        name: String(p?.name ?? "").slice(0, 200),
-        img: typeof p?.img === "string" ? p.img : null,
-      }))
-      : [],
+    linkedPlayers: sanitizeLinkedPlayers(raw?.linkedPlayers),
+    contributions: [],
     timestamp: Date.now(),
   };
 }
 
-function buildSessionZeroNote(raw, user) {
+function sanitizeLinkedPlayers(list) {
+  return Array.isArray(list)
+    ? list.slice(0, 20).map((p) => ({
+      name: String(p?.name ?? "").slice(0, 200),
+      img: typeof p?.img === "string" ? p.img : null,
+    }))
+    : [];
+}
+
+// One shape for everything anyone writes. The GM's contribution is this; a player's is this.
+function buildSessionZeroContribution(raw, user) {
   return {
     id: foundry.utils.randomID(),
     authorId: user.id,
@@ -3397,25 +3461,67 @@ function buildSessionZeroNote(raw, user) {
   };
 }
 
-async function addSessionZeroEntry(summary, raw) {
-  if (summary.canUserModify(game.user, "update")) {
-    const entry = buildSessionZeroEntry(raw, game.user);
-    return applySessionZeroMutation(summary, (entries) => [...entries, entry]);
+
+// A card gets one slot, whoever writes into it first. Everything after that appends to the same
+// slot, so the GM answering and a player adding to it are literally the same operation - which is
+// the point: there is no "record the answer" step separate from "say something about this card".
+//
+// `raw.card` identifies the slot. Matching is by card id rather than name so two cards that happen
+// to share a name still get their own slot, and a renamed card keeps its history.
+function applyContribution(entries, raw, user) {
+  const cardId = raw?.cardId;
+  let target = cardId ? entries.find((e) => e.cardId === cardId) : null;
+  if (!target) {
+    target = buildSessionZeroEntry(raw, user);
+    target.cardId = cardId ?? null;
+    entries = [...entries, target];
   }
-  return requestSessionZeroWrite({ type: "sessionZeroAddEntry", summaryUuid: summary.uuid, raw });
+  target.contributions = [...(target.contributions || []), buildSessionZeroContribution(raw, user)];
+  return entries;
 }
 
-async function addSessionZeroNote(summary, entryId, raw) {
+async function addSessionZeroContribution(summary, raw) {
   if (summary.canUserModify(game.user, "update")) {
-    const note = buildSessionZeroNote(raw, game.user);
+    let created = false;
+    const ok = await applySessionZeroMutation(summary, (entries) => {
+      created = !entries.some((e) => e.cardId === raw?.cardId);
+      return applyContribution(entries, raw, game.user);
+    });
+    return ok ? { created } : false;
+  }
+  return requestSessionZeroWrite({ type: "sessionZeroContribute", summaryUuid: summary.uuid, raw });
+}
+
+// Slot-level fields the GM curates: what the table decided, and which characters it involves.
+// Separate from contributing, because editing the headline is not the same act as adding to the
+// conversation under it.
+async function updateSessionZeroEntryMeta(summary, entryId, { title, linkedPlayers }) {
+  if (!game.user.isGM) return false;
+  return applySessionZeroMutation(summary, (entries) => {
+    const target = entries.find((e) => e.id === entryId);
+    if (!target) return null;
+    if (title !== undefined) target.title = String(title).trim().slice(0, 200) || target.cardName || "(card)";
+    if (linkedPlayers !== undefined) target.linkedPlayers = sanitizeLinkedPlayers(linkedPlayers);
+    return entries;
+  });
+}
+
+// Remove a single contribution. Whoever wrote it, or any GM.
+async function deleteSessionZeroContribution(summary, entryId, contributionId, actingUser = game.user) {
+  if (summary.canUserModify(game.user, "update")) {
     return applySessionZeroMutation(summary, (entries) => {
       const target = entries.find((e) => e.id === entryId);
       if (!target) return null;
-      target.notes = [...(target.notes || []), note];
+      const item = (target.contributions || []).find((c) => c.id === contributionId);
+      if (!item) return null;
+      if (!actingUser.isGM && item.authorId !== actingUser.id) return null;
+      target.contributions = target.contributions.filter((c) => c.id !== contributionId);
       return entries;
     });
   }
-  return requestSessionZeroWrite({ type: "sessionZeroAddNote", summaryUuid: summary.uuid, entryId, raw });
+  return requestSessionZeroWrite({
+    type: "sessionZeroDeleteContribution", summaryUuid: summary.uuid, entryId, contributionId,
+  });
 }
 
 // Remove a recorded answer outright. Recording is GM-only, so removing is too - no relay needed.
@@ -3434,17 +3540,18 @@ async function deleteSessionZeroEntry(summary, entryId) {
   const target = entries.find((e) => e.id === entryId);
   if (!target) return false;
 
-  const noteCount = (target.notes || []).length;
-  const authors = [...new Set((target.notes || []).map((n) => n.authorName).filter(Boolean))];
+  const contributions = target.contributions || [];
+  const noteCount = contributions.length;
+  const authors = [...new Set(contributions.map((c) => c.authorName).filter(Boolean))];
 
   const confirmed = await foundry.applications.api.DialogV2.confirm({
     window: { title: "Remove Recorded Answer", icon: "fa-solid fa-trash" },
     content: `
-      <p>Remove <b>${esc(target.title)}</b> from this summary?</p>
+      <p>Remove <b>${esc(target.title)}</b> and everything written about it?</p>
       ${noteCount ? `
         <p style="color: var(--color-text-dark-warning);">
-          This also deletes <b>${noteCount}</b> note${noteCount === 1 ? "" : "s"} attached to it${authors.length ? `, from ${esc(authors.join(", "))}` : ""}.
-          ${authors.length ? "Those are other people's contributions and cannot be recovered." : ""}
+          This deletes <b>${noteCount}</b> contribution${noteCount === 1 ? "" : "s"}${authors.length ? `, from ${esc(authors.join(", "))}` : ""}.
+          ${authors.length > 1 || (authors.length === 1 && authors[0] !== game.user.name) ? "Those include other people's words and cannot be recovered." : ""}
         </p>` : ""}
       <p style="font-size: 0.85rem; color: #b5b5b5;">
         The card itself is not affected - use Return to Deck on the table if you also want the card back.
@@ -3485,31 +3592,55 @@ async function deleteSessionZeroEntry(summary, entryId) {
   return true;
 }
 
-// A note can be removed by whoever wrote it, or by any GM. Same relay path as writing one - and
-// the same authorship check is re-applied GM-side, since the requesting client's claim about who
-// it is can't be trusted on its own.
-async function deleteSessionZeroNote(summary, entryId, noteId, actingUser = game.user) {
-  if (summary.canUserModify(game.user, "update")) {
-    return applySessionZeroMutation(summary, (entries) => {
-      const target = entries.find((e) => e.id === entryId);
-      if (!target) return null;
-      const note = (target.notes || []).find((n) => n.id === noteId);
-      if (!note) return null;
-      if (!actingUser.isGM && note.authorId !== actingUser.id) return null;
-      target.notes = (target.notes || []).filter((n) => n.id !== noteId);
-      return entries;
-    });
-  }
-  return requestSessionZeroWrite({ type: "sessionZeroDeleteNote", summaryUuid: summary.uuid, entryId, noteId });
-}
+
+// Relayed writes are fire-and-forget over a socket, so a player has no way of knowing whether
+// their words actually landed. Every failure mode is silent from where they sit: no GM connected,
+// the GM's client running an older build that doesn't recognise the message, the GM dropping out
+// mid-send. Losing what someone wrote is bad; losing it without telling them is worse - they carry
+// on believing it was recorded.
+//
+// So the GM acknowledges each applied write, and this waits for that ack. On timeout the player is
+// told plainly, and told the likely fix.
+const SESSION_ZERO_ACK_TIMEOUT_MS = 8000;
+const pendingSessionZeroWrites = new Map();
 
 function requestSessionZeroWrite(payload) {
   if (!game.users.activeGM) {
-    ui.notifications.warn("No GM is connected - your note can't be saved to the session record right now.");
-    return false;
+    ui.notifications.error("No GM is connected, so that could not be saved to the session record. Try again once your GM is online.");
+    return Promise.resolve(false);
   }
-  game.socket.emit(CARD_IMAGE_SHARE_CHANNEL, { ...payload, requestedBy: game.user.id });
-  return true;
+
+  const requestId = foundry.utils.randomID();
+  const promise = new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      pendingSessionZeroWrites.delete(requestId);
+      // Deliberately says "not confirmed", not "not saved". A missing ack usually does mean the
+      // write never happened, but it can also mean the GM's client applied it and is too old to
+      // acknowledge - claiming it was lost would send them off to retype something already
+      // recorded, and produce a duplicate.
+      ui.notifications.error(
+        "The GM's client did not confirm that was saved. Check the session summary before "
+        + "retyping it - if it isn't there, ask your GM to refresh their browser.",
+        { permanent: true },
+      );
+      resolve(false);
+    }, SESSION_ZERO_ACK_TIMEOUT_MS);
+    pendingSessionZeroWrites.set(requestId, { resolve, timer });
+  });
+
+  game.socket.emit(CARD_IMAGE_SHARE_CHANNEL, { ...payload, requestedBy: game.user.id, requestId });
+  return promise;
+}
+
+function resolveSessionZeroAck(payload) {
+  const pending = pendingSessionZeroWrites.get(payload?.requestId);
+  if (!pending) return;
+  clearTimeout(pending.timer);
+  pendingSessionZeroWrites.delete(payload.requestId);
+  pending.resolve(payload.ok ? { created: !!payload.created } : false);
+  if (!payload.ok) {
+    ui.notifications.error("The GM's client could not save that to the session record.", { permanent: true });
+  }
 }
 
 // GM-side half of the relay. Gated to game.users.activeGM so exactly one GM applies a mutation
@@ -3517,35 +3648,48 @@ function requestSessionZeroWrite(payload) {
 // before anything is written - an unknown or inactive id is dropped rather than trusted.
 async function handleSessionZeroWriteRequest(payload) {
   if (game.user !== game.users.activeGM) return;
+
+  // Acknowledge whatever happens, including refusal - a player waiting on this needs an answer
+  // either way, and silence is the one outcome that leaves them believing a lie.
+  const ack = (ok, extra = {}) => {
+    if (!payload?.requestId) return;
+    game.socket.emit(CARD_IMAGE_SHARE_CHANNEL, { type: "sessionZeroAck", requestId: payload.requestId, ok, ...extra });
+  };
+
   const user = game.users.get(payload?.requestedBy);
-  if (!user) return;
+  if (!user) return ack(false);
 
   const summary = await fromUuid(payload.summaryUuid).catch(() => null);
-  if (!summary) return;
+  if (!summary) return ack(false);
 
-  switch (payload.type) {
-    case "sessionZeroAddEntry": {
-      const entry = buildSessionZeroEntry(payload.raw, user);
-      await applySessionZeroMutation(summary, (entries) => [...entries, entry]);
-      // Threshold checks have to run here rather than on the requesting client: that client wrote
-      // nothing locally, so its own copy of entries[] is a render behind at this point.
-      const deck = game.cards.find((c) => c.getFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG) === summary.uuid);
-      await checkSessionZeroThresholds(summary, deck);
-      break;
+  try {
+    switch (payload.type) {
+      case "sessionZeroContribute": {
+        let created = false;
+        await applySessionZeroMutation(summary, (entries) => {
+          created = !entries.some((e) => e.cardId === payload.raw?.cardId);
+          return applyContribution(entries, payload.raw, user);
+        });
+        // Thresholds only move when a NEW card slot opens - a second person adding to a card the
+        // table already answered must not count it twice. Run here rather than on the requesting
+        // client, which wrote nothing locally and so has a stale entries[].
+        if (created) {
+          const deck = game.cards.find((c) => c.getFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG) === summary.uuid);
+          await checkSessionZeroThresholds(summary, deck);
+        }
+        ack(true, { created });
+        break;
+      }
+      case "sessionZeroDeleteContribution":
+        await deleteSessionZeroContribution(summary, payload.entryId, payload.contributionId, user);
+        ack(true);
+        break;
+      default:
+        ack(false);
     }
-    case "sessionZeroAddNote": {
-      const note = buildSessionZeroNote(payload.raw, user);
-      await applySessionZeroMutation(summary, (entries) => {
-        const target = entries.find((e) => e.id === payload.entryId);
-        if (!target) return null;
-        target.notes = [...(target.notes || []), note];
-        return entries;
-      });
-      break;
-    }
-    case "sessionZeroDeleteNote":
-      await deleteSessionZeroNote(summary, payload.entryId, payload.noteId, user);
-      break;
+  } catch (err) {
+    console.error("Wicked Campaigns | Relayed Session Zero write failed.", err);
+    ack(false);
   }
 }
 
@@ -6123,7 +6267,11 @@ Hooks.once('ready', async function() {
     // separate from the socket handler above so a malformed note request can't take down card
     // image sharing.
     game.socket.on(CARD_IMAGE_SHARE_CHANNEL, async (payload) => {
-        if (!String(payload?.type ?? "").startsWith("sessionZero")) return;
+        const type = String(payload?.type ?? "");
+        if (!type.startsWith("sessionZero")) return;
+        // The ack comes back to the requesting client, which is not a GM - handled before the
+        // GM-only write path below.
+        if (type === "sessionZeroAck") return resolveSessionZeroAck(payload);
         try {
             await handleSessionZeroWriteRequest(payload);
         } catch (err) {
@@ -9228,20 +9376,12 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
   /** @type {?SpeechRecognition} Active speech-recognition session, if dictating. */
   #recognition = null;
 
-  constructor(card, summary, combatant, options = {}) {
+  constructor(card, summary, options = {}) {
     super(options);
     this.card = card;
     this.summary = summary;
-    this.combatant = combatant;
-    // Note mode: appending to an existing recorded answer rather than creating one. Reuses this
-    // whole app (dictation, ProseMirror, styling) with the Title/Involves fields hidden, instead
-    // of standing up a near-duplicate second dialog.
-    this.noteEntry = options.noteEntry ?? null;
   }
 
-  get isNote() {
-    return !!this.noteEntry;
-  }
 
   static DEFAULT_OPTIONS = {
     // "{id}" resolves to a per-instance counter (ApplicationV2#_initializeApplicationOptions), so
@@ -9250,7 +9390,7 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
     // would otherwise silently reuse and re-render the first window.
     id: "session-zero-answer-{id}",
     classes: ["wicked-campaigns", "session-zero-answer-dialog"],
-    window: { title: "Record Answer", icon: "fa-solid fa-clipboard-question" },
+    window: { title: "Answer This Card", icon: "fa-solid fa-clipboard-question" },
     position: { width: 640, height: "auto" },
     actions: {
       submit: SessionZeroAnswerApp.#onSubmit,
@@ -9264,43 +9404,22 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
   };
 
   get title() {
-    return this.isNote ? `Add Note - ${this.noteEntry.title}` : "Record Answer";
+    return `Answer: ${this.card?.name ?? "Card"}`;
   }
 
   async _prepareContext(options) {
-    const speechSupported = Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
-
-    // Note mode has no combatant to speak for and no roster to tag - a note is signed by the
-    // Foundry user who wrote it, not by whoever's turn it happens to be.
-    if (this.isNote) {
-      return {
-        isNote: true,
-        cardImage: this.noteEntry.cardImage,
-        cardName: this.noteEntry.title,
-        playerName: game.user.name,
-        playerImg: game.user.avatar,
-        answeredBy: this.noteEntry.playerName,
-        hasOtherPlayers: false,
-        speechSupported,
-      };
-    }
-
-    // Same "every other PC in the combat" filter rollForOtherPlayers uses for its relationship
-    // d8 check - reused here so tagging who a card is about draws from the same live roster.
-    const combat = this.combatant.parent;
-    const otherPlayers = (combat?.combatants ?? [])
-      .filter((c) => c.actor?.type === "character" && c.id !== this.combatant.id)
-      .map((c) => ({ id: c.id, name: c.actor?.name ?? c.name, img: c.actor?.img ?? c.img }));
-
+    // Everything here is read-only context. There is no title field and no Involves picker: a
+    // contribution is just words and an author. Those are slot-level properties the GM curates
+    // from the summary sheet, not something re-asked every time somebody speaks.
+    const existing = readSessionZeroEntries(this.summary).find((e) => e.cardId === this.card.id);
     return {
-      isNote: false,
       cardImage: this.card.img,
       cardName: this.card.name,
-      playerName: this.combatant.actor?.name ?? this.combatant.name,
-      playerImg: this.combatant.actor?.img ?? this.combatant.img,
-      otherPlayers,
-      hasOtherPlayers: otherPlayers.length > 0,
-      speechSupported,
+      playerName: game.user.name,
+      playerImg: game.user.avatar,
+      existingCount: existing ? (existing.contributions || []).length : 0,
+      existingTitle: existing?.title ?? null,
+      speechSupported: Boolean(window.SpeechRecognition || window.webkitSpeechRecognition),
     };
   }
 
@@ -9412,45 +9531,41 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
 
   static async #onSubmit(event, target) {
     const form = target.form;
-
-    if (this.isNote) {
-      const html = form.elements.answerHtml.value;
-      if (!html?.trim()) {
-        ui.notifications.warn("Write something before adding the note.");
-        return;
-      }
-      await addSessionZeroNote(this.summary, this.noteEntry.id, { html });
-      ui.notifications.info(`Note added to "${this.noteEntry.title}".`);
-      this.close();
+    const html = form.elements.answerHtml.value;
+    if (!html?.trim()) {
+      ui.notifications.warn("Write something before adding it to the card.");
       return;
     }
 
-    const title = form.elements.title.value.trim();
-    if (!title) {
-      ui.notifications.warn("Give the entry a title before recording it.");
-      return;
-    }
+    // Whose turn it is, recorded on the slot for the per-player tier maths only. It is not an
+    // author: the author is whoever is typing, and that is stamped on the contribution itself.
+    const combatant = game.combat?.combatant;
 
-    const linkedPlayers = Array.from(form.querySelectorAll('input[name="linkedPlayer"]:checked')).map((el) => ({
-      name: el.dataset.name,
-      img: el.dataset.img,
-    }));
-
-    // Capture this before the write: when the write is relayed, the GM's client runs the threshold
-    // check instead (it's the only one whose entries[] is current), so we must not double-run it.
+    // Capture before the write: a relayed write is applied on the GM's client, which runs the
+    // threshold check there because it is the only one whose entries[] is current.
     const wroteDirectly = this.summary.canUserModify(game.user, "update");
 
-    await addSessionZeroEntry(this.summary, {
-      title,
-      answerHtml: form.elements.answerHtml.value,
+    const result = await addSessionZeroContribution(this.summary, {
+      html,
+      cardId: this.card.id,
+      cardName: this.card.name,
       cardImage: this.card.img,
       suit: this.card.suit ?? null,
-      playerName: this.combatant.actor?.name ?? this.combatant.name,
-      playerImg: this.combatant.actor?.img ?? this.combatant.img,
-      linkedPlayers,
+      playerName: combatant?.actor?.name ?? combatant?.name ?? "",
+      playerImg: combatant?.actor?.img ?? combatant?.img ?? null,
     });
-    ui.notifications.info(`Recorded "${title}" in "${this.summary.name}".`);
-    if (wroteDirectly) await checkSessionZeroThresholds(this.summary, findOriginDeckForCard(this.card));
+
+    // A relayed write reports back whether the GM actually applied it. Keep the dialog open on
+    // failure with the text still in it, so a player can retry rather than retype - the words are
+    // the expensive part.
+    if (!result) return;
+
+    ui.notifications.info(`Added to "${this.card.name}" in "${this.summary.name}".`);
+    // Only a brand-new card slot moves a tier counter - a second voice on the same card must not
+    // count it twice.
+    if (wroteDirectly && result?.created) {
+      await checkSessionZeroThresholds(this.summary, findOriginDeckForCard(this.card));
+    }
     this.close();
   }
 
@@ -9458,23 +9573,11 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
     this.close();
   }
 
-  // Always resolves the current combatant itself rather than trusting a stale one handed in from
-  // elsewhere, and blocks with a warning instead of opening the dialog at all if there's nobody
-  // whose turn it currently is.
-  static async open(card, summary) {
-    const combatant = game.combat?.combatant;
-    if (!combatant) {
-      ui.notifications.warn("No active combatant - start combat and set whose turn it is before recording an answer.");
-      return;
-    }
-    new SessionZeroAnswerApp(card, summary, combatant).render(true);
-  }
-
-  // Note mode entry point, opened from the summary sheet rather than from a card on the canvas -
-  // so it deliberately does NOT require an active combat or that it be your turn. Anyone who can
-  // read the summary can react to any recorded answer, at any point.
-  static openNote(summary, entry) {
-    new SessionZeroAnswerApp(null, summary, null, { noteEntry: entry }).render(true);
+  // One entry point for everyone. Deliberately does NOT require an active combat or that it be
+  // your turn: anybody at the table can add to any card, which is the whole point of a flat
+  // record. Whose turn it is still matters for the tier maths, and is read at submit time.
+  static open(card, summary) {
+    new SessionZeroAnswerApp(card, summary).render(true);
   }
 }
 
@@ -10242,26 +10345,23 @@ function onRenderCardHud(hud, html) {
     const summary = findActiveSessionZeroForDeck(findOriginDeckForCard(card));
     if (!summary) return; // No active Session Zero game on this card's deck - no further buttons.
 
-    // Recording the headline answer for a card stays with the GM: it's the one write that sets a
-    // card's suit against a tier limit and can trip the discard/end-of-session prompts. Players
-    // contribute through threaded notes on the summary sheet instead, which is unlimited and
-    // doesn't move any counter.
-    if (isGM) {
-      const recordButton = document.createElement("button");
-      recordButton.type = "button";
-      recordButton.className = "control-icon";
-      recordButton.dataset.tooltip = "Record Answer";
-      recordButton.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
-      recordButton.addEventListener("click", () => SessionZeroAnswerApp.open(card, summary));
-      middle.appendChild(recordButton);
-    }
+    // One button, same for everyone. Recording an answer and adding to it used to be two separate
+    // acts with two separate shapes, which meant the GM had a "Record Answer" and a "Session
+    // Notes" that were really the same thing. Now a card has one slot and everybody writes into
+    // it: the GM's words and a player's words are the same kind of record.
+    const answerButton = document.createElement("button");
+    answerButton.type = "button";
+    answerButton.className = "control-icon";
+    answerButton.dataset.tooltip = "Answer This Card";
+    answerButton.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
+    answerButton.addEventListener("click", () => SessionZeroAnswerApp.open(card, summary));
+    middle.appendChild(answerButton);
 
-    // Opens the shared summary so a player can read the record and add their own note to any
-    // answer - the player-side counterpart to the GM's Record button.
+    // Read the whole record back.
     const notesButton = document.createElement("button");
     notesButton.type = "button";
     notesButton.className = "control-icon";
-    notesButton.dataset.tooltip = "Open Session Notes";
+    notesButton.dataset.tooltip = "Open Session Summary";
     notesButton.innerHTML = `<i class="fa-solid fa-comments"></i>`;
     notesButton.addEventListener("click", () => summary.sheet.render(true));
     middle.appendChild(notesButton);

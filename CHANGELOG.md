@@ -2,6 +2,13 @@
 
 All notable changes to Wicked Campaigns are documented here, newest first.
 
+## v14.2.4 — 2026-08-07
+
+- **Recording an answer and adding a note are now one thing.** A card gets a single slot in the summary, and everyone writes into it — the GM's words are a contribution like anyone else's, not a headline the rest hang beneath. The card HUD has one **Answer This Card** button for every user, replacing the GM's separate Record Answer and Session Notes.
+- The card's slot keeps a **title** — what the table decided, defaulting to the card's own name and edited by the GM from the summary — and its **Involves** tags. Those describe the card, not any one person's answer, so they are set once rather than re-asked of everybody.
+- Existing summaries convert on read: the old GM answer and any threaded notes become equal contributions in the order they were written, with nothing lost.
+- **Contributions from players are now acknowledged.** A relayed write used to fail silently if no GM was connected or the GM's browser was out of date, so a player could watch their words vanish and never know. The dialog now stays open with the text intact and says so, rather than reporting success it cannot vouch for.
+
 ## v14.2.3 — 2026-08-07
 
 - **Fixed: players still could not right-click a card.** v14.2.0 widened the permission that opens the card HUD, but not the one that lets a player *hover* a card — and Foundry drops a right-click entirely unless the object is already hovered, before it ever asks whether the HUD may open. Both are widened now. Hovering grants nothing on its own; selecting, dragging and rotating remain blocked for players.

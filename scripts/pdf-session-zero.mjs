@@ -41,28 +41,28 @@ export async function exportSessionZeroSummaryPdf(summary) {
   const textX = layout.margin + thumbW + 12;
   const textWidth = layout.contentWidth - thumbW - 12;
   for (const entry of entries) {
-    const answerText = stripHtml(entry.answerHtml) || "(no answer text)";
-    doc.setFont(undefined, "normal");
-    doc.setFontSize(9.5);
-    const answerLines = doc.splitTextToSize(answerText, textWidth);
     const involvesText = entry.linkedPlayers?.length ? `Involves: ${entry.linkedPlayers.map((p) => p.name).join(", ")}` : "";
 
-    // Threaded notes are part of the record, not decoration - a summary exported without them
-    // would quietly drop everything the other players contributed. Indented under their answer and
-    // attributed, matching how the sheet renders them. Measured here so the block-height maths
-    // below accounts for them and a long thread doesn't overrun the next entry.
-    const noteBlocks = (entry.notes || []).map((note) => ({
-      label: `${note.authorName || "Someone"}:`,
-      lines: doc.splitTextToSize(stripHtml(note.html) || "(empty note)", textWidth - 8),
+    // Every contribution is rendered the same way and attributed, because in the record they ARE
+    // the same thing - there is no headline answer with replies beneath it. Measured up front so
+    // the block-height maths below accounts for the whole card and a long discussion does not
+    // overrun the next one.
+    doc.setFont(undefined, "normal");
+    doc.setFontSize(9.5);
+    const contributions = entry.contributions || [];
+    const blocks = contributions.map((c) => ({
+      label: `${c.authorName || "Someone"}:`,
+      lines: doc.splitTextToSize(stripHtml(c.html) || "(empty)", textWidth - 8),
     }));
-    const noteLineHeight = 8.5 * 1.2;
-    const notesHeight = noteBlocks.reduce((sum, b) => sum + (b.lines.length + 1) * noteLineHeight, 0);
+    const lineHeight = 9.5 * 1.15;
+    const blocksHeight = blocks.length
+      ? blocks.reduce((sum, b) => sum + (b.lines.length + 1) * lineHeight, 0)
+      : lineHeight;
 
     const titleHeight = 12 * 1.15;
     const playerHeight = entry.playerName ? 8.5 * 1.3 : 0;
     const involvesHeight = involvesText ? 8 * 1.3 : 0;
-    const answerHeight = answerLines.length * (9.5 * 1.15);
-    const blockHeight = Math.max(thumbH, titleHeight + playerHeight + involvesHeight + answerHeight + notesHeight + 6);
+    const blockHeight = Math.max(thumbH, titleHeight + playerHeight + involvesHeight + blocksHeight + 6);
     layout.ensureSpace(blockHeight + 14);
 
     const topY = layout.y;
@@ -99,22 +99,25 @@ export async function exportSessionZeroSummaryPdf(summary) {
     }
 
     ty += 6;
-    doc.setFontSize(9.5);
-    doc.setTextColor(...WICKED_DARK_THEME.text);
-    doc.text(answerLines, textX, ty + 9.5 * 1.15 * 0.8);
-    ty += answerLines.length * (9.5 * 1.15);
-
-    for (const block of noteBlocks) {
-      ty += noteLineHeight;
+    if (!blocks.length) {
+      doc.setFont(undefined, "italic");
+      doc.setFontSize(9.5);
+      doc.setTextColor(...WICKED_DARK_THEME.muted);
+      doc.text("(nothing recorded yet)", textX, ty + lineHeight * 0.8);
+      ty += lineHeight;
+    }
+    for (const block of blocks) {
+      ty += lineHeight;
       doc.setFont(undefined, "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(...WICKED_DARK_THEME.muted);
       doc.text(block.label, textX + 8, ty);
 
       doc.setFont(undefined, "normal");
+      doc.setFontSize(9.5);
       doc.setTextColor(...WICKED_DARK_THEME.text);
-      doc.text(block.lines, textX + 8, ty + noteLineHeight);
-      ty += block.lines.length * noteLineHeight;
+      doc.text(block.lines, textX + 8, ty + lineHeight);
+      ty += block.lines.length * lineHeight;
     }
     doc.setFont(undefined, "normal");
 

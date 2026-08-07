@@ -30,24 +30,39 @@
     <div class="session-zero-entries" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
         {{#each entries}}
         <div class="session-zero-entry" style="display: flex; gap: 0.75rem; padding: 0.6rem; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(201, 160, 84, 0.15); border-radius: 6px;">
-            <img src="{{this.cardImage}}" data-action="view-card-image" data-src="{{this.cardImage}}" data-title="{{this.title}}"
+            <img src="{{this.cardImage}}" data-action="view-card-image" data-src="{{this.cardImage}}" data-title="{{this.cardName}}"
                  data-tooltip="Click to view full image"
                  style="width: 90px; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 4px; border: 1px solid rgba(201, 160, 84, 0.3); flex-shrink: 0; cursor: pointer;">
             <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.35rem;">
+
+                {{!-- The heading is what the table DECIDED, defaulting to the card's own name until
+                      the GM writes something better. The card name is shown beside it so the
+                      record still says which card produced this. --}}
                 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
-                    <h4 style="margin: 0; font-family: 'Cinzel', Georgia, serif; color: #c9a054; font-size: 1.05rem;">{{this.title}}</h4>
+                    <h4 style="margin: 0; font-family: 'Cinzel', Georgia, serif; color: #c9a054; font-size: 1.05rem;">
+                        {{this.title}}
+                        {{#if @root.isGM}}
+                        <button type="button" class="qbw-btn" data-action="edit-title" data-entry-id="{{this.id}}"
+                                data-tooltip="Set what the table decided about this card"
+                                style="padding: 0 4px; font-size: 0.7rem; background: none; border: none; color: #8a7a5a;">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        {{/if}}
+                    </h4>
                     <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: #b5b5b5; white-space: nowrap;">
+                        {{#unless this.titleIsCardName}}<span style="color: #8a7a5a;">{{this.cardName}}</span>{{/unless}}
                         {{#if this.playerImg}}<img src="{{this.playerImg}}" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover;">{{/if}}
-                        <span>{{this.playerName}}</span>
+                        {{#if this.playerName}}<span data-tooltip="Whose turn this card came up on">{{this.playerName}}</span>{{/if}}
                         {{#if @root.isGM}}
                         <button type="button" class="qbw-btn" data-action="delete-entry" data-entry-id="{{this.id}}"
-                                data-tooltip="Remove this recorded answer"
+                                data-tooltip="Remove this card and everything written about it"
                                 style="padding: 0 5px; font-size: 0.72rem; background: none; border: none; color: #8a6a6a;">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                         {{/if}}
                     </div>
                 </div>
+
                 {{#if this.linkedPlayers.length}}
                 <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; font-size: 0.72rem; color: #a89a82;">
                     <span style="text-transform: uppercase; letter-spacing: 0.03em;">Involves</span>
@@ -59,43 +74,38 @@
                     {{/each}}
                 </div>
                 {{/if}}
-                <div class="session-zero-answer-html" style="font-size: 0.9rem; color: #d5d5d5;">{{{this.answerHtml}}}</div>
-                {{#if this.timestampLabel}}
-                <div style="font-size: 0.7rem; color: #888;">{{this.timestampLabel}}</div>
-                {{/if}}
 
-                {{!-- Threaded notes. Anyone who can see the summary can add one and see everyone
-                      else's; a note is signed by the Foundry user who wrote it, not by whichever
-                      character happened to be answering. --}}
-                {{#if this.notes.length}}
-                <ul class="session-zero-notes" style="list-style: none; margin: 0.25rem 0 0; padding: 0 0 0 0.6rem; border-left: 2px solid rgba(201, 160, 84, 0.25); display: flex; flex-direction: column; gap: 0.45rem;">
-                    {{#each this.notes}}
+                {{!-- Every contribution is the same shape and sits at the same level. The GM's
+                      words are one of these, not a headline the others hang beneath. --}}
+                {{#if this.contributions.length}}
+                <ul class="session-zero-contributions" style="list-style: none; margin: 0.15rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                    {{#each this.contributions}}
                     <li style="display: flex; flex-direction: column; gap: 0.15rem;">
                         <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: #a89a82;">
-                            <i class="fa-solid fa-comment" style="color: {{#if this.authorColor}}{{this.authorColor}}{{else}}#c9a054{{/if}};"></i>
+                            <i class="fa-solid fa-quote-left" style="color: {{#if this.authorColor}}{{this.authorColor}}{{else}}#c9a054{{/if}};"></i>
                             <b>{{this.authorName}}</b>
                             {{#if this.timestampLabel}}<span style="color: #777;">{{this.timestampLabel}}</span>{{/if}}
                             {{#if this.canDelete}}
-                            <button type="button" class="qbw-btn" data-action="delete-note"
-                                    data-entry-id="{{../id}}" data-note-id="{{this.id}}"
-                                    data-tooltip="Delete this note"
+                            <button type="button" class="qbw-btn" data-action="delete-contribution"
+                                    data-entry-id="{{../id}}" data-contribution-id="{{this.id}}"
+                                    data-tooltip="Delete this"
                                     style="margin-left: auto; padding: 0 5px; font-size: 0.7rem; background: none; border: none; color: #8a6a6a;">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                             {{/if}}
                         </div>
-                        <div class="session-zero-note-html" style="font-size: 0.85rem; color: #cfcfcf;">{{{this.html}}}</div>
+                        <div class="session-zero-contribution-html" style="font-size: 0.9rem; color: #d5d5d5;">{{{this.html}}}</div>
                     </li>
                     {{/each}}
                 </ul>
                 {{/if}}
 
-                {{#if this.canNote}}
+                {{#if this.canContribute}}
                 <div style="margin-top: auto; padding-top: 0.3rem;">
-                    <button type="button" class="qbw-btn" data-action="add-note" data-entry-id="{{this.id}}"
-                            data-tooltip="Add your own note to this answer"
+                    <button type="button" class="qbw-btn" data-action="add-contribution" data-entry-id="{{this.id}}"
+                            data-tooltip="Add what you have to say about this card"
                             style="padding: 3px 9px; font-size: 0.75rem;">
-                        <i class="fa-solid fa-comment-medical"></i> Add Note
+                        <i class="fa-solid fa-pen-to-square"></i> Add Yours
                     </button>
                 </div>
                 {{/if}}

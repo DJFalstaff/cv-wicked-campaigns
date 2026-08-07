@@ -3090,6 +3090,7 @@ class SessionZeroSheet extends sessionZeroSheetBase {
       "view-card-image": SessionZeroSheet.#onViewCardImage,
       "add-note": SessionZeroSheet.#onAddNote,
       "delete-note": SessionZeroSheet.#onDeleteNote,
+      share: SessionZeroSheet.#onShare,
     },
   };
 
@@ -3115,7 +3116,35 @@ class SessionZeroSheet extends sessionZeroSheetBase {
       })),
     }));
     context.editable = this.isEditable;
+    context.isGM = game.user.isGM;
+    // Observer is the level createSessionZeroSummary now ships, and the level the threaded-notes
+    // relay assumes: enough for a player to read the record and send an append request, not enough
+    // to write the journal directly.
+    context.sharedWithTable = (this.document.ownership?.default ?? CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE)
+      >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
     return context;
+  }
+
+  // Retrofit for summaries created before shared notes existed, which are still ownership NONE and
+  // therefore invisible to the table. Deliberately a button rather than a migration on load: the
+  // sheet says which state it's in, and opening a private record to the whole table is the GM's
+  // call, not something to do to their world behind their back.
+  static async #onShare() {
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Share with the Table", icon: "fa-solid fa-users" },
+      content: `
+        <p>Let every player read "${esc(this.document.name)}" and add their own notes to any answer?</p>
+        <p style="font-size: 0.85rem; color: #b5b5b5;">
+          Players get read access only - their notes are still written through you, and recording a
+          card's main answer stays with the GM. You can reverse this any time from the journal's
+          own ownership settings.
+        </p>`,
+      rejectClose: false,
+    }).catch(() => false);
+    if (!confirmed) return;
+
+    await this.document.update({ "ownership.default": CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER });
+    ui.notifications.info(`"${this.document.name}" is now shared with the table.`);
   }
 
   /**

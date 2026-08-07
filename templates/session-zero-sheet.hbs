@@ -1,5 +1,22 @@
 <form class="session-zero-sheet-content" autocomplete="off" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem; height: 100%;">
-    <div style="display: flex; justify-content: flex-end; gap: 0.4rem;">
+    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.4rem;">
+        {{!-- Summaries created before shared notes shipped are still GM-only, so the table can't
+              read them or add to them. Surfaced here rather than migrated automatically: a GM may
+              have deliberately kept one private. --}}
+        {{#if isGM}}
+        {{#if sharedWithTable}}
+        <span data-tooltip="Every player can read this summary and add their own notes" style="margin-right: auto; font-size: 0.75rem; color: #8fae8f;">
+            <i class="fa-solid fa-users"></i> Shared with the table
+        </span>
+        {{else}}
+        <span data-tooltip="Only the GM can see this summary" style="margin-right: auto; font-size: 0.75rem; color: #b58f6a;">
+            <i class="fa-solid fa-user-lock"></i> GM only
+        </span>
+        <button type="button" class="qbw-btn" data-action="share" data-tooltip="Let every player read this summary and add their own notes" style="padding: 4px 10px; font-size: 0.8rem;">
+            <i class="fa-solid fa-users"></i> Share with Table
+        </button>
+        {{/if}}
+        {{/if}}
         <button type="button" class="qbw-btn" data-action="export-pdf" data-tooltip="Export this summary as a PDF" style="padding: 4px 10px; font-size: 0.8rem;">
             <i class="fa-solid fa-file-pdf"></i> Export PDF
         </button>

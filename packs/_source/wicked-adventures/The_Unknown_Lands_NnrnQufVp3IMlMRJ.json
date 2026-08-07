@@ -8,7 +8,422 @@
   "combats": [],
   "items": [],
   "journal": [],
-  "scenes": [],
+  "scenes": [
+    {
+      "name": "Queen of Storms Card Game",
+      "_id": "WDMA82ac3yKzpP9L",
+      "navigation": true,
+      "navOrder": 0,
+      "thumb": "worlds/hero-test/assets/scenes/thumb-13pvkXZlzwM7Acem7iXbXQ.webp",
+      "width": 5504,
+      "height": 3072,
+      "padding": 0.5,
+      "shiftX": 0,
+      "shiftY": 0,
+      "initial": {
+        "x": 5957,
+        "y": 3254,
+        "scale": 0.211
+      },
+      "initialLevel": "defaultLevel0000",
+      "grid": {
+        "type": 0,
+        "size": 200,
+        "style": "solidLines",
+        "thickness": 1,
+        "color": "#000000",
+        "alpha": 0.2,
+        "distance": 5,
+        "units": "ft"
+      },
+      "tokenVision": false,
+      "fog": {
+        "mode": 1,
+        "colors": {
+          "explored": null,
+          "unexplored": null
+        }
+      },
+      "environment": {
+        "darknessLevel": 0,
+        "darknessLock": false,
+        "globalLight": {
+          "enabled": false,
+          "alpha": 0.5,
+          "bright": false,
+          "color": null,
+          "coloration": 1,
+          "luminosity": 0,
+          "saturation": 0,
+          "contrast": 0,
+          "shadows": 0,
+          "darkness": {
+            "min": 0,
+            "max": 1
+          }
+        },
+        "cycle": true,
+        "base": {
+          "hue": 0,
+          "intensity": 0,
+          "luminosity": 0,
+          "saturation": 0,
+          "shadows": 0
+        },
+        "dark": {
+          "hue": 0.7138888888888889,
+          "intensity": 0,
+          "luminosity": -0.25,
+          "saturation": 0,
+          "shadows": 0
+        }
+      },
+      "transition": {
+        "type": "fade",
+        "duration": 1500,
+        "activeOnly": false
+      },
+      "drawings": [],
+      "tokens": [],
+      "levels": [
+        {
+          "_id": "defaultLevel0000",
+          "name": "Level",
+          "elevation": {
+            "bottom": 0,
+            "top": 20
+          },
+          "background": {
+            "color": "#000000",
+            "src": "modules/cv-wicked-campaigns/images/session-zero-playmat-5.webp",
+            "tint": "#ffffff",
+            "alphaThreshold": 0.75
+          },
+          "foreground": {
+            "src": null,
+            "tint": "#ffffff",
+            "alphaThreshold": 0.75
+          },
+          "fog": {
+            "src": null
+          },
+          "textures": {
+            "anchorX": 0.5,
+            "anchorY": 0.5,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fit": "fill",
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "visibility": {
+            "levels": []
+          },
+          "sort": 0,
+          "flags": {}
+        }
+      ],
+      "lights": [],
+      "notes": [],
+      "sounds": [],
+      "regions": [
+        {
+          "color": "#28c7cc",
+          "elevation": {
+            "bottom": 0,
+            "top": 20,
+            "topInclusive": false
+          },
+          "levels": [
+            "defaultLevel0000"
+          ],
+          "restriction": {
+            "enabled": false,
+            "type": "move",
+            "priority": 0
+          },
+          "attachment": {
+            "token": null
+          },
+          "visibility": 4,
+          "highlightMode": "shapes",
+          "displayMeasurements": false,
+          "hidden": false,
+          "name": "Region",
+          "_id": "wkfjMYWEcNhHT1qI",
+          "shapes": [
+            {
+              "type": "circle",
+              "x": 5558,
+              "y": 3161,
+              "radius": 1300,
+              "hole": false,
+              "gridBased": false
+            }
+          ],
+          "behaviors": [
+            {
+              "name": "Execute Macro",
+              "type": "executeMacro",
+              "_id": "rL9T1w4cCPhpaw7Y",
+              "system": {
+                "events": [
+                  "tokenEnter"
+                ],
+                "uuid": "Macro.2TJgjBAaOB6gdrul",
+                "everyone": true
+              },
+              "disabled": false,
+              "flags": {},
+              "_stats": {
+                "coreVersion": "14.365",
+                "systemId": "dnd5e",
+                "systemVersion": "5.3.3",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "exportSource": null
+              }
+            }
+          ],
+          "locked": false,
+          "flags": {
+            "tagger": {
+              "tags": []
+            }
+          },
+          "_shapeConstraints": null,
+          "ownership": {
+            "default": 0
+          }
+        }
+      ],
+      "tiles": [],
+      "walls": [],
+      "playlist": null,
+      "playlistSound": null,
+      "journal": null,
+      "journalEntryPage": null,
+      "weather": "",
+      "folder": "kXAgbEAWNQmKQqKZ",
+      "sort": 100000,
+      "ownership": {
+        "default": 0
+      },
+      "flags": {
+        "calendaria": {
+          "darknessSync": "disabled",
+          "brightnessMultiplier": 1,
+          "darknessWeatherSync": "disabled",
+          "darknessMoonSync": "disabled",
+          "ambienceSync": "disabled",
+          "colorShiftSync": "disabled",
+          "climateZoneOverride": "",
+          "weatherFxOverride": "inherit",
+          "fxmasterTopDownOverride": "default",
+          "fxmasterSplashOverride": "default",
+          "weatherSoundDisabled": false,
+          "weatherFxLevels": [],
+          "hudHideForPlayers": true
+        },
+        "complete-card-management": {
+          "canvasPile": "lpkOhzr2Lq0kFmHn",
+          "cardCollection": [
+            "Cards.NLIzNgjCfnxvb9NE"
+          ]
+        },
+        "fxmaster": {
+          "directionConventionMigrationVersion": 1,
+          "parameterRangeMigrationVersion": 1
+        }
+      },
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "navName": "",
+      "active": false
+    },
+    {
+      "name": "Queen of Storms Character Creation",
+      "_id": "kc4sVWsOiEQBSLNj",
+      "navigation": true,
+      "navOrder": 0,
+      "thumb": "worlds/hero-test/assets/scenes/thumb-S6jbhoYFlaKfjTkcyemS-A.webp",
+      "width": 3840,
+      "height": 2160,
+      "padding": 0.25,
+      "shiftX": 0,
+      "shiftY": 0,
+      "initial": {
+        "x": 3304,
+        "y": 1850,
+        "scale": 0.314
+      },
+      "initialLevel": "defaultLevel0000",
+      "grid": {
+        "type": 0,
+        "size": 100,
+        "style": "solidLines",
+        "thickness": 1,
+        "color": "#000000",
+        "alpha": 0.2,
+        "distance": 5,
+        "units": "ft"
+      },
+      "tokenVision": false,
+      "fog": {
+        "mode": 1,
+        "colors": {
+          "explored": null,
+          "unexplored": null
+        }
+      },
+      "environment": {
+        "darknessLevel": 0,
+        "darknessLock": false,
+        "globalLight": {
+          "enabled": false,
+          "alpha": 0.5,
+          "bright": false,
+          "color": null,
+          "coloration": 1,
+          "luminosity": 0,
+          "saturation": 0,
+          "contrast": 0,
+          "shadows": 0,
+          "darkness": {
+            "min": 0,
+            "max": 1
+          }
+        },
+        "cycle": true,
+        "base": {
+          "hue": 0,
+          "intensity": 0,
+          "luminosity": 0,
+          "saturation": 0,
+          "shadows": 0
+        },
+        "dark": {
+          "hue": 0.7138888888888889,
+          "intensity": 0,
+          "luminosity": -0.25,
+          "saturation": 0,
+          "shadows": 0
+        }
+      },
+      "transition": {
+        "type": "fade",
+        "duration": 1500,
+        "activeOnly": false
+      },
+      "drawings": [],
+      "tokens": [],
+      "levels": [
+        {
+          "_id": "defaultLevel0000",
+          "name": "Level",
+          "elevation": {
+            "bottom": 0,
+            "top": 20
+          },
+          "background": {
+            "color": "#000000",
+            "src": "modules/cv-wicked-campaigns/images/character-generation-simple.webp",
+            "tint": "#ffffff",
+            "alphaThreshold": 0.75
+          },
+          "foreground": {
+            "src": null,
+            "tint": "#ffffff",
+            "alphaThreshold": 0.75
+          },
+          "fog": {
+            "src": null
+          },
+          "textures": {
+            "anchorX": 0.5,
+            "anchorY": 0.5,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fit": "fill",
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "visibility": {
+            "levels": []
+          },
+          "sort": 0,
+          "flags": {}
+        }
+      ],
+      "lights": [],
+      "notes": [],
+      "sounds": [],
+      "regions": [],
+      "tiles": [],
+      "walls": [],
+      "playlist": null,
+      "playlistSound": null,
+      "journal": null,
+      "journalEntryPage": null,
+      "weather": "",
+      "folder": "kXAgbEAWNQmKQqKZ",
+      "sort": 200000,
+      "ownership": {
+        "default": 2
+      },
+      "flags": {
+        "calendaria": {
+          "darknessSync": "disabled",
+          "brightnessMultiplier": 1,
+          "darknessWeatherSync": "disabled",
+          "darknessMoonSync": "disabled",
+          "ambienceSync": "disabled",
+          "colorShiftSync": "disabled",
+          "climateZoneOverride": "",
+          "weatherFxOverride": "off",
+          "fxmasterTopDownOverride": "default",
+          "fxmasterSplashOverride": "default",
+          "weatherSoundDisabled": false,
+          "weatherFxLevels": [],
+          "hudHideForPlayers": false
+        },
+        "complete-card-management": {
+          "canvasPile": ""
+        },
+        "fxmaster": {
+          "directionConventionMigrationVersion": 1,
+          "parameterRangeMigrationVersion": 1
+        }
+      },
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "navName": "",
+      "active": false
+    }
+  ],
   "tables": [
     {
       "folder": "40dHf1K99TL0Z08E",
@@ -30294,7 +30709,7 @@
   ],
   "cards": [
     {
-      "name": "Tarot - Queen of Storms",
+      "name": "Queen of Storms Prelude Deck",
       "type": "deck",
       "_id": "NLIzNgjCfnxvb9NE",
       "description": "<p>Tarot - Queen of Storms</p>",
@@ -30311,7 +30726,7 @@
           ],
           "face": 0,
           "name": "Theme A",
-          "_id": "hg1IoBcY6YQn9I1K",
+          "_id": "G2I7EzHTM9l2Thb1",
           "description": "",
           "type": "base",
           "system": {},
@@ -30353,7 +30768,7 @@
           ],
           "face": 0,
           "name": "Theme B",
-          "_id": "FugmBucuwlXWb7o2",
+          "_id": "FuOdvZgWNyCcMosB",
           "description": "",
           "type": "base",
           "system": {},
@@ -30395,7 +30810,7 @@
           ],
           "face": 0,
           "name": "The Fool",
-          "_id": "0AeFyqQbvotFXuwC",
+          "_id": "dOdvAn8pR75iCT8g",
           "description": "",
           "type": "base",
           "system": {},
@@ -30437,7 +30852,7 @@
           ],
           "face": 0,
           "name": "The Magician",
-          "_id": "CC5gUCHVLevnR2al",
+          "_id": "6ZbQeLxIPvsodHtf",
           "description": "",
           "type": "base",
           "system": {},
@@ -30479,7 +30894,7 @@
           ],
           "face": 0,
           "name": "The High Priestess",
-          "_id": "1o9hMY23xJgNS3gZ",
+          "_id": "JbsYQODGv6z07LOC",
           "description": "",
           "type": "base",
           "system": {},
@@ -30519,7 +30934,7 @@
           ],
           "face": 0,
           "name": "The Empress",
-          "_id": "z5W2GjnG5DLX7nvV",
+          "_id": "jMuZF7XFYiLaMLoE",
           "description": "",
           "type": "base",
           "system": {},
@@ -30561,7 +30976,7 @@
           ],
           "face": 0,
           "name": "The Emperor",
-          "_id": "ppe4QPLsmoXWaD9N",
+          "_id": "x4ir0HMTliQQDu6f",
           "description": "",
           "type": "base",
           "system": {},
@@ -30603,7 +31018,7 @@
           ],
           "face": 0,
           "name": "The Hierophant",
-          "_id": "ztwVoyyxPWNJjXZR",
+          "_id": "rxv7yBGG7nR3xBSQ",
           "description": "",
           "type": "base",
           "system": {},
@@ -30643,7 +31058,7 @@
           ],
           "face": 0,
           "name": "The Lovers",
-          "_id": "QLhNrF80rpz0tG29",
+          "_id": "2F6qld5bhhCf6WWX",
           "description": "",
           "type": "base",
           "system": {},
@@ -30683,7 +31098,7 @@
           ],
           "face": 0,
           "name": "The Chariot",
-          "_id": "UoXeb19TdqiJDYOG",
+          "_id": "1Grokh1Z7wrk9s3l",
           "description": "",
           "type": "base",
           "system": {},
@@ -30725,7 +31140,7 @@
           ],
           "face": 0,
           "name": "Strength",
-          "_id": "UQgtr0eH6YqSWgbb",
+          "_id": "KsKTlBzoqhrNHQJw",
           "description": "",
           "type": "base",
           "system": {},
@@ -30765,7 +31180,7 @@
           ],
           "face": 0,
           "name": "The Hermit",
-          "_id": "1nJgtPC0bgD2FsO5",
+          "_id": "c1TfYFROZnyCcsNe",
           "description": "",
           "type": "base",
           "system": {},
@@ -30805,7 +31220,7 @@
           ],
           "face": 0,
           "name": "Wheel of Fortune",
-          "_id": "ODfhNFWHFn63VVne",
+          "_id": "RRGPyIQSH82H9Xd8",
           "description": "",
           "type": "base",
           "system": {},
@@ -30847,7 +31262,7 @@
           ],
           "face": 0,
           "name": "Justice",
-          "_id": "3WzbNT3wRphY5KBw",
+          "_id": "sc11RUcFIVcbCisz",
           "description": "",
           "type": "base",
           "system": {},
@@ -30887,7 +31302,7 @@
           ],
           "face": 0,
           "name": "The Hanged Man",
-          "_id": "xicymwE0SIVRGTaG",
+          "_id": "jbgstROGU9Q2n2x4",
           "description": "",
           "type": "base",
           "system": {},
@@ -30929,7 +31344,7 @@
           ],
           "face": 0,
           "name": "Death",
-          "_id": "Fy9kdFivebQ6c1fg",
+          "_id": "KWzkJKmaeyIaY5yU",
           "description": "",
           "type": "base",
           "system": {},
@@ -30971,7 +31386,7 @@
           ],
           "face": 0,
           "name": "Temperance",
-          "_id": "ycE53eP1BorUS040",
+          "_id": "cA8RqPLHPNCYIF3W",
           "description": "",
           "type": "base",
           "system": {},
@@ -31011,7 +31426,7 @@
           ],
           "face": 0,
           "name": "The Devil",
-          "_id": "VA9W4Xdc3m5FCPSO",
+          "_id": "K8a0Ln4DKU5gBM6p",
           "description": "",
           "type": "base",
           "system": {},
@@ -31053,7 +31468,7 @@
           ],
           "face": 0,
           "name": "The Tower",
-          "_id": "LgqLCZeGdl03rRfy",
+          "_id": "sxA2L6yNvYsZK7yg",
           "description": "",
           "type": "base",
           "system": {},
@@ -31095,7 +31510,7 @@
           ],
           "face": 0,
           "name": "The Star",
-          "_id": "eLjX7savR8Ng5cfU",
+          "_id": "z3VxGNC0J8GjdlJF",
           "description": "",
           "type": "base",
           "system": {},
@@ -31135,7 +31550,7 @@
           ],
           "face": 0,
           "name": "The Moon",
-          "_id": "7FbK59IVyfTsEVkH",
+          "_id": "3G4zubiYAUHObQSC",
           "description": "",
           "type": "base",
           "system": {},
@@ -31177,7 +31592,7 @@
           ],
           "face": 0,
           "name": "The Sun",
-          "_id": "5EobZnDxuRNbsQH9",
+          "_id": "03ibWNCdQpo1huaV",
           "description": "",
           "type": "base",
           "system": {},
@@ -31219,7 +31634,7 @@
           ],
           "face": 0,
           "name": "Judgement",
-          "_id": "0ev5fL2niO1hEyo7",
+          "_id": "BRQXRLvNuRKSYXGf",
           "description": "",
           "type": "base",
           "system": {},
@@ -31261,7 +31676,7 @@
           ],
           "face": 0,
           "name": "The World",
-          "_id": "hvYPSNo0hVLMFG6h",
+          "_id": "SfwhTJXR86Ryv8KE",
           "description": "",
           "type": "base",
           "system": {},
@@ -31303,7 +31718,7 @@
           ],
           "face": 0,
           "name": "Sail The Black",
-          "_id": "30tC3LUTorOfKa9M",
+          "_id": "7rp4BNVQhSZ4lmcr",
           "description": "",
           "type": "base",
           "system": {},
@@ -31345,7 +31760,7 @@
           ],
           "face": 0,
           "name": "The Crew's Creed",
-          "_id": "4TNQYxnIiLmJi031",
+          "_id": "IHvkGlaDMds4JVyB",
           "description": "",
           "type": "base",
           "system": {},
@@ -31387,7 +31802,7 @@
           ],
           "face": 0,
           "name": "Biggest Problem",
-          "_id": "9YmCDlJeBqovjr2S",
+          "_id": "a3S2iDwRWvJMl41q",
           "description": "",
           "type": "base",
           "system": {},
@@ -31429,7 +31844,7 @@
           ],
           "face": 0,
           "name": "Dietrich Sturmwald",
-          "_id": "SzIpySjeUmAuv6yO",
+          "_id": "di3mXbE9GFZ9FWey",
           "description": "",
           "type": "base",
           "system": {},
@@ -31471,7 +31886,7 @@
           ],
           "face": 0,
           "name": "Malachi Vestori",
-          "_id": "k8goBpAOGIWy9mTo",
+          "_id": "7fJroyLSLliQCd2w",
           "description": "",
           "type": "base",
           "system": {},
@@ -31513,7 +31928,7 @@
           ],
           "face": 0,
           "name": "Benedict Brooke",
-          "_id": "OYhhfNCieR11IkAV",
+          "_id": "EioWi3AZMyrHFDFe",
           "description": "",
           "type": "base",
           "system": {},
@@ -31553,7 +31968,7 @@
           ],
           "face": 0,
           "name": "Halima al-Hadid",
-          "_id": "b6uWisCXmu3As8Ts",
+          "_id": "dXXw2ZMqW2HDrUTX",
           "description": "",
           "type": "base",
           "system": {},
@@ -31595,7 +32010,7 @@
           ],
           "face": 0,
           "name": "Seraphina Lacroix",
-          "_id": "bEvkReqzEcX2HDUt",
+          "_id": "6INeCb8obJQWoIOz",
           "description": "",
           "type": "base",
           "system": {},
@@ -31637,7 +32052,7 @@
           ],
           "face": 0,
           "name": "Valeria Violante",
-          "_id": "F6SDR6hYcIyCu0Xo",
+          "_id": "nBotkMXjxm0Zgjks",
           "description": "",
           "type": "base",
           "system": {},
@@ -31679,7 +32094,7 @@
           ],
           "face": 0,
           "name": "Rajan Bahtera",
-          "_id": "I5M6qh2A7QuiphbK",
+          "_id": "asjvKphG0oU1bnz1",
           "description": "",
           "type": "base",
           "system": {},
@@ -31721,7 +32136,7 @@
           ],
           "face": 0,
           "name": "Abena Sarkozy",
-          "_id": "n2sNRCH1KZM5c8uN",
+          "_id": "FHQy8BS3fmxX1rQR",
           "description": "",
           "type": "base",
           "system": {},
@@ -31761,7 +32176,7 @@
           ],
           "face": 0,
           "name": "What Did You Lose?",
-          "_id": "LNshn89fOn4u26Z6",
+          "_id": "DBrsePNLW7G2OXk1",
           "description": "",
           "type": "base",
           "system": {},
@@ -31803,7 +32218,7 @@
           ],
           "face": 0,
           "name": "Vendetta",
-          "_id": "0S7Z9BIqp4UCOXBQ",
+          "_id": "vIMwjAsYLwRZq6a5",
           "description": "",
           "type": "base",
           "system": {},
@@ -31818,48 +32233,6 @@
           "origin": null,
           "rotation": 0,
           "sort": 69,
-          "flags": {
-            "complete-card-management": {}
-          },
-          "_stats": {
-            "coreVersion": "14.365",
-            "systemId": "dnd5e",
-            "systemVersion": "5.3.3",
-            "createdTime": null,
-            "modifiedTime": null,
-            "lastModifiedBy": null,
-            "compendiumSource": null,
-            "duplicateSource": null,
-            "exportSource": null
-          },
-          "width": null,
-          "height": null
-        },
-        {
-          "faces": [
-            {
-              "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/37-qos-regrets.webp",
-              "text": ""
-            }
-          ],
-          "face": 0,
-          "name": "Regrets",
-          "_id": "iQlSVg19Ylpm7hNk",
-          "description": "",
-          "type": "base",
-          "system": {},
-          "suit": "mobius",
-          "value": null,
-          "back": {
-            "text": "",
-            "img": null,
-            "name": ""
-          },
-          "drawn": false,
-          "origin": null,
-          "rotation": 0,
-          "sort": 58,
           "flags": {
             "complete-card-management": {}
           },
@@ -31896,7 +32269,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "AY6bwHT0zSfcstwh",
+          "_id": "DYPmwiWW8s39JPXY",
           "description": "",
           "system": {},
           "drawn": false,
@@ -31934,7 +32307,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "EVp0I9lhCymz6KI2",
+          "_id": "hXtGgPHvmoT1zgW4",
           "description": "",
           "system": {},
           "drawn": false,
@@ -31972,7 +32345,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "IZXw8bkcZKWBJUl1",
+          "_id": "fYA66VWMPi3Zz0Yb",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32010,7 +32383,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "9pGG5lfJGs0gczXK",
+          "_id": "5kYTdJ8QLVOd5vgT",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32050,7 +32423,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "y3fGjIqYYaDrEMiK",
+          "_id": "W1S00W8TYd4cPqFY",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32090,7 +32463,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "GE6wfiPbPJinDp1b",
+          "_id": "zCnZF2wmDPanyNNw",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32128,7 +32501,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "VTcwELholKrLdGF9",
+          "_id": "aF0iWGXyTJTtaDJL",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32168,7 +32541,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "wpOSZEfjAGpAhkt0",
+          "_id": "tGhwF4NI3bwfbSia",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32208,7 +32581,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "T7YYuWqXm5utVVBX",
+          "_id": "2najaqeX7FVqwbgU",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32248,7 +32621,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "XpM5ySVspdZ2XicG",
+          "_id": "65Pnv7Yfw53Zs71E",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32288,7 +32661,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "oTGW8KueI5zNFYM6",
+          "_id": "9FfnuQibdfjfrAkk",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32326,7 +32699,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "gIuSHAYb6yerxJWh",
+          "_id": "cNnrkKBjykVwTq8o",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32364,7 +32737,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "r8Mv7Fbwx0bftIol",
+          "_id": "NEFpYJqSCfglj5RK",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32402,7 +32775,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "TxwmDRpigsXAE2m0",
+          "_id": "5M2QfIToFaT7KKh3",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32440,7 +32813,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "mJYlFIh42dfxUJzP",
+          "_id": "4JwuAME0FyENAl9y",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32480,7 +32853,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "mye78ROtWC5fLDf2",
+          "_id": "cGSEXa5NDWAe2MHy",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32520,7 +32893,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "d4GzZF2mdG4DN9QA",
+          "_id": "RAfrPrO3KAlV1hku",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32560,7 +32933,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "fq8s3escMJ8mUfj5",
+          "_id": "OMJmnnjHUub3zg38",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32600,7 +32973,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "ECHL1FAtY1nbt7iC",
+          "_id": "qG5ztpcIo1DcgKEG",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32640,7 +33013,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "8OPGwVsjPilfUUpJ",
+          "_id": "D4RFuwzHzUHBce6F",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32678,7 +33051,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "hXtzwCi2cdUBzGJz",
+          "_id": "s6f92ez1UxZ6uZdn",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32718,7 +33091,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "H1vrkeISn96T4xsw",
+          "_id": "gonDpy6DASaENpJ2",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32758,7 +33131,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "xmGL7JV1jhDuqlAR",
+          "_id": "tibLA8Ce0ziKcw6l",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32798,7 +33171,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "wiAeMffJR5dnZLGl",
+          "_id": "v0PW4NK5k3OFPTgg",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32836,7 +33209,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "Ntr8MubQccVvKOsl",
+          "_id": "vtBo8yk1ESnZrlmy",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32874,7 +33247,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "oHsZOxZYSdt9bC22",
+          "_id": "J1iPSYL2imS4XCOe",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32912,7 +33285,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "WeqymIXJ9QY6VbvF",
+          "_id": "0FygE9eawpm2OpY7",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32950,7 +33323,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "unZGodg275UB94W7",
+          "_id": "pcd0OWjqO2drCYv1",
           "description": "",
           "system": {},
           "drawn": false,
@@ -32990,7 +33363,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "fYhMAjwuthQCPi0L",
+          "_id": "s1hssXe9GmdPGxZp",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33028,7 +33401,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "PQQm8HdEwWuufIPm",
+          "_id": "cR3BNK70ikZf17WK",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33066,7 +33439,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "DPcGGYL9Tb4O2Jvb",
+          "_id": "yfBAuqi3euGdLe8l",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33106,7 +33479,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "c6zCEAzYrxp9JuXh",
+          "_id": "HaS1e91z4Cn6P5Ry",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33144,7 +33517,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "wD4OwFzDcHZHOPKC",
+          "_id": "RnMC5oROGqj4E3v8",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33182,7 +33555,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "Eq7y7DXW8FTM2oeC",
+          "_id": "Si489EysbBSX5bqO",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33222,7 +33595,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "SBBDT0etthf9nKLG",
+          "_id": "IYW2TTQIVqXNeJtu",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33262,7 +33635,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "GhyaTHN31OPZvy3z",
+          "_id": "urYRJeoL12hAPeSj",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33300,7 +33673,7 @@
             "text": ""
           },
           "face": 0,
-          "_id": "99NEeVSHp5ocdpRo",
+          "_id": "ZzpYnE1PcJMqWW8I",
           "description": "",
           "system": {},
           "drawn": false,
@@ -33323,13 +33696,13 @@
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/75qosleftbehind.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos/75-keeping-your-distance.webp",
               "text": ""
             }
           ],
           "face": 0,
           "name": "Keeping Your Distance",
-          "_id": "BBDRCLDbrN0w3pcP",
+          "_id": "UUyxyhWRhUHA6KDX",
           "description": "",
           "type": "base",
           "system": {},
@@ -33369,7 +33742,7 @@
           ],
           "face": 0,
           "name": "Silver Linings",
-          "_id": "ViDP82Mg2Ffr35h0",
+          "_id": "QXFUG2yOb8OJnvfW",
           "description": "",
           "type": "base",
           "system": {},
@@ -33409,7 +33782,7 @@
           ],
           "face": 0,
           "name": "Queen's Mark",
-          "_id": "J6wiUnWD7xUIdGKJ",
+          "_id": "FnjKM5Hh6NjDtDUa",
           "description": "",
           "type": "base",
           "system": {},
@@ -33445,16 +33818,57 @@
       "folder": "1ejY6innYFwKALoL",
       "sort": 100000,
       "ownership": {
-        "default": 0
+        "default": 2
       },
       "flags": {
         "complete-card-management": {
-          "primaryOwner": ""
+          "primaryOwner": "",
+          "WDMA82ac3yKzpP9L": {
+            "x": 5113.454794141573,
+            "y": 3106.4964796271215,
+            "rotation": 0,
+            "sort": 100000,
+            "locked": true
+          }
         },
         "core": {
           "sheetClass": "complete-card-management.DeckSheet"
         },
         "cv-wicked-campaigns": {}
+      },
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "width": null,
+      "height": null
+    },
+    {
+      "name": "Queen of Storms Discard Pile",
+      "type": "pile",
+      "_id": "lpkOhzr2Lq0kFmHn",
+      "description": "",
+      "img": "https://cartoon-villains-assets.s3.us-east-1.amazonaws.com/!!!shared-assets/icons/game-icons-net/whitetransparent/trash-can.svg",
+      "system": {},
+      "cards": [],
+      "rotation": 0,
+      "displayCount": false,
+      "folder": "fi9w7bILgYhafNtj",
+      "sort": 100000,
+      "ownership": {
+        "default": 2
+      },
+      "flags": {
+        "complete-card-management": {
+          "primaryOwner": ""
+        }
       },
       "_stats": {
         "coreVersion": "14.365",
@@ -33547,6 +33961,72 @@
       "sorting": "a",
       "_id": "1ejY6innYFwKALoL",
       "description": "",
+      "sort": 100000,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      }
+    },
+    {
+      "type": "Scene",
+      "folder": null,
+      "name": "Session Zero",
+      "color": null,
+      "sorting": "a",
+      "_id": "fNItc29o0uy1FLTq",
+      "description": "",
+      "sort": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      }
+    },
+    {
+      "type": "Scene",
+      "folder": "fNItc29o0uy1FLTq",
+      "name": "Queen of Storms",
+      "color": null,
+      "sorting": "a",
+      "_id": "kXAgbEAWNQmKQqKZ",
+      "description": "",
+      "sort": 100000,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      }
+    },
+    {
+      "type": "Cards",
+      "folder": "1ejY6innYFwKALoL",
+      "name": "Discard Pile",
+      "color": null,
+      "sorting": "a",
+      "_id": "fi9w7bILgYhafNtj",
+      "description": "",
       "sort": 0,
       "flags": {},
       "_stats": {
@@ -33574,7 +34054,7 @@
     "systemId": "dnd5e",
     "systemVersion": "5.3.3",
     "createdTime": 1782581885431,
-    "modifiedTime": 1785226778816,
+    "modifiedTime": 1786089785461,
     "lastModifiedBy": "fMn2Y9q9aMPbOfJL",
     "compendiumSource": null,
     "duplicateSource": null,

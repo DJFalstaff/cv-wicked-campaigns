@@ -9585,6 +9585,150 @@ async function resetDeck(deck) {
   ui.notifications.info(`"${deck.name}" has been reset and the chat log cleared.${activeSummary ? ` The Session Zero game has ended; "${activeSummary.name}" is preserved for reading back.` : ""}`);
 }
 
+// ---- Dealing and un-dealing cards -----------------------------------------
+// Where a drawn card is laid down: beside the deck, wherever the GM has actually put the deck on
+// this scene, rather than at some fixed point. CCM stores a placement as a top-left corner but
+// placeCard takes a centre, hence the half-width/height round trip.
+function cardPlacementBesideDeck(deck, card) {
+  const deckPos = deck.getFlag("complete-card-management", canvas.scene?.id);
+  const cardW = (card.width ?? deck.width ?? 2) * canvas.grid.sizeX;
+  const cardH = (card.height ?? deck.height ?? 3) * canvas.grid.sizeY;
+  return deckPos
+    ? { x: deckPos.x + cardW * 1.7, y: deckPos.y + cardH / 2 }
+    : { x: canvas.dimensions.width / 2, y: canvas.dimensions.height / 2 };
+}
+
+// Undo a deal. Playtest 2026-08-06 #12: Jeff advanced past a card by accident with no way back and
+// had to escape through "discard by suit", which moves things further forward rather than back.
+//
+// A dealt card is spread across three places, which is why there was no obvious undo:
+//   1. a canvas placement flag on the card;
+//   2. an entry in the scene's cardCollection pointing at that card's uuid;
+//   3. the draw itself - dealing from a deck keeps the original in the deck marked drawn:true and
+//      puts a COPY in the destination stack (CCM auto-passes canvas drops to the scene's pile).
+// Card#recall handles (3) for either form: it clears drawn on the original and, if this is a copy,
+// deletes it. Everything else has to come apart by hand, and in this order - the uuid has to be
+// captured before the recall, because recalling a copy destroys the document it names.
+async function returnCardToDeck(card) {
+  const uuid = card.uuid;
+  for (const scene of game.scenes) {
+    if (card.getFlag("complete-card-management", scene.id)) {
+      await card.unsetFlag("complete-card-management", scene.id);
+    }
+  }
+  await card.recall({ chatNotification: false });
+
+  for (const scene of game.scenes) {
+    const collection = scene.getFlag("complete-card-management", "cardCollection") || [];
+    if (!collection.length) continue;
+    // Prune this card AND anything else already dangling - same reasoning as the compendium
+    // refresh: a uuid embeds its parent stack, so cards that moved leave dead strings behind.
+    const kept = collection.filter((u) => u !== uuid && !!fromUuidSync(u));
+    if (kept.length !== collection.length) {
+      await scene.setFlag("complete-card-management", "cardCollection", kept);
+    }
+  }
+}
+
+// Every card of this deck currently sitting on a scene, wherever it now lives. A dealt card's copy
+// belongs to the pile, not the deck, so matching has to go through `origin` (which records the
+// deck it was drawn from) as well as the deck's own contents.
+function findPlacedCardsForDeck(deck) {
+  const found = [];
+  for (const scene of game.scenes) {
+    for (const uuid of scene.getFlag("complete-card-management", "cardCollection") || []) {
+      const doc = fromUuidSync(uuid);
+      if (!doc || doc instanceof Cards) continue;
+      if (doc.origin?.id === deck.id || deck.cards.has(doc.id)) found.push(doc);
+    }
+  }
+  return found;
+}
+
+async function returnAllCardsToDeck(deck) {
+  if (!game.user.isGM) return;
+  const placed = findPlacedCardsForDeck(deck);
+  if (!placed.length) {
+    ui.notifications.info(`No cards from "${deck.name}" are on the table.`);
+    return;
+  }
+
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: "Return All Cards to Deck", icon: "fa-solid fa-rotate-left" },
+    content: `
+      <p>Take all <b>${placed.length}</b> card${placed.length === 1 ? "" : "s"} from "${esc(deck.name)}" off the table and back into the deck?</p>
+      <ul style="margin-top: 5px; max-height: 180px; overflow-y: auto; font-size: 0.85rem;">
+        ${placed.map((c) => `<li>${esc(c.name)}</li>`).join("")}
+      </ul>
+      <p style="font-size: 0.85rem; color: #b5b5b5;">
+        Each card goes back to its original place in the deck. Answers already recorded stay
+        recorded - this clears the table, it doesn't un-answer anything.
+      </p>`,
+    rejectClose: false,
+  }).catch(() => false);
+  if (!confirmed) return;
+
+  for (const card of placed) await returnCardToDeck(card);
+  ui.notifications.info(`Returned ${placed.length} card${placed.length === 1 ? "" : "s"} to "${deck.name}".`);
+}
+
+// The other half of playtest #12 - "a card can be put back into the deck or pulled out". Deals a
+// named card regardless of where it sits in the order, for when the GM wants a specific prompt
+// rather than whatever is on top.
+async function promptDrawSpecificCard(deck) {
+  if (!game.user.isGM) return;
+  if (!canvas.scene) {
+    ui.notifications.warn("There is no active scene to place a card on.");
+    return;
+  }
+
+  const placedUuids = new Set(canvas.scene.getFlag("complete-card-management", "cardCollection") || []);
+  const bySuit = new Map();
+  for (const card of deck.availableCards) {
+    if (placedUuids.has(card.uuid)) continue;
+    const suit = card.suit || "(no suit)";
+    if (!bySuit.has(suit)) bySuit.set(suit, []);
+    bySuit.get(suit).push(card);
+  }
+  if (!bySuit.size) {
+    ui.notifications.warn(`"${deck.name}" has no undealt cards left.`);
+    return;
+  }
+
+  const groups = [...bySuit.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([suit, cards]) => `
+      <optgroup label="${esc(suit)} (${cards.length})">
+        ${cards.sort((a, b) => a.name.localeCompare(b.name)).map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}
+      </optgroup>`)
+    .join("");
+
+  const cardId = await foundry.applications.api.DialogV2.wait({
+    window: { title: `Draw a Card: ${deck.name}`, icon: "fa-solid fa-hand-pointer" },
+    position: { width: 460 },
+    content: `
+      <p style="font-size: 0.85rem; color: #b5b5b5; margin-top: 0;">
+        Deals a specific card to the table, wherever it sits in the deck. Only undealt cards are
+        listed.
+      </p>
+      <div class="form-group">
+        <label>Card</label>
+        <select name="card">${groups}</select>
+      </div>`,
+    buttons: [
+      { action: "draw", label: "Draw", icon: "fas fa-hand-pointer", callback: (event, button) => button.form.elements.card.value },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => null },
+    ],
+    rejectClose: false,
+  }).catch(() => null);
+  if (!cardId) return;
+
+  const card = deck.cards.get(cardId);
+  if (!card) return;
+  await ccm.api.placeCard(card, cardPlacementBesideDeck(deck, card));
+  ui.notifications.info(`Drew "${card.name}".`);
+}
+
 // ---- Refresh a world deck from its compendium source -----------------------
 // Importing an adventure COPIES its documents into the world; later edits to the compendium never
 // propagate. So a world that imported the deck before the art/name changes keeps the old cards
@@ -9865,18 +10009,7 @@ async function drawArcanaCard(deck) {
   }
 
   const card = available[0];
-
-  // Lay it beside the deck rather than at a fixed point, so it lands wherever the GM has actually
-  // put the deck on this scene. CCM stores the deck's placement per-scene as a top-left corner;
-  // placeCard takes a centre, hence the half-width/height back-and-forth.
-  const deckPos = deck.getFlag("complete-card-management", canvas.scene.id);
-  const cardW = (card.width ?? deck.width ?? 2) * canvas.grid.sizeX;
-  const cardH = (card.height ?? deck.height ?? 3) * canvas.grid.sizeY;
-  const target = deckPos
-    ? { x: deckPos.x + cardW * 1.7, y: deckPos.y + cardH / 2 }
-    : { x: canvas.dimensions.width / 2, y: canvas.dimensions.height / 2 };
-
-  await ccm.api.placeCard(card, target);
+  await ccm.api.placeCard(card, cardPlacementBesideDeck(deck, card));
   ui.notifications.info(`Drew "${card.name}" - ${available.length - 1} Major Arcana remaining.`);
 }
 
@@ -9933,6 +10066,24 @@ function onRenderCardHud(hud, html) {
     refreshButton.addEventListener("click", () => refreshDeckFromCompendium(card));
     middle.appendChild(refreshButton);
 
+    // Deal a chosen card, and take the table back - the two halves of "card placement must be
+    // reversible". Both are plain deck handling, so neither is gated on a game being active.
+    const drawButton = document.createElement("button");
+    drawButton.type = "button";
+    drawButton.className = "control-icon";
+    drawButton.dataset.tooltip = "Draw a Card (deal a specific card, wherever it sits in the deck)";
+    drawButton.innerHTML = `<i class="fa-solid fa-hand-pointer"></i>`;
+    drawButton.addEventListener("click", () => promptDrawSpecificCard(card));
+    middle.appendChild(drawButton);
+
+    const returnAllButton = document.createElement("button");
+    returnAllButton.type = "button";
+    returnAllButton.className = "control-icon";
+    returnAllButton.dataset.tooltip = "Return All Cards to Deck (clear the table)";
+    returnAllButton.innerHTML = `<i class="fa-solid fa-arrow-rotate-left"></i>`;
+    returnAllButton.addEventListener("click", () => returnAllCardsToDeck(card));
+    middle.appendChild(returnAllButton);
+
     if (game.settings.get("cv-wicked-campaigns", "sessionZeroEnabled")) {
       const active = findActiveSessionZeroForDeck(card);
 
@@ -9982,6 +10133,26 @@ function onRenderCardHud(hud, html) {
     viewButton.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i>`;
     viewButton.addEventListener("click", () => CardImageViewerApp.open(card.img, card.name));
     middle.appendChild(viewButton);
+
+    // Undo for this one card - the direct answer to "someone could click on something out of order
+    // or make a mistake". GM-only and independent of Session Zero, since a misdealt card is a
+    // misdealt card whether or not a game is running.
+    if (isGM) {
+      const originDeck = findOriginDeckForCard(card);
+      if (originDeck) {
+        const returnButton = document.createElement("button");
+        returnButton.type = "button";
+        returnButton.className = "control-icon";
+        returnButton.dataset.tooltip = `Return to Deck (back to its place in "${originDeck.name}")`;
+        returnButton.innerHTML = `<i class="fa-solid fa-arrow-rotate-left"></i>`;
+        returnButton.addEventListener("click", async () => {
+          canvas.cards?.hud?.clear();
+          await returnCardToDeck(card);
+          ui.notifications.info(`Returned "${card.name}" to "${originDeck.name}".`);
+        });
+        middle.appendChild(returnButton);
+      }
+    }
 
     const summary = findActiveSessionZeroForDeck(findOriginDeckForCard(card));
     if (!summary) return; // No active Session Zero game on this card's deck - no further buttons.

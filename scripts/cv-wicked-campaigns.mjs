@@ -4,7 +4,8 @@
  */
 // Test comment: verifying the commit -> confirm -> push workflow.
 
-import { exportBackgroundPdf, exportSessionZeroSummaryPdf } from "./pdf-export.mjs";
+import { exportBackgroundPdf } from "./pdf-export.mjs";
+import { exportSessionZeroSummaryPdf } from "./pdf-session-zero.mjs";
 
 // ---- Constants -----------------------------------------------------------
 const STEP_COUNT = 12;

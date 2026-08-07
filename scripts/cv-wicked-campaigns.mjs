@@ -8322,11 +8322,23 @@ function findActiveSessionZeroForDeck(deck) {
 function patchCardObjectHudPermission() {
   const CardObject = CONFIG.Card?.objectClass;
   if (!CardObject?.prototype || CardObject.prototype._cvWickedHudPatched) return;
-  const original = CardObject.prototype._canHUD;
-  CardObject.prototype._canHUD = function (user, event) {
+
+  // Observer is enough to open the HUD, but that alone is not enough to RECEIVE the right-click.
+  // MouseInteractionManager is a state machine: #handlePointerOver only advances an object to the
+  // HOVER state if "hoverIn" is permitted, and #handleRightDown bails immediately unless the
+  // object is already at least HOVER. _canHover delegates to _canControl, which tests
+  // canUserModify("update") - so an Observer never hovers, never reaches HOVER, and the right
+  // click is dropped before _canHUD is ever consulted.
+  //
+  // So both have to be widened together. Hovering grants nothing on its own: it sets a highlight
+  // and nothing else. _canControl stays false, so selecting, dragging and rotating remain blocked.
+  const widen = (original) => function (user, event) {
     if (original?.call(this, user, event)) return true;
     return (this.layer?.active === true) && !!this.document?.testUserPermission?.(user, "OBSERVER");
   };
+
+  CardObject.prototype._canHUD = widen(CardObject.prototype._canHUD);
+  CardObject.prototype._canHover = widen(CardObject.prototype._canHover);
   CardObject.prototype._cvWickedHudPatched = true;
 }
 

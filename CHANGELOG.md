@@ -2,6 +2,10 @@
 
 All notable changes to Wicked Campaigns are documented here, newest first.
 
+## v14.2.3 — 2026-08-07
+
+- **Fixed: players still could not right-click a card.** v14.2.0 widened the permission that opens the card HUD, but not the one that lets a player *hover* a card — and Foundry drops a right-click entirely unless the object is already hovered, before it ever asks whether the HUD may open. Both are widened now. Hovering grants nothing on its own; selecting, dragging and rotating remain blocked for players.
+
 ## v14.2.2 — 2026-08-07
 
 - No functional change. Tracks a documentation file that had been left out of the repository, so the released version and the source tree match exactly.

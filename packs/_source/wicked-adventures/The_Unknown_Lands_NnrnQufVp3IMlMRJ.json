@@ -30720,7 +30720,7 @@
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/01-qos-theme-a.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/01-theme-a.webp",
               "text": ""
             }
           ],
@@ -30756,13 +30756,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/01-theme-a.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/02-qos-theme-b.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/02-theme-b.webp",
               "text": ""
             }
           ],
@@ -30798,24 +30799,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/02-theme-b.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/03-qos-the-fool.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/03-arcana-00-the-maelstrom.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Fool",
+          "name": "The Maelstrom",
           "_id": "dOdvAn8pR75iCT8g",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 0,
           "back": {
             "text": "",
             "img": null,
@@ -30840,24 +30842,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/03-arcana-00-the-maelstrom.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/04-qos-the-magicain.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/04-arcana-01-the-mage.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Magician",
+          "name": "The Mage",
           "_id": "6ZbQeLxIPvsodHtf",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 1,
           "back": {
             "text": "",
             "img": null,
@@ -30882,24 +30885,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/04-arcana-01-the-mage.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/05-qos-high-priestess.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/05-arcana-02-the-sorceress.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The High Priestess",
+          "name": "The Sorceress",
           "_id": "JbsYQODGv6z07LOC",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 2,
           "back": {
             "text": "",
             "img": null,
@@ -30922,24 +30926,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/05-arcana-02-the-sorceress.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/06-qos-empress.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/06-arcana-03-the-queen.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Empress",
+          "name": "The Queen",
           "_id": "jMuZF7XFYiLaMLoE",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 3,
           "back": {
             "text": "",
             "img": null,
@@ -30964,24 +30969,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/06-arcana-03-the-queen.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/06-qos-emperor.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/07-arcana-04-the-king.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Emperor",
+          "name": "The King",
           "_id": "x4ir0HMTliQQDu6f",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 4,
           "back": {
             "text": "",
             "img": null,
@@ -31006,24 +31012,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/07-arcana-04-the-king.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/07-qos-hierophant.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/08-arcana-05-the-herald.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Hierophant",
+          "name": "The Herald",
           "_id": "rxv7yBGG7nR3xBSQ",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 5,
           "back": {
             "text": "",
             "img": null,
@@ -31046,24 +31053,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/08-arcana-05-the-herald.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/08-qos-lovers.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/09-arcana-06-the-twins.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Lovers",
+          "name": "The Twins",
           "_id": "2F6qld5bhhCf6WWX",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 6,
           "back": {
             "text": "",
             "img": null,
@@ -31086,24 +31094,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/09-arcana-06-the-twins.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/09-qos-chariot.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/10-arcana-07-the-galleon.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Chariot",
+          "name": "The Galleon",
           "_id": "1Grokh1Z7wrk9s3l",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 7,
           "back": {
             "text": "",
             "img": null,
@@ -31128,24 +31137,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/10-arcana-07-the-galleon.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/10-qos-strength.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/11-arcana-08-the-paragon.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "Strength",
+          "name": "The Paragon",
           "_id": "KsKTlBzoqhrNHQJw",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 8,
           "back": {
             "text": "",
             "img": null,
@@ -31168,24 +31178,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/11-arcana-08-the-paragon.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/11-qos-hermit.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/12-arcana-09-the-thief.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Hermit",
+          "name": "The Thief",
           "_id": "c1TfYFROZnyCcsNe",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 9,
           "back": {
             "text": "",
             "img": null,
@@ -31208,24 +31219,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/12-arcana-09-the-thief.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/12-qos-wheel-of-fortune.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/13-arcana-10-the-orrery.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "Wheel of Fortune",
+          "name": "The Orrery",
           "_id": "RRGPyIQSH82H9Xd8",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 10,
           "back": {
             "text": "",
             "img": null,
@@ -31250,24 +31262,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/13-arcana-10-the-orrery.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/13-qos-justice.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/14-arcana-11-the-kraken.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "Justice",
+          "name": "The Kraken",
           "_id": "sc11RUcFIVcbCisz",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 11,
           "back": {
             "text": "",
             "img": null,
@@ -31290,24 +31303,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/14-arcana-11-the-kraken.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/14-qos-hanged-man.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/15-arcana-12-the-revenant.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Hanged Man",
+          "name": "The Revenant",
           "_id": "jbgstROGU9Q2n2x4",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 12,
           "back": {
             "text": "",
             "img": null,
@@ -31332,24 +31346,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/15-arcana-12-the-revenant.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/15-qos-death.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/16-arcana-13-the-black-rider.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "Death",
+          "name": "The Black Rider",
           "_id": "KWzkJKmaeyIaY5yU",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 13,
           "back": {
             "text": "",
             "img": null,
@@ -31374,24 +31389,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/16-arcana-13-the-black-rider.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/16-qos-temperance.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/17-arcana-14-the-scales.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "Temperance",
+          "name": "The Scales",
           "_id": "cA8RqPLHPNCYIF3W",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 14,
           "back": {
             "text": "",
             "img": null,
@@ -31414,24 +31430,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/17-arcana-14-the-scales.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/17-qos-devil.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/18-arcana-15-the-temptress.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Devil",
+          "name": "The Temptress",
           "_id": "K8a0Ln4DKU5gBM6p",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 15,
           "back": {
             "text": "",
             "img": null,
@@ -31456,24 +31473,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/18-arcana-15-the-temptress.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/18-qos-tower.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/19-arcana-16-the-fortress.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Tower",
+          "name": "The Fortress",
           "_id": "sxA2L6yNvYsZK7yg",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 16,
           "back": {
             "text": "",
             "img": null,
@@ -31498,24 +31516,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/19-arcana-16-the-fortress.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/19-qos-star.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/20-arcana-17-the-eclipse.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Star",
+          "name": "The Eclipse",
           "_id": "z3VxGNC0J8GjdlJF",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 17,
           "back": {
             "text": "",
             "img": null,
@@ -31538,24 +31557,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/20-arcana-17-the-eclipse.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/20-qos-moon.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/21-arcana-18-the-sleeper.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Moon",
+          "name": "The Sleeper",
           "_id": "3G4zubiYAUHObQSC",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 18,
           "back": {
             "text": "",
             "img": null,
@@ -31580,24 +31600,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/21-arcana-18-the-sleeper.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/21-qos-sun.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/22-arcana-19-the-lighthouse.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The Sun",
+          "name": "The Lighthouse",
           "_id": "03ibWNCdQpo1huaV",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 19,
           "back": {
             "text": "",
             "img": null,
@@ -31622,24 +31643,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/22-arcana-19-the-lighthouse.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/22-qos-judgement.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/23-arcana-20-the-clock.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "Judgement",
+          "name": "The Clock",
           "_id": "BRQXRLvNuRKSYXGf",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 20,
           "back": {
             "text": "",
             "img": null,
@@ -31664,24 +31686,25 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/23-arcana-20-the-clock.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/23-qos-world.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/24-arcana-21-the-atlas.webp",
               "text": ""
             }
           ],
           "face": 0,
-          "name": "The World",
+          "name": "The Atlas",
           "_id": "SfwhTJXR86Ryv8KE",
           "description": "",
           "type": "base",
           "system": {},
           "suit": "major arcana",
-          "value": null,
+          "value": 21,
           "back": {
             "text": "",
             "img": null,
@@ -31706,13 +31729,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/24-arcana-21-the-atlas.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/24-qos-sail-the-black.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/25-sail-the-black.webp",
               "text": ""
             }
           ],
@@ -31748,13 +31772,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/25-sail-the-black.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/25-qos-the-crews-creed.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/26-the-crews-creed.webp",
               "text": ""
             }
           ],
@@ -31790,13 +31815,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/26-the-crews-creed.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/26-qos-biggest-problem.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/27-biggest-problem.webp",
               "text": ""
             }
           ],
@@ -31832,13 +31858,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/27-biggest-problem.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/27-qos-character-dietrich-sturmwald.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/28-lord-dietrich-sturmwald.webp",
               "text": ""
             }
           ],
@@ -31874,13 +31901,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/28-lord-dietrich-sturmwald.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/28-qos-character-malachi-vestori.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/29-lord-malachi-vestori.webp",
               "text": ""
             }
           ],
@@ -31916,13 +31944,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/29-lord-malachi-vestori.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/29-qos-character-benedict-brooke.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/30-lord-benedict-brooke.webp",
               "text": ""
             }
           ],
@@ -31956,13 +31985,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/30-lord-benedict-brooke.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/30-qos-character-halima-al-hadid.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/31-lord-halima-al-hadid.webp",
               "text": ""
             }
           ],
@@ -31998,13 +32028,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/31-lord-halima-al-hadid.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/31-qos-character-seraphina-lacroix.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/32-lord-seraphina-lacroix.webp",
               "text": ""
             }
           ],
@@ -32040,13 +32071,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/32-lord-seraphina-lacroix.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/32-qos-character-valeria-violante.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/33-lord-valeria-violante.webp",
               "text": ""
             }
           ],
@@ -32082,13 +32114,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/33-lord-valeria-violante.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/33-qos-character-rajan-bahtera.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/34-lord-rajan-bahtera.webp",
               "text": ""
             }
           ],
@@ -32124,13 +32157,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/34-lord-rajan-bahtera.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/34-qos-character-abena-sarkozy.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/35-lord-abena-sarkozy.webp",
               "text": ""
             }
           ],
@@ -32164,13 +32198,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/35-lord-abena-sarkozy.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/35-qos-what-did-you-lose.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/36-what-did-you-lose.webp",
               "text": ""
             }
           ],
@@ -32206,13 +32241,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/36-what-did-you-lose.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/36-qos-vendetta.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/37-vendetta.webp",
               "text": ""
             }
           ],
@@ -32248,7 +32284,8 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/37-vendetta.webp"
         },
         {
           "name": "Weaker",
@@ -32258,7 +32295,7 @@
           "sort": 44,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/38-qos-weaker.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/38-weaker.webp",
               "name": "",
               "text": ""
             }
@@ -32286,7 +32323,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/38-weaker.webp"
         },
         {
           "name": "Owe Life",
@@ -32296,7 +32334,7 @@
           "sort": 71,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/40-qos-prompt-owe-life.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/40-prompt-owe-life.webp",
               "name": "",
               "text": ""
             }
@@ -32324,7 +32362,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/40-prompt-owe-life.webp"
         },
         {
           "name": "Save Who",
@@ -32334,7 +32373,7 @@
           "sort": 49,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/39-qos-prompt-save-who.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/39-prompt-save-who.webp",
               "name": "",
               "text": ""
             }
@@ -32362,7 +32401,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/39-prompt-save-who.webp"
         },
         {
           "name": "Secret Envy",
@@ -32372,7 +32412,7 @@
           "sort": 35,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/41-qos-prompt-secret-envy.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/41-prompt-secret-envy.webp",
               "name": "",
               "text": ""
             }
@@ -32402,7 +32442,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/41-prompt-secret-envy.webp"
         },
         {
           "name": "Stolen",
@@ -32412,7 +32453,7 @@
           "sort": 39,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/42-qos-prompt-stolen.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/42-prompt-stolen.webp",
               "name": "",
               "text": ""
             }
@@ -32442,7 +32483,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/42-prompt-stolen.webp"
         },
         {
           "name": "Biggest Lie",
@@ -32452,7 +32494,7 @@
           "sort": 74,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/43-qos-prompt-biggest-lie.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/43-prompt-biggest-lie.webp",
               "name": "",
               "text": ""
             }
@@ -32480,7 +32522,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/43-prompt-biggest-lie.webp"
         },
         {
           "name": "Respect",
@@ -32490,7 +32533,7 @@
           "sort": 46,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/44-qos-prompt-respect.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/44-prompt-respect.webp",
               "name": "",
               "text": ""
             }
@@ -32520,7 +32563,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/44-prompt-respect.webp"
         },
         {
           "name": "Crossed Paths",
@@ -32530,7 +32574,7 @@
           "sort": 66,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/45-qos-prompt-crossed-paths.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/45-prompt-crossed-paths.webp",
               "name": "",
               "text": ""
             }
@@ -32560,7 +32604,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/45-prompt-crossed-paths.webp"
         },
         {
           "name": "Dark Favor",
@@ -32570,7 +32615,7 @@
           "sort": 43,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/46-qos-prompt-dark-favor.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/46-prompt-dark-favor.webp",
               "name": "",
               "text": ""
             }
@@ -32600,7 +32645,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/46-prompt-dark-favor.webp"
         },
         {
           "name": "Cursed",
@@ -32610,7 +32656,7 @@
           "sort": 34,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/47-qos-prompt-cursed.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/47-prompt-cursed.webp",
               "name": "",
               "text": ""
             }
@@ -32640,7 +32686,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/47-prompt-cursed.webp"
         },
         {
           "name": "Pity",
@@ -32650,7 +32697,7 @@
           "sort": 36,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/48-qos-prompt-pity.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/48-prompt-pity.webp",
               "name": "",
               "text": ""
             }
@@ -32678,17 +32725,18 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/48-prompt-pity.webp"
         },
         {
-          "name": "Gift",
+          "name": "A Small Gift",
           "type": "base",
           "suit": "roses",
           "value": null,
           "sort": 60,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/49-qos-prompt-pity.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/49-a-small-gift.webp",
               "name": "",
               "text": ""
             }
@@ -32716,7 +32764,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/49-a-small-gift.webp"
         },
         {
           "name": "Hobby",
@@ -32726,7 +32775,7 @@
           "sort": 62,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/50-qos-prompt-hobby.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/50-prompt-hobby.webp",
               "name": "",
               "text": ""
             }
@@ -32754,7 +32803,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/50-prompt-hobby.webp"
         },
         {
           "name": "Misconception",
@@ -32764,7 +32814,7 @@
           "sort": 65,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/51-qos-prompt-misconception.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/51-prompt-misconception.webp",
               "name": "",
               "text": ""
             }
@@ -32792,7 +32842,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/51-prompt-misconception.webp"
         },
         {
           "name": "Near Death Secret",
@@ -32802,7 +32853,7 @@
           "sort": 48,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/52-qos-prompt-near-death-secret.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/52-prompt-near-death-secret.webp",
               "name": "",
               "text": ""
             }
@@ -32832,7 +32883,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/52-prompt-near-death-secret.webp"
         },
         {
           "name": "Scathing Words",
@@ -32842,7 +32894,7 @@
           "sort": 42,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/53-qos-prompt-scathing-words.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/53-prompt-scathing-words.webp",
               "name": "",
               "text": ""
             }
@@ -32872,7 +32924,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/53-prompt-scathing-words.webp"
         },
         {
           "name": "Public Vs Private",
@@ -32882,7 +32935,7 @@
           "sort": 40,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/54-qos-prompt-public-vs-private.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/54-prompt-public-vs-private.webp",
               "name": "",
               "text": ""
             }
@@ -32912,7 +32965,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/54-prompt-public-vs-private.webp"
         },
         {
           "name": "Nickname",
@@ -32922,7 +32976,7 @@
           "sort": 47,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/55-qos-prompt-nickname.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/55-prompt-nickname.webp",
               "name": "",
               "text": ""
             }
@@ -32952,7 +33006,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/55-prompt-nickname.webp"
         },
         {
           "name": "Innocent Death",
@@ -32962,7 +33017,7 @@
           "sort": 68,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/56-qos-prompt-innocent-death.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/56-prompt-innocent-death.webp",
               "name": "",
               "text": ""
             }
@@ -32992,7 +33047,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/56-prompt-innocent-death.webp"
         },
         {
           "name": "Dark Rumor",
@@ -33002,7 +33058,7 @@
           "sort": 50,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/57-qos-prompt-dark-rumor.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/57-prompt-dark-rumor.webp",
               "name": "",
               "text": ""
             }
@@ -33030,7 +33086,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/57-prompt-dark-rumor.webp"
         },
         {
           "name": "Trust",
@@ -33040,7 +33097,7 @@
           "sort": 57,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/58-qos-prompt-trust.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/58-prompt-trust.webp",
               "name": "",
               "text": ""
             }
@@ -33070,7 +33127,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/58-prompt-trust.webp"
         },
         {
           "name": "The Watch",
@@ -33080,7 +33138,7 @@
           "sort": 73,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/59-qos-prompt-the-watch.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/59-prompt-the-watch.webp",
               "name": "",
               "text": ""
             }
@@ -33110,7 +33168,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/59-prompt-the-watch.webp"
         },
         {
           "name": "The Bet",
@@ -33120,7 +33179,7 @@
           "sort": 70,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/60-qos-prompt-the-bet.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/60-prompt-the-bet.webp",
               "name": "",
               "text": ""
             }
@@ -33150,7 +33209,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/60-prompt-the-bet.webp"
         },
         {
           "name": "Old Hatred",
@@ -33160,7 +33220,7 @@
           "sort": 61,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/61-qos-prompt-old-hatred.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/61-prompt-old-hatred.webp",
               "name": "",
               "text": ""
             }
@@ -33188,7 +33248,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/61-prompt-old-hatred.webp"
         },
         {
           "name": "Off The Manifest",
@@ -33198,7 +33259,7 @@
           "sort": 51,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/62-qos-prompt-off-the-manifest.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/62-prompt-off-the-manifest.webp",
               "name": "",
               "text": ""
             }
@@ -33226,7 +33287,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/62-prompt-off-the-manifest.webp"
         },
         {
           "name": "Letter Home",
@@ -33236,7 +33298,7 @@
           "sort": 53,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/63-qos-prompt-letter-home.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/63-prompt-letter-home.webp",
               "name": "",
               "text": ""
             }
@@ -33264,7 +33326,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/63-prompt-letter-home.webp"
         },
         {
           "name": "Guard My Back",
@@ -33274,7 +33337,7 @@
           "sort": 33,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/65-qos-prompt-guard-my-back.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/65-prompt-guard-my-back.webp",
               "name": "",
               "text": ""
             }
@@ -33302,7 +33365,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/65-prompt-guard-my-back.webp"
         },
         {
           "name": "Froze Up",
@@ -33312,7 +33376,7 @@
           "sort": 41,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/66-qos-prompt-froze-up.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/66-prompt-froze-up.webp",
               "name": "",
               "text": ""
             }
@@ -33342,7 +33406,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/66-prompt-froze-up.webp"
         },
         {
           "name": "Horrifying Rescue",
@@ -33352,7 +33417,7 @@
           "sort": 67,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/64-qos-prompt-horrifying-rescue.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/64-prompt-horrifying-rescue.webp",
               "name": "",
               "text": ""
             }
@@ -33380,7 +33445,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/64-prompt-horrifying-rescue.webp"
         },
         {
           "name": "Cover Up",
@@ -33390,7 +33456,7 @@
           "sort": 63,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/67-qos-prompt-cover-up.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/67-prompt-cover-up.webp",
               "name": "",
               "text": ""
             }
@@ -33418,7 +33484,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/67-prompt-cover-up.webp"
         },
         {
           "name": "Subtle Signal",
@@ -33428,7 +33495,7 @@
           "sort": 54,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/68-qos-prompt-subtle-signal.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/68-prompt-subtle-signal.webp",
               "name": "",
               "text": ""
             }
@@ -33458,7 +33525,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/68-prompt-subtle-signal.webp"
         },
         {
           "name": "Rule Of The Sea",
@@ -33468,7 +33536,7 @@
           "sort": 45,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/69-qos-prompt-rule-of-the-sea.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/69-prompt-rule-of-the-sea.webp",
               "name": "",
               "text": ""
             }
@@ -33496,7 +33564,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/69-prompt-rule-of-the-sea.webp"
         },
         {
           "name": "Left Behind",
@@ -33506,7 +33575,7 @@
           "sort": 38,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/70-qos-prompt-left-behind.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/70-prompt-left-behind.webp",
               "name": "",
               "text": ""
             }
@@ -33534,7 +33603,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/70-prompt-left-behind.webp"
         },
         {
           "name": "How We Met",
@@ -33544,7 +33614,7 @@
           "sort": 59,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/71-qos-prompt-how-we-met.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/71-prompt-how-we-met.webp",
               "name": "",
               "text": ""
             }
@@ -33574,7 +33644,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/71-prompt-how-we-met.webp"
         },
         {
           "name": "Greatest Fear",
@@ -33584,7 +33655,7 @@
           "sort": 37,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/72-qos-prompt-greatest-fear.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/72-prompt-greatest-fear.webp",
               "name": "",
               "text": ""
             }
@@ -33614,7 +33685,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/72-prompt-greatest-fear.webp"
         },
         {
           "name": "Comforting Lie",
@@ -33624,7 +33696,7 @@
           "sort": 52,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/73-qos-prompt-comforting-lie.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/73-prompt-comforting-lie.webp",
               "name": "",
               "text": ""
             }
@@ -33652,7 +33724,8 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/73-prompt-comforting-lie.webp"
         },
         {
           "name": "Broken Promise",
@@ -33662,7 +33735,7 @@
           "sort": 72,
           "faces": [
             {
-              "img": "modules/cv-wicked-campaigns/images/qos/74-qos-prompt-broken-promise.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/74-prompt-broken-promise.webp",
               "name": "",
               "text": ""
             }
@@ -33690,13 +33763,14 @@
             "compendiumSource": null,
             "duplicateSource": null,
             "exportSource": null
-          }
+          },
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/74-prompt-broken-promise.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/75-keeping-your-distance.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/75-left-behind.webp",
               "text": ""
             }
           ],
@@ -33730,13 +33804,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/75-left-behind.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/76qossilverlinings.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/76-silver-linings.webp",
               "text": ""
             }
           ],
@@ -33770,13 +33845,14 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/76-silver-linings.webp"
         },
         {
           "faces": [
             {
               "name": "",
-              "img": "modules/cv-wicked-campaigns/images/qos/77qosthequeensmark.webp",
+              "img": "modules/cv-wicked-campaigns/images/qos-deck/77-the-queens-mark.webp",
               "text": ""
             }
           ],
@@ -33810,7 +33886,8 @@
             "exportSource": null
           },
           "width": null,
-          "height": null
+          "height": null,
+          "img": "modules/cv-wicked-campaigns/images/qos-deck/77-the-queens-mark.webp"
         }
       ],
       "rotation": 0,

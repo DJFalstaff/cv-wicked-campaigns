@@ -1,0 +1,140 @@
+# Wicked Campaigns (cv-wicked-campaigns)
+
+> This file documents Wicked Campaigns for AI assistants: Foundry modules such as
+> **Pseudo (cv-pseudo)** read a module's root `llms.txt` to answer the table's how-to questions
+> about it. It is reference documentation, not configuration — humans are welcome to read it too.
+
+A campaign management and helper module for Foundry VTT V14. Its centrepiece is the **Session Zero
+card game**: a deck of prompt cards the table works through together to build characters and the
+fiction around them before play starts. Around that sit a Lifepath wizard, a Chase tracker, a Drama
+(social conflict) tracker, NPC Motives, and a Fate Pool.
+
+Requires: `campaign-codex`, `complete-card-management` (CCM), `tagger`, `monks-active-tiles`,
+`dice-so-nice`. Recommends `lib-wrapper`.
+
+## The Session Zero card game
+
+The deck lives on the canvas, on CCM's **Cards layer** (the card icon in the left-hand scene
+controls; `Alt+Z` toggles between Tokens and Cards). Almost every control is on a **right-click
+HUD** — right-click the deck for deck controls, right-click a dealt card for card controls.
+
+**The scene needs a discard pile.** CCM's per-scene "canvas pile" is where dealt cards actually
+go. The shipped adventure wires this up already; a hand-built scene must set it or dealing breaks.
+
+### Deck controls (right-click the deck, GM only)
+
+| Control | What it does |
+|---|---|
+| Discard by Suit | Send every remaining card of one suit to the discard pile |
+| Keystone Cards | Mark the clearest example of each card type — see below |
+| Refresh from Compendium | Replace this world's cards with the shipped version |
+| Draw a Card | Deal a specific card, wherever it sits in the deck |
+| Return All Cards to Deck | Clear the table; every card goes back to its place |
+| Start / End Session Zero | Begin or finish a recorded game |
+| Draw Arcana | *(during a game)* Deal the closing Arcana card |
+| Reset Deck | Recall everything and re-stack in draw order |
+
+### Card controls (right-click a dealt card)
+
+Everyone gets **View Card Image** (a zoomable viewer) and **Open Session Notes**. The GM also gets
+**Record Answer**. **Roll d8 for Other Players** and **Return to Deck** are available as relevant.
+
+### Draw order
+
+Reset stacks the deck as: **theme** (by value) → **skulls** → **moons/mobius/roses** shuffled
+together → **major arcana** last. The Arcana are the most open-ended cards in the deck, so they are
+deliberately the closer, asked once the fiction is established.
+
+### Keystone cards
+
+A keystone is the clearest, most idiot-proof example of its card type. Mark several candidates per
+suit, and each Reset promotes one at random to be the first card of that suit the table sees — so
+players always learn a type from its best example, while the GM still gets a different opening each
+run. Marking is per-card and survives a Refresh from Compendium.
+
+### Card types and their procedures
+
+| Suit | Procedure |
+|---|---|
+| Skulls | Add a truth to a villain |
+| Moons | One answer for the whole group; you must reach agreement |
+| Mobius | Everyone answers, clockwise from whoever drew the card |
+| Roses | A relationship between two PCs; capped per player |
+| Major Arcana | The drawing player reads it and says how it fits their character |
+| Theme | The fixed opener that sets the table |
+
+Each card also prints its own procedure on its face.
+
+### Limits and auto-thinning
+
+Starting a game asks for per-tier limits (villain, Arcana per player, moons, mobius, roses per
+player). When a tier hits its limit, the GM is offered the chance to discard the rest of that suit,
+which is what keeps a session to roughly 18–30 cards. **Declining those prompts makes the session
+much longer** and pushes the Arcana far back — use Draw Arcana if you want the closer regardless.
+
+### The shared record
+
+Answers are recorded into a **Session Zero Summary** journal. It opens shared with the table:
+players can read every recorded answer and **append their own notes** to any of them, threaded
+under the answer they respond to and signed by the Foundry user who wrote them. Player notes are
+relayed through the active GM rather than written directly, so simultaneous notes cannot overwrite
+each other. Summaries created before this feature existed show a **Share with Table** button.
+
+Recording a card's headline answer stays with the GM, because that is what moves the tier counters.
+
+### The game tracker
+
+A tracker window shows whose turn it is and how many of each card type the table has spent. The GM
+can drag to reorder turns, step turns, and end the session; players get a live read-only copy.
+
+### Player access
+
+Players need **Observer** on the deck and on the scene's discard pile to use any of this. Starting
+a game grants that automatically. Observer is deliberate: players can open the card HUD, zoom cards
+and roll the d8, but cannot drag, rotate, flip, re-sort or delete anything on the table.
+
+## Other features
+
+- **Lifepath Wizard** — roll or pick a character's background from linked tables; saves into a
+  Campaign Codex backstory entry.
+- **Chase Tracker** — DMG chase rules with per-terrain complication tables, dash counting against
+  a Constitution threshold, and a player HUD.
+- **Drama Tracker** — structured social conflicts, with a GM panel and player HUD.
+- **NPC Motives** — trackable motive values that can be shown on token bars.
+- **Fate Pool** — a shared pool with keybindings to add and spend points.
+- **Card Image Viewer** — a zoomable, pannable image viewer that (with `lib-wrapper`) replaces
+  Foundry's native image popout everywhere.
+
+## Settings
+
+`sessionZeroEnabled`, `chaseTrackerEnabled`, `dramaEnabled`, `motivesEnabled`, `fatePoolEnabled`,
+`lifepathWizardEnabled`, `cardImageViewerEnabled`, `inameTheeIntegration`. Feature toggles are
+world-scoped; turning one off hides its UI entirely.
+
+## Keybindings
+
+`Alt+Z` toggle Tokens/Cards layer · `Alt+M` dictate into the Record Answer editor · plus bindings
+for the Fate Pool (add/spend/manage) and for opening Chase and Drama setup.
+
+## Compendiums
+
+`wicked-adventures` (the Queen of Storms card game scene, deck and discard pile — import this to
+get a working table), `wicked-lore`, `wicked-roll-tables` (Lifepath and chase tables),
+`wicked-macros`, `wicked-scenes`, `wicked-actors`, `wicked-example-characters`, `wicked-items`,
+`wicked-playlists`.
+
+## Common questions
+
+**A player right-clicks a card and nothing happens.** They lack Observer on the stack the card is
+currently in — usually the discard pile rather than the deck. Start a Session Zero game, which
+grants both, or set it by hand on the Cards documents.
+
+**Cards vanish when dealt / the deck seems to shrink.** Dealing from a deck keeps the original in
+the deck marked "drawn" and puts a copy in the destination. The deck's card count never changes;
+its *available* count does. Return to Deck or Reset undoes this.
+
+**The deck has old art or old card names after an update.** A world keeps the copy it imported.
+Use **Refresh from Compendium** on the deck.
+
+**A card was dealt by mistake.** Right-click it → Return to Deck. To clear everything, use Return
+All Cards to Deck on the deck itself.

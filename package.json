@@ -4,7 +4,7 @@
   "version": "14.0.0",
   "description": "Build tooling for the Wicked Campaigns Foundry VTT module",
   "scripts": {
-    "unpack": "npm run unpack:adventures && npm run unpack:rolltables && npm run unpack:macros && npm run unpack:lore && npm run unpack:characters && npm run unpack:actors && npm run unpack:scenes && npm run unpack:playlists && npm run unpack:items && npm run unpack:cards",
+    "unpack": "npm run unpack:adventures && npm run unpack:rolltables && npm run unpack:macros && npm run unpack:lore && npm run unpack:characters && npm run unpack:actors && npm run unpack:scenes && npm run unpack:playlists && npm run unpack:items",
     "unpack:adventures": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-adventures -t Adventure --in packs --out packs/_source/wicked-adventures --clean",
     "unpack:rolltables": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-roll-tables -t RollTable --in packs --out packs/_source/wicked-roll-tables --clean",
     "unpack:macros": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-macros -t Macro --in packs --out packs/_source/wicked-macros --clean",
@@ -14,8 +14,7 @@
     "unpack:scenes": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-scenes -t Scene --in packs --out packs/_source/wicked-scenes --clean",
     "unpack:playlists": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-playlists -t Playlist --in packs --out packs/_source/wicked-playlists --clean",
     "unpack:items": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-items -t Item --in packs --out packs/_source/wicked-items --clean",
-    "unpack:cards": "fvtt package unpack --id cv-wicked-campaigns --type Module -n wicked-cards -t Cards --in packs --out packs/_source/wicked-cards --clean",
-    "pack": "npm run pack:adventures && npm run pack:rolltables && npm run pack:macros && npm run pack:lore && npm run pack:characters && npm run pack:actors && npm run pack:scenes && npm run pack:playlists && npm run pack:items && npm run pack:cards",
+    "pack": "npm run pack:adventures && npm run pack:rolltables && npm run pack:macros && npm run pack:lore && npm run pack:characters && npm run pack:actors && npm run pack:scenes && npm run pack:playlists && npm run pack:items",
     "pack:adventures": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-adventures -t Adventure --in packs/_source/wicked-adventures --out packs",
     "pack:rolltables": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-roll-tables -t RollTable --in packs/_source/wicked-roll-tables --out packs",
     "pack:macros": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-macros -t Macro --in packs/_source/wicked-macros --out packs",
@@ -25,7 +24,6 @@
     "pack:scenes": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-scenes -t Scene --in packs/_source/wicked-scenes --out packs",
     "pack:playlists": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-playlists -t Playlist --in packs/_source/wicked-playlists --out packs",
     "pack:items": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-items -t Item --in packs/_source/wicked-items --out packs",
-    "pack:cards": "fvtt package pack --id cv-wicked-campaigns --type Module -n wicked-cards -t Cards --in packs/_source/wicked-cards --out packs",
     "release": "npm run pack && node tools/build-release.mjs"
   },
   "devDependencies": {

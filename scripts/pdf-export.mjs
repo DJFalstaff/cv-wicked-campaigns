@@ -649,11 +649,23 @@ export async function exportSessionZeroSummaryPdf(summary) {
     doc.setFontSize(9.5);
     const answerLines = doc.splitTextToSize(answerText, textWidth);
     const involvesText = entry.linkedPlayers?.length ? `Involves: ${entry.linkedPlayers.map((p) => p.name).join(", ")}` : "";
+
+    // Threaded notes are part of the record, not decoration - a summary exported without them
+    // would quietly drop everything the other players contributed. Indented under their answer and
+    // attributed, matching how the sheet renders them. Measured here so the block-height maths
+    // below accounts for them and a long thread doesn't overrun the next entry.
+    const noteBlocks = (entry.notes || []).map((note) => ({
+      label: `${note.authorName || "Someone"}:`,
+      lines: doc.splitTextToSize(stripHtml(note.html) || "(empty note)", textWidth - 8),
+    }));
+    const noteLineHeight = 8.5 * 1.2;
+    const notesHeight = noteBlocks.reduce((sum, b) => sum + (b.lines.length + 1) * noteLineHeight, 0);
+
     const titleHeight = 12 * 1.15;
     const playerHeight = entry.playerName ? 8.5 * 1.3 : 0;
     const involvesHeight = involvesText ? 8 * 1.3 : 0;
     const answerHeight = answerLines.length * (9.5 * 1.15);
-    const blockHeight = Math.max(thumbH, titleHeight + playerHeight + involvesHeight + answerHeight + 6);
+    const blockHeight = Math.max(thumbH, titleHeight + playerHeight + involvesHeight + answerHeight + notesHeight + 6);
     layout.ensureSpace(blockHeight + 14);
 
     const topY = layout.y;
@@ -693,6 +705,21 @@ export async function exportSessionZeroSummaryPdf(summary) {
     doc.setFontSize(9.5);
     doc.setTextColor(...WICKED_DARK_THEME.text);
     doc.text(answerLines, textX, ty + 9.5 * 1.15 * 0.8);
+    ty += answerLines.length * (9.5 * 1.15);
+
+    for (const block of noteBlocks) {
+      ty += noteLineHeight;
+      doc.setFont(undefined, "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...WICKED_DARK_THEME.muted);
+      doc.text(block.label, textX + 8, ty);
+
+      doc.setFont(undefined, "normal");
+      doc.setTextColor(...WICKED_DARK_THEME.text);
+      doc.text(block.lines, textX + 8, ty + noteLineHeight);
+      ty += block.lines.length * noteLineHeight;
+    }
+    doc.setFont(undefined, "normal");
 
     layout.y = topY + blockHeight + 14;
   }

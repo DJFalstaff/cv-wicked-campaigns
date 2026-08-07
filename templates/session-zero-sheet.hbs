@@ -37,7 +37,43 @@
                 {{/if}}
                 <div class="session-zero-answer-html" style="font-size: 0.9rem; color: #d5d5d5;">{{{this.answerHtml}}}</div>
                 {{#if this.timestampLabel}}
-                <div style="font-size: 0.7rem; color: #888; margin-top: auto;">{{this.timestampLabel}}</div>
+                <div style="font-size: 0.7rem; color: #888;">{{this.timestampLabel}}</div>
+                {{/if}}
+
+                {{!-- Threaded notes. Anyone who can see the summary can add one and see everyone
+                      else's; a note is signed by the Foundry user who wrote it, not by whichever
+                      character happened to be answering. --}}
+                {{#if this.notes.length}}
+                <ul class="session-zero-notes" style="list-style: none; margin: 0.25rem 0 0; padding: 0 0 0 0.6rem; border-left: 2px solid rgba(201, 160, 84, 0.25); display: flex; flex-direction: column; gap: 0.45rem;">
+                    {{#each this.notes}}
+                    <li style="display: flex; flex-direction: column; gap: 0.15rem;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: #a89a82;">
+                            <i class="fa-solid fa-comment" style="color: {{#if this.authorColor}}{{this.authorColor}}{{else}}#c9a054{{/if}};"></i>
+                            <b>{{this.authorName}}</b>
+                            {{#if this.timestampLabel}}<span style="color: #777;">{{this.timestampLabel}}</span>{{/if}}
+                            {{#if this.canDelete}}
+                            <button type="button" class="qbw-btn" data-action="delete-note"
+                                    data-entry-id="{{../id}}" data-note-id="{{this.id}}"
+                                    data-tooltip="Delete this note"
+                                    style="margin-left: auto; padding: 0 5px; font-size: 0.7rem; background: none; border: none; color: #8a6a6a;">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            {{/if}}
+                        </div>
+                        <div class="session-zero-note-html" style="font-size: 0.85rem; color: #cfcfcf;">{{{this.html}}}</div>
+                    </li>
+                    {{/each}}
+                </ul>
+                {{/if}}
+
+                {{#if this.canNote}}
+                <div style="margin-top: auto; padding-top: 0.3rem;">
+                    <button type="button" class="qbw-btn" data-action="add-note" data-entry-id="{{this.id}}"
+                            data-tooltip="Add your own note to this answer"
+                            style="padding: 3px 9px; font-size: 0.75rem;">
+                        <i class="fa-solid fa-comment-medical"></i> Add Note
+                    </button>
+                </div>
                 {{/if}}
             </div>
         </div>

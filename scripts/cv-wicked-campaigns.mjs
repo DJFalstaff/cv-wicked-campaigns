@@ -3088,6 +3088,8 @@ class SessionZeroSheet extends sessionZeroSheetBase {
       rename: SessionZeroSheet.#onRename,
       "export-pdf": SessionZeroSheet.#onExportPdf,
       "view-card-image": SessionZeroSheet.#onViewCardImage,
+      "add-note": SessionZeroSheet.#onAddNote,
+      "delete-note": SessionZeroSheet.#onDeleteNote,
     },
   };
 
@@ -3097,13 +3099,60 @@ class SessionZeroSheet extends sessionZeroSheetBase {
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const data = this.document.getFlag(CC_MODULE_ID, "data") || {};
-    context.entries = (data.entries || []).map((entry) => ({
+    context.entries = readSessionZeroEntries(this.document).map((entry) => ({
       ...entry,
       timestampLabel: entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "",
+      // Anyone who can see the summary can add to it - that's the whole point of threading notes
+      // rather than keeping the GM as sole scribe. The write itself is relayed if they can't
+      // modify the journal directly.
+      canNote: true,
+      notes: (entry.notes || []).map((note) => ({
+        ...note,
+        timestampLabel: note.timestamp ? new Date(note.timestamp).toLocaleString() : "",
+        // Mirrors the check re-applied GM-side in deleteSessionZeroNote - shown here purely so the
+        // button doesn't appear when it would be rejected.
+        canDelete: game.user.isGM || note.authorId === game.user.id,
+      })),
     }));
     context.editable = this.isEditable;
     return context;
+  }
+
+  /**
+   * DocumentSheetV2#_onRender calls _toggleDisabled(true) on any sheet the viewer can't edit, and
+   * that disables every control in `this.form` - a disabled button fires no click. This sheet now
+   * opens at Observer for the whole table, so if that reached our action buttons it would silently
+   * kill Add Note, Export PDF and the card zoom for exactly the people the shared record is for.
+   *
+   * Measured on this sheet's actual DOM, `this.form.elements` turns out to contain only the window
+   * -header buttons, so the parent never touches ours - this override is a guard, not a fix for a
+   * live break. Kept because that's an accident of frame structure rather than a guarantee, and
+   * none of these actions writes to the journal directly anyway (a player's note is relayed
+   * through the active GM), so they are always safe to leave enabled.
+   * @override
+   */
+  _toggleDisabled(disabled) {
+    super._toggleDisabled(disabled);
+    const selector = '[data-action="add-note"], [data-action="delete-note"], [data-action="export-pdf"], [data-action="view-card-image"]';
+    for (const element of this.element.querySelectorAll(selector)) element.disabled = false;
+  }
+
+  static async #onAddNote(event, target) {
+    const entryId = target.dataset.entryId;
+    const entry = readSessionZeroEntries(this.document).find((e) => e.id === entryId);
+    if (!entry) return;
+    SessionZeroAnswerApp.openNote(this.document, entry);
+  }
+
+  static async #onDeleteNote(event, target) {
+    const { entryId, noteId } = target.dataset;
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Delete Note", icon: "fa-solid fa-trash" },
+      content: "<p>Delete this note? This can't be undone.</p>",
+      rejectClose: false,
+    }).catch(() => false);
+    if (!confirmed) return;
+    await deleteSessionZeroNote(this.document, entryId, noteId);
   }
 
   // Same reasoning as BackstorySheet/PartySheet's #onRename: this custom template has no name
@@ -3164,9 +3213,13 @@ async function createSessionZeroSummary(name = "Session Zero Summary", limits = 
   return JournalEntry.create({
     name,
     folder: getWickedCampaignsFolder(CC_SESSION_ZERO_TYPE)?.id,
-    // GM-only by default per spec; a GM can manually widen visibility later via the sheet's own
-    // standard Foundry ownership configuration, same as any other JournalEntry.
-    ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE },
+    // Observer, not None: the summary is the shared table record everyone reads back from, and
+    // threaded notes are worthless if the other players can't see them. Deliberately NOT Owner -
+    // entries[] is a single array in a single flag, so concurrent update() calls would be
+    // last-write-wins and silently eat notes. Every player write is relayed through the active GM
+    // instead (see handleSessionZeroWriteRequest), which serialises them. A GM can still narrow or
+    // widen this per-user via the sheet's standard Foundry ownership config.
+    ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER },
     flags: {
       [CC_MODULE_ID]: {
         type: CC_SESSION_ZERO_TYPE,
@@ -3185,11 +3238,213 @@ async function createSessionZeroSummary(name = "Session Zero Summary", limits = 
   });
 }
 
-async function addSessionZeroEntry(summary, entry) {
-  const data = summary.getFlag(CC_MODULE_ID, "data") || {};
-  const entries = foundry.utils.deepClone(data.entries || []);
-  entries.push(entry);
-  await summary.update({ "flags.campaign-codex.data.entries": entries });
+// Entries predating threaded notes have no id (they were identified purely by array position), no
+// author, and no notes array. Backfilling on *read* rather than with a one-shot write migration is
+// deliberate: the summary is now written by several clients through a relay, so a migration pass
+// racing live appends is a real risk, and the id has to be stable and derivable - hence a
+// content-derived fallback rather than a fresh randomID() that would differ per client.
+function normalizeSessionZeroEntry(entry, index) {
+  const normalized = { ...entry };
+  if (!normalized.id) normalized.id = `legacy-${index}-${normalized.timestamp ?? 0}`;
+  if (!Array.isArray(normalized.notes)) normalized.notes = [];
+  return normalized;
+}
+
+function readSessionZeroEntries(summary) {
+  const data = summary?.getFlag(CC_MODULE_ID, "data") || {};
+  return (data.entries || []).map(normalizeSessionZeroEntry);
+}
+
+// Every write below funnels through here. A GM writes straight to the journal; anyone else emits
+// the mutation to the single active GM (see the socket handler in the ready hook) rather than
+// being granted OWNER on the summary. That's not just a permissions dodge - it's the concurrency
+// fix. entries[] is one array in one flag, so two clients calling update() with their own copy is
+// last-write-wins and silently eats a note. Routing every append through one client serialises
+// them.
+async function applySessionZeroMutation(summary, mutate) {
+  const entries = readSessionZeroEntries(summary);
+  const next = mutate(entries);
+  if (!next) return false;
+  await summary.update({ "flags.campaign-codex.data.entries": next });
+  return true;
+}
+
+// Tags and attributes that survive into a stored note. Deliberately far narrower than Foundry's
+// ProseMirror schema, which legitimately permits iframes and inline styles because its trust model
+// is "a GM typed this into a journal". A note is neither: it arrives over a module socket that any
+// client can craft by hand, and it renders inside the GM's summary sheet and the exported PDF.
+const SESSION_ZERO_ALLOWED_TAGS = new Set([
+  "P", "BR", "STRONG", "B", "EM", "I", "U", "S", "CODE", "PRE", "BLOCKQUOTE",
+  "UL", "OL", "LI", "H3", "H4", "H5", "H6", "A", "SPAN", "DIV", "HR",
+]);
+const SESSION_ZERO_ALLOWED_ATTRS = new Set(["href", "title"]);
+const SESSION_ZERO_SAFE_PROTOCOL = /^(https?:|mailto:|#|\/|$)/i;
+
+// Two layers, because neither is sufficient alone.
+//
+// 1. A ProseMirror schema round-trip. Anything the schema doesn't model - <script>, event-handler
+//    attributes - doesn't survive being parsed into a document and serialised back out.
+// 2. An allowlist pass over the result, in an INERT document (DOMParser, not innerHTML, so images
+//    never load and no onerror can fire while we're cleaning). Verified against real payloads: the
+//    schema round-trip alone still preserves `<iframe src=...>`, `<a href="javascript:...">` and
+//    `style="position:fixed;inset:0;z-index:9999"` - respectively an arbitrary embed, a script URL
+//    one click away, and a full-screen overlay over the GM's sheet.
+function sanitizeSessionZeroHtml(html) {
+  const raw = typeof html === "string" ? html : "";
+  if (!raw.trim()) return "";
+
+  let schemaClean = raw;
+  try {
+    schemaClean = ProseMirror.dom.serializeString(ProseMirror.dom.parseString(raw).content);
+  } catch (err) {
+    console.warn("Wicked Campaigns | ProseMirror could not parse a Session Zero note; falling back to plain text.", err);
+    return esc(raw.replace(/<[^>]*>/g, "")).slice(0, 20000);
+  }
+
+  try {
+    const doc = new DOMParser().parseFromString(schemaClean, "text/html");
+    // Walk a static list rather than the live tree - unwrapping a node mutates the collection.
+    for (const el of Array.from(doc.body.querySelectorAll("*"))) {
+      if (!SESSION_ZERO_ALLOWED_TAGS.has(el.tagName)) {
+        // Unwrap rather than delete: a disallowed wrapper shouldn't silently swallow the words
+        // inside it. Genuinely content-free embeds end up removing themselves this way anyway.
+        el.replaceWith(...el.childNodes);
+        continue;
+      }
+      for (const attr of Array.from(el.attributes)) {
+        const name = attr.name.toLowerCase();
+        if (!SESSION_ZERO_ALLOWED_ATTRS.has(name)) el.removeAttribute(attr.name);
+        else if (name === "href" && !SESSION_ZERO_SAFE_PROTOCOL.test(attr.value.trim())) el.removeAttribute(attr.name);
+      }
+    }
+    return doc.body.innerHTML.slice(0, 20000);
+  } catch (err) {
+    console.warn("Wicked Campaigns | Failed to sanitize a Session Zero note; falling back to plain text.", err);
+    return esc(raw.replace(/<[^>]*>/g, "")).slice(0, 20000);
+  }
+}
+
+// Both the direct-write and relayed paths build their stored record here, from an explicit field
+// allowlist rather than by spreading the incoming object. Foundry's module socket carries no
+// verified sender, so a crafted payload could otherwise inject arbitrary keys into the flag - and,
+// more importantly, claim someone else's authorship. Author is always stamped from the resolved
+// User, never read from the payload.
+function buildSessionZeroEntry(raw, user) {
+  return {
+    id: foundry.utils.randomID(),
+    notes: [],
+    authorId: user.id,
+    authorName: user.name,
+    title: String(raw?.title ?? "").trim().slice(0, 200) || "(untitled)",
+    answerHtml: sanitizeSessionZeroHtml(raw?.answerHtml),
+    cardImage: typeof raw?.cardImage === "string" ? raw.cardImage : null,
+    suit: typeof raw?.suit === "string" ? raw.suit : null,
+    playerName: String(raw?.playerName ?? user.name).slice(0, 200),
+    playerImg: typeof raw?.playerImg === "string" ? raw.playerImg : null,
+    linkedPlayers: Array.isArray(raw?.linkedPlayers)
+      ? raw.linkedPlayers.slice(0, 20).map((p) => ({
+        name: String(p?.name ?? "").slice(0, 200),
+        img: typeof p?.img === "string" ? p.img : null,
+      }))
+      : [],
+    timestamp: Date.now(),
+  };
+}
+
+function buildSessionZeroNote(raw, user) {
+  return {
+    id: foundry.utils.randomID(),
+    authorId: user.id,
+    authorName: user.name,
+    authorColor: user.color?.css ?? null,
+    html: sanitizeSessionZeroHtml(raw?.html),
+    timestamp: Date.now(),
+  };
+}
+
+async function addSessionZeroEntry(summary, raw) {
+  if (summary.canUserModify(game.user, "update")) {
+    const entry = buildSessionZeroEntry(raw, game.user);
+    return applySessionZeroMutation(summary, (entries) => [...entries, entry]);
+  }
+  return requestSessionZeroWrite({ type: "sessionZeroAddEntry", summaryUuid: summary.uuid, raw });
+}
+
+async function addSessionZeroNote(summary, entryId, raw) {
+  if (summary.canUserModify(game.user, "update")) {
+    const note = buildSessionZeroNote(raw, game.user);
+    return applySessionZeroMutation(summary, (entries) => {
+      const target = entries.find((e) => e.id === entryId);
+      if (!target) return null;
+      target.notes = [...(target.notes || []), note];
+      return entries;
+    });
+  }
+  return requestSessionZeroWrite({ type: "sessionZeroAddNote", summaryUuid: summary.uuid, entryId, raw });
+}
+
+// A note can be removed by whoever wrote it, or by any GM. Same relay path as writing one - and
+// the same authorship check is re-applied GM-side, since the requesting client's claim about who
+// it is can't be trusted on its own.
+async function deleteSessionZeroNote(summary, entryId, noteId, actingUser = game.user) {
+  if (summary.canUserModify(game.user, "update")) {
+    return applySessionZeroMutation(summary, (entries) => {
+      const target = entries.find((e) => e.id === entryId);
+      if (!target) return null;
+      const note = (target.notes || []).find((n) => n.id === noteId);
+      if (!note) return null;
+      if (!actingUser.isGM && note.authorId !== actingUser.id) return null;
+      target.notes = (target.notes || []).filter((n) => n.id !== noteId);
+      return entries;
+    });
+  }
+  return requestSessionZeroWrite({ type: "sessionZeroDeleteNote", summaryUuid: summary.uuid, entryId, noteId });
+}
+
+function requestSessionZeroWrite(payload) {
+  if (!game.users.activeGM) {
+    ui.notifications.warn("No GM is connected - your note can't be saved to the session record right now.");
+    return false;
+  }
+  game.socket.emit(CARD_IMAGE_SHARE_CHANNEL, { ...payload, requestedBy: game.user.id });
+  return true;
+}
+
+// GM-side half of the relay. Gated to game.users.activeGM so exactly one GM applies a mutation
+// even when several are connected, and the requesting user is resolved against the real user list
+// before anything is written - an unknown or inactive id is dropped rather than trusted.
+async function handleSessionZeroWriteRequest(payload) {
+  if (game.user !== game.users.activeGM) return;
+  const user = game.users.get(payload?.requestedBy);
+  if (!user) return;
+
+  const summary = await fromUuid(payload.summaryUuid).catch(() => null);
+  if (!summary) return;
+
+  switch (payload.type) {
+    case "sessionZeroAddEntry": {
+      const entry = buildSessionZeroEntry(payload.raw, user);
+      await applySessionZeroMutation(summary, (entries) => [...entries, entry]);
+      // Threshold checks have to run here rather than on the requesting client: that client wrote
+      // nothing locally, so its own copy of entries[] is a render behind at this point.
+      const deck = game.cards.find((c) => c.getFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG) === summary.uuid);
+      await checkSessionZeroThresholds(summary, deck);
+      break;
+    }
+    case "sessionZeroAddNote": {
+      const note = buildSessionZeroNote(payload.raw, user);
+      await applySessionZeroMutation(summary, (entries) => {
+        const target = entries.find((e) => e.id === payload.entryId);
+        if (!target) return null;
+        target.notes = [...(target.notes || []), note];
+        return entries;
+      });
+      break;
+    }
+    case "sessionZeroDeleteNote":
+      await deleteSessionZeroNote(summary, payload.entryId, payload.noteId, user);
+      break;
+  }
 }
 
 // ---- Wizard Class --------------------------------------------------------
@@ -5660,10 +5915,6 @@ Hooks.once('ready', async function() {
             console.error("Wicked Campaigns | Failed to pre-create the active Party codex entry.", err);
         }
 
-        if (isCCMActive()) {
-            Hooks.on("renderCardHud", onRenderCardHud);
-        }
-
         if (isCampaignCodexActive() && !game.settings.get("cv-wicked-campaigns", "appliedDefaultCCTheme")) {
             try {
                 await applyDefaultCampaignCodexTheme();
@@ -5743,16 +5994,40 @@ Hooks.once('ready', async function() {
         }
     }
 
-    // Registered for every client, not just the GM - the whole point is that players receive the
-    // broadcast and open OUR viewer on their own screen, even though only the GM ever sees the
-    // "Show Players" control that triggers it (that button is on our GM-only CardHud UI above).
     if (isCCMActive()) {
+        // Every client, not just the GM. Players reach this HUD at OBSERVER thanks to the
+        // _canHUD widening in setup; onRenderCardHud decides per button who sees what, and strips
+        // CCM's own write controls for anyone who can't use them.
+        Hooks.on("renderCardHud", onRenderCardHud);
+
+        // Registered for every client - the whole point is that players receive the broadcast and
+        // open OUR viewer on their own screen, even though only the GM ever sees the "Show
+        // Players" control that triggers it.
         game.socket.on(CARD_IMAGE_SHARE_CHANNEL, (payload) => {
             if (payload?.type === "shareCardImage") {
                 CardImageViewerApp.open(payload.src, payload.title);
             }
         });
+
+        // Reopen this client's tracker across a reload/reconnect if a game is still running. The
+        // GM's own tracker is restored by startSessionZeroGame's caller; this covers everyone
+        // else, and is harmless for a GM whose tracker is already open (openForCurrentUser
+        // re-renders rather than duplicating).
+        if (!game.user.isGM) TurnOrderReassignApp.openForCurrentUser();
     }
+
+    // GM half of the Session Zero write relay: players hold OBSERVER on the summary journal, so
+    // their notes arrive here to be validated, attributed and written by the one active GM. Kept
+    // separate from the socket handler above so a malformed note request can't take down card
+    // image sharing.
+    game.socket.on(CARD_IMAGE_SHARE_CHANNEL, async (payload) => {
+        if (!String(payload?.type ?? "").startsWith("sessionZero")) return;
+        try {
+            await handleSessionZeroWriteRequest(payload);
+        } catch (err) {
+            console.error("Wicked Campaigns | Failed to apply a relayed Session Zero write.", err);
+        }
+    });
 
     // Live provisioning: when a player saves a backstory but can't create or own its Campaign
     // Codex entry, they emit a request (see requestGmCampaignCodexProvision) that the single active
@@ -7933,6 +8208,53 @@ function findActiveSessionZeroForDeck(deck) {
   return uuid ? fromUuidSync(uuid) : null;
 }
 
+// Core's PlaceableObject#_canHUD is `layer.active && this.isOwner` - i.e. ownership level 3 on the
+// parent Cards stack, since a Card has no ownership of its own and getUserLevel() delegates to its
+// parent. We deliberately give players only OBSERVER on the deck (see grantSessionZeroDeckAccess):
+// OBSERVER lets them see and resolve the cards but fails canUserModify("update"), which is what
+// _canControl/_canConfigure/_canDrag all test - so they can't drag, re-sort, flip or delete
+// anything on the table. That would also lock them out of the right-click HUD entirely, which is
+// the only route to View Card Image and the relationship d8, so we widen exactly this one
+// permission and nothing else. Safe because _onClickRight calls this.control() first (which still
+// fails for a non-owner) and then binds the HUD regardless of that result.
+function patchCardObjectHudPermission() {
+  const CardObject = CONFIG.Card?.objectClass;
+  if (!CardObject?.prototype || CardObject.prototype._cvWickedHudPatched) return;
+  const original = CardObject.prototype._canHUD;
+  CardObject.prototype._canHUD = function (user, event) {
+    if (original?.call(this, user, event)) return true;
+    return (this.layer?.active === true) && !!this.document?.testUserPermission?.(user, "OBSERVER");
+  };
+  CardObject.prototype._cvWickedHudPatched = true;
+}
+
+// Raises a Cards stack's *default* ownership to at least OBSERVER, never lowering an existing
+// grant and never touching per-user entries. OBSERVER is the deliberate ceiling: it's enough for a
+// player's client to receive the stack, resolve its cards, read names/images and see live suit
+// counts, but not enough to modify anything. GM-only (an ownership write is itself an OWNER-level
+// operation) and idempotent, so calling it on every Start is free.
+async function raiseCardsStackToObserver(stack) {
+  if (!stack || !game.user.isGM) return false;
+  const current = stack.ownership?.default ?? CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+  if (current >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER) return false;
+  await stack.update({ "ownership.default": CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER });
+  return true;
+}
+
+// The packed deck ships at OBSERVER, but decks imported into a world before that change (and the
+// scene's discard pile, which a dealt card's parent becomes once it's passed) are still at NONE -
+// so bring both up at Start rather than relying on a one-shot world migration that a re-import
+// would silently undo.
+async function grantSessionZeroDeckAccess(deck) {
+  const raised = [];
+  if (await raiseCardsStackToObserver(deck)) raised.push(deck.name);
+  const pile = findDiscardPileForScene();
+  if (pile && await raiseCardsStackToObserver(pile)) raised.push(pile.name);
+  if (raised.length) {
+    console.log(`Wicked Campaigns | Raised player access to Observer on: ${raised.join(", ")}.`);
+  }
+}
+
 // A dealt Card's own `origin` field tracks the deck it was drawn from regardless of which
 // hand/pile currently holds it - that's "which deck does this card belong to" for our purposes,
 // not its current parent. Falls back to the current parent only if that parent is itself still a
@@ -7974,13 +8296,23 @@ class TurnOrderReassignApp extends turnOrderReassignBase {
   };
 
   async _prepareContext(options) {
-    const combatants = this.order.map((id) => this.combat.combatants.get(id)).filter(Boolean);
-    const data = this.summary?.getFlag(CC_MODULE_ID, "data") || {};
-    const entries = data.entries || [];
+    // Players get a live read-only mirror of the GM's tracker. This is the direct answer to the
+    // playtest's clearest communication failure: a player couldn't say whether four cards was
+    // enough because nothing on screen ever told him what the categories were or how many were
+    // left. The counts already existed - they were just GM-only.
+    const isGM = game.user.isGM;
+
+    // The GM's copy holds a working drag order; a player's should always reflect live initiative
+    // rather than a stale snapshot, since they can't reorder anything anyway.
+    const ids = isGM ? this.order : this.combat.turns.map((c) => c.id);
+    const combatants = ids.map((id) => this.combat.combatants.get(id)).filter(Boolean);
+    const entries = readSessionZeroEntries(this.summary);
     const limits = this.summary?.getFlag("cv-wicked-campaigns", "sessionZeroLimits") || {};
     const countSuit = (suit) => entries.filter((e) => e.suit?.toLowerCase() === suit).length;
 
     return {
+      isGM,
+      summaryName: this.summary?.name ?? null,
       combatants: combatants.map((c) => {
         const isPC = c.actor?.type === "character";
         const name = c.actor?.name ?? c.name;
@@ -8009,6 +8341,7 @@ class TurnOrderReassignApp extends turnOrderReassignBase {
 
   async _onRender(context, options) {
     await super._onRender(context, options);
+    if (!game.user.isGM) return; // Read-only mirror: nothing to drag.
     let dragId = null;
     this.element.querySelectorAll(".turn-order-list li[data-combatant-id]").forEach((li) => {
       li.addEventListener("dragstart", (event) => {
@@ -8064,7 +8397,79 @@ class TurnOrderReassignApp extends turnOrderReassignBase {
   static open(combat, summary, deck) {
     new TurnOrderReassignApp(combat, summary, deck).render(true);
   }
+
+  /**
+   * Find the running game from scratch and open (or refresh) this client's tracker for it. Used by
+   * every non-GM path - game start, page reload, reconnect - since a player has no equivalent of
+   * the GM's startSessionZeroGame() to hand it the three documents directly.
+   * @returns {?TurnOrderReassignApp}
+   */
+  static openForCurrentUser() {
+    if (!game.settings.get("cv-wicked-campaigns", "sessionZeroEnabled")) return null;
+    const deck = game.cards?.find((c) => c.getFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG));
+    if (!deck) return null;
+    const summary = findActiveSessionZeroForDeck(deck);
+    // A player who genuinely can't see the summary (a GM narrowed its ownership) gets nothing
+    // rather than an empty shell with every counter blank.
+    if (!summary) return null;
+    const combat = game.combats.find((c) => c.scene?.id === canvas.scene?.id) ?? game.combat;
+    if (!combat) return null;
+
+    const existing = foundry.applications.instances.get("turn-order-reassign");
+    if (existing) {
+      existing.render(false);
+      return existing;
+    }
+    const app = new TurnOrderReassignApp(combat, summary, deck);
+    app.render(true);
+    return app;
+  }
+
+  /** Close this client's tracker, whoever opened it. */
+  static closeForCurrentUser() {
+    return foundry.applications.instances.get("turn-order-reassign")?.close();
+  }
+
+  /**
+   * Re-render the open tracker in place if there is one. The counters are derived from the summary
+   * journal and the combat, both of which change from *other* clients - without this the shared
+   * player copy would freeze at whatever it showed when it opened.
+   */
+  static refresh() {
+    const app = foundry.applications.instances.get("turn-order-reassign");
+    if (!app?.rendered) return;
+    const { top, left } = app.position;
+    app.render(false).then(() => {
+      if (Number.isFinite(top) && Number.isFinite(left)) app.setPosition({ top, left });
+    });
+  }
 }
+
+// Keep every open tracker (GM's and players') current. The suit counters live on the summary
+// journal and the turn pointer lives on the combat, so both are edited by a client other than the
+// one watching. Cheap: refresh() no-ops unless a tracker is actually open.
+Hooks.on("updateJournalEntry", (journal) => {
+  if (journal.getFlag(CC_MODULE_ID, "type") === CC_SESSION_ZERO_TYPE) TurnOrderReassignApp.refresh();
+});
+Hooks.on("updateCombat", () => TurnOrderReassignApp.refresh());
+Hooks.on("updateCombatant", () => TurnOrderReassignApp.refresh());
+
+// A player has no hook into the GM's Start/End, so watch the deck flag those write instead - it's
+// the single source of truth for "is a game running", and updateCards reaches every client.
+Hooks.on("updateCards", (cards, changes) => {
+  if (game.user.isGM) return;
+  // Read the touched keys rather than probing a path: unsetFlag serialises as the literal key
+  // "-=activeSessionZeroUuid", which a dotted getProperty lookup wouldn't reliably find. Scoping
+  // to "did this update touch our flag at all" also stops every ordinary deal/shuffle on an
+  // unrelated deck from closing the tracker.
+  const flags = foundry.utils.getProperty(changes, "flags.cv-wicked-campaigns");
+  if (!flags) return;
+  const touched = Object.keys(flags).some((k) => k === CCM_ACTIVE_SESSION_FLAG || k === `-=${CCM_ACTIVE_SESSION_FLAG}`);
+  if (!touched) return;
+
+  if (cards.getFlag("cv-wicked-campaigns", CCM_ACTIVE_SESSION_FLAG)) TurnOrderReassignApp.openForCurrentUser();
+  else TurnOrderReassignApp.closeForCurrentUser();
+});
 
 // The scene's own "canvas pile" flag (set by Complete Card Management itself when a GM configures
 // a discard pile for the scene) is the only reliable way to find "the" discard pile for a deck -
@@ -8243,11 +8648,11 @@ async function promptSessionZeroLimits() {
       </div>
       <div class="form-group">
         <label>Max Moons cards</label>
-        <input type="number" name="moonsMax" value="3" min="3">
+        <input type="number" name="moonsMax" value="4" min="3">
       </div>
       <div class="form-group">
         <label>Max Mobius cards</label>
-        <input type="number" name="mobiusMax" value="3" min="3">
+        <input type="number" name="mobiusMax" value="4" min="3">
       </div>
       <div class="form-group">
         <label>Max Rose cards per player</label>
@@ -8266,8 +8671,8 @@ async function promptSessionZeroLimits() {
         callback: (event, button) => ({
           villainMax: parseInt(button.form.elements.villainMax.value, 10) || 2,
           arcanaPerPlayerMax: parseInt(button.form.elements.arcanaPerPlayerMax.value, 10) || 1,
-          moonsMax: parseInt(button.form.elements.moonsMax.value, 10) || 3,
-          mobiusMax: parseInt(button.form.elements.mobiusMax.value, 10) || 3,
+          moonsMax: parseInt(button.form.elements.moonsMax.value, 10) || 4,
+          mobiusMax: parseInt(button.form.elements.mobiusMax.value, 10) || 4,
           rosesPerPlayerMax: parseInt(button.form.elements.rosesPerPlayerMax.value, 10) || 2,
         }),
       },
@@ -8325,6 +8730,12 @@ async function startSessionZeroGame(deck) {
 
   const limits = await promptSessionZeroLimits();
   if (!limits) return;
+
+  // Players need OBSERVER on the deck (and on the pile a dealt card moves into) before any of
+  // their card-layer UI works - see grantSessionZeroDeckAccess. Done here rather than as a world
+  // migration so it also covers decks imported before this shipped, and so a re-import can't
+  // silently undo it.
+  await grantSessionZeroDeckAccess(deck);
 
   let combat = game.combats.find((c) => c.scene?.id === canvas.scene.id);
   if (!combat) combat = await Combat.create({ scene: canvas.scene.id, active: true });
@@ -8632,6 +9043,15 @@ class CardImageViewerApp extends cardImageViewerBase {
 
 // Common raster/video extensions ImagePopout might be asked to show that our viewer can't
 // (video) or that aren't really "an image" in the sense our viewer cares about.
+// "setup" rather than "init": CCM assigns CONFIG.Card.objectClass during its own init hook, so the
+// class doesn't exist yet at ours. Patching the prototype is safe at any point - it applies to
+// placeables already drawn as well as future ones. Deliberately not routed through lib-wrapper,
+// which is only a *recommended* dependency here; this has to work in worlds without it.
+Hooks.once("setup", () => {
+  if (!isCCMActive()) return;
+  patchCardObjectHudPermission();
+});
+
 const IMAGE_VIEWER_UNSUPPORTED_EXT = /\.(webm|mp4|m4v|ogv)$/i;
 
 // Mirrors Gambit's own approach: intercept every place Foundry would open the native
@@ -8699,10 +9119,22 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
     this.card = card;
     this.summary = summary;
     this.combatant = combatant;
+    // Note mode: appending to an existing recorded answer rather than creating one. Reuses this
+    // whole app (dictation, ProseMirror, styling) with the Title/Involves fields hidden, instead
+    // of standing up a near-duplicate second dialog.
+    this.noteEntry = options.noteEntry ?? null;
+  }
+
+  get isNote() {
+    return !!this.noteEntry;
   }
 
   static DEFAULT_OPTIONS = {
-    id: "session-zero-answer",
+    // "{id}" resolves to a per-instance counter (ApplicationV2#_initializeApplicationOptions), so
+    // this is no longer a singleton. A fixed id was fine when only the GM ever had one of these
+    // open; now that anyone can add a note, opening one for entry B while entry A's is still open
+    // would otherwise silently reuse and re-render the first window.
+    id: "session-zero-answer-{id}",
     classes: ["wicked-campaigns", "session-zero-answer-dialog"],
     window: { title: "Record Answer", icon: "fa-solid fa-clipboard-question" },
     position: { width: 640, height: "auto" },
@@ -8717,7 +9149,28 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
     main: { template: "modules/cv-wicked-campaigns/templates/session-zero-answer.hbs" },
   };
 
+  get title() {
+    return this.isNote ? `Add Note - ${this.noteEntry.title}` : "Record Answer";
+  }
+
   async _prepareContext(options) {
+    const speechSupported = Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    // Note mode has no combatant to speak for and no roster to tag - a note is signed by the
+    // Foundry user who wrote it, not by whoever's turn it happens to be.
+    if (this.isNote) {
+      return {
+        isNote: true,
+        cardImage: this.noteEntry.cardImage,
+        cardName: this.noteEntry.title,
+        playerName: game.user.name,
+        playerImg: game.user.avatar,
+        answeredBy: this.noteEntry.playerName,
+        hasOtherPlayers: false,
+        speechSupported,
+      };
+    }
+
     // Same "every other PC in the combat" filter rollForOtherPlayers uses for its relationship
     // d8 check - reused here so tagging who a card is about draws from the same live roster.
     const combat = this.combatant.parent;
@@ -8726,13 +9179,14 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
       .map((c) => ({ id: c.id, name: c.actor?.name ?? c.name, img: c.actor?.img ?? c.img }));
 
     return {
+      isNote: false,
       cardImage: this.card.img,
       cardName: this.card.name,
       playerName: this.combatant.actor?.name ?? this.combatant.name,
       playerImg: this.combatant.actor?.img ?? this.combatant.img,
       otherPlayers,
       hasOtherPlayers: otherPlayers.length > 0,
-      speechSupported: Boolean(window.SpeechRecognition || window.webkitSpeechRecognition),
+      speechSupported,
     };
   }
 
@@ -8844,6 +9298,19 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
 
   static async #onSubmit(event, target) {
     const form = target.form;
+
+    if (this.isNote) {
+      const html = form.elements.answerHtml.value;
+      if (!html?.trim()) {
+        ui.notifications.warn("Write something before adding the note.");
+        return;
+      }
+      await addSessionZeroNote(this.summary, this.noteEntry.id, { html });
+      ui.notifications.info(`Note added to "${this.noteEntry.title}".`);
+      this.close();
+      return;
+    }
+
     const title = form.elements.title.value.trim();
     if (!title) {
       ui.notifications.warn("Give the entry a title before recording it.");
@@ -8855,6 +9322,10 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
       img: el.dataset.img,
     }));
 
+    // Capture this before the write: when the write is relayed, the GM's client runs the threshold
+    // check instead (it's the only one whose entries[] is current), so we must not double-run it.
+    const wroteDirectly = this.summary.canUserModify(game.user, "update");
+
     await addSessionZeroEntry(this.summary, {
       title,
       answerHtml: form.elements.answerHtml.value,
@@ -8863,10 +9334,9 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
       playerName: this.combatant.actor?.name ?? this.combatant.name,
       playerImg: this.combatant.actor?.img ?? this.combatant.img,
       linkedPlayers,
-      timestamp: Date.now(),
     });
     ui.notifications.info(`Recorded "${title}" in "${this.summary.name}".`);
-    await checkSessionZeroThresholds(this.summary, findOriginDeckForCard(this.card));
+    if (wroteDirectly) await checkSessionZeroThresholds(this.summary, findOriginDeckForCard(this.card));
     this.close();
   }
 
@@ -8874,9 +9344,9 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
     this.close();
   }
 
-  // The only entry point - always resolves the current combatant itself rather than trusting a
-  // stale one handed in from elsewhere, and blocks with a warning instead of opening the dialog
-  // at all if there's nobody whose turn it currently is.
+  // Always resolves the current combatant itself rather than trusting a stale one handed in from
+  // elsewhere, and blocks with a warning instead of opening the dialog at all if there's nobody
+  // whose turn it currently is.
   static async open(card, summary) {
     const combatant = game.combat?.combatant;
     if (!combatant) {
@@ -8885,12 +9355,27 @@ class SessionZeroAnswerApp extends sessionZeroAnswerBase {
     }
     new SessionZeroAnswerApp(card, summary, combatant).render(true);
   }
+
+  // Note mode entry point, opened from the summary sheet rather than from a card on the canvas -
+  // so it deliberately does NOT require an active combat or that it be your turn. Anyone who can
+  // read the summary can react to any recorded answer, at any point.
+  static openNote(summary, entry) {
+    new SessionZeroAnswerApp(null, summary, null, { noteEntry: entry }).render(true);
+  }
 }
 
 // Rolls 1d8 for every PC combatant except whoever's turn it currently is (e.g. a "how do the rest
-// of the table feel about this" check while one player answers a card). Results go to a dialog
-// instead of the chat log, per spec, since this is meant for a quick private GM read rather than a
-// permanent table record.
+// of the table feel about this" check while one player answers a card).
+//
+// Posts a real chat card rather than the dialog this used to show. Playtested 2026-08-06: a player
+// clicked through, saw nothing happen, assumed it was broken, and only found the numbers buried in
+// the dialog's own results pane. A roll that doesn't behave like every other roll in Foundry reads
+// as a glitch.
+//
+// One pooled Roll (`{1d8, 1d8, ...}`) rather than N separate ones, for two reasons: it's a single
+// chat message, and Dice So Nice animates a message's rolls array *sequentially* - so N separate
+// rolls would queue up N separate throws while the table waits. A pool throws every die together
+// in one animation. The pool's terms map positionally back to the combatant list.
 async function rollForOtherPlayers(combat) {
   if (!combat) {
     ui.notifications.warn("There is no active combat encounter.");
@@ -8923,45 +9408,62 @@ async function rollForOtherPlayers(combat) {
   }).catch(() => "cancel");
   if (confirmed !== "roll") return;
 
-  const results = await Promise.all(pcCombatants.map(async (c) => {
-    const roll = await new Roll("1d8").evaluate();
-    return { name: c.actor.name, total: roll.total };
-  }));
-  results.sort((a, b) => b.total - a.total);
+  const roll = await new Roll(`{${pcCombatants.map(() => "1d8").join(", ")}}`).evaluate();
+
+  // PoolTerm#rolls preserves construction order, so index i is combatant i. Read the results off
+  // the pool rather than re-rolling, so the chat table and the 3D dice can never disagree.
+  const results = pcCombatants.map((c, i) => ({
+    name: c.actor?.name ?? c.name,
+    img: c.actor?.img ?? c.img,
+    total: roll.terms[0]?.rolls?.[i]?.total ?? null,
+  })).sort((a, b) => (b.total ?? 0) - (a.total ?? 0));
 
   const resultsContent = `
-    <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 5px;">
-      <thead>
-        <tr style="border-bottom: 2px solid var(--color-border-dark);">
-          <th style="padding-bottom: 5px;">Character</th>
-          <th style="text-align: right; padding-bottom: 5px;">Result</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${results.map((r) => `
-          <tr style="border-bottom: 1px solid var(--color-border-light);">
-            <td style="padding: 3px 0;"><b>${esc(r.name)}</b></td>
-            <td style="text-align: right; font-weight: bold; font-size: 1.2em; padding: 3px 0;">${r.total}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
+    <div class="wicked-relationship-d8">
+      <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 5px;">
+        <tbody>
+          ${results.map((r) => `
+            <tr style="border-bottom: 1px solid var(--color-border-light);">
+              <td style="padding: 3px 0; display: flex; align-items: center; gap: 0.4rem;">
+                ${r.img ? `<img src="${esc(r.img)}" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: none;">` : ""}
+                <b>${esc(r.name)}</b>
+              </td>
+              <td style="text-align: right; font-weight: bold; font-size: 1.2em; padding: 3px 0;">${r.total ?? "-"}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
   `;
-  await foundry.applications.api.DialogV2.wait({
-    window: { title: "Roll Results", icon: "fas fa-dice-d8" },
+
+  // `rolls` is what makes this a real roll message: it's what Dice So Nice reads to decide there
+  // are dice to throw, and what makes the message re-rollable/inspectable like any other.
+  await ChatMessage.create({
+    speaker: { alias: "Relationship d8 Check" },
+    flavor: "How does the rest of the table feel?",
     content: resultsContent,
-    buttons: [{ action: "close", label: "Close", icon: "fas fa-check", default: true, callback: () => null }],
-    rejectClose: false,
-  }).catch(() => null);
+    rolls: [roll],
+    sound: CONFIG.sounds.dice,
+  });
 }
 
 // Cards with a numeric `value` go to the top of the deck in ascending order (lowest sort = drawn
 // first, per core Cards#_drawCards's TOP/FIRST mode); everything else is randomized the same way
 // core's own shuffle() does and placed after. Independent of Session Zero state - this is deck
 // prep, not part of the recording flow, so it's always available on any deck.
-// Three tiers, top to bottom: "theme" suit cards sorted ascending by value, then "major arcana"
-// suit cards shuffled among themselves, then everything else shuffled normally. Suit match is
-// case-insensitive since it's free text on the card, not an enum.
+//
+// Four tiers, top to bottom (= draw order):
+//   1. "theme"        - sorted ascending by value, the fixed opener that sets the table
+//   2. "skulls"       - shuffled; villains get established early so later cards can lean on them
+//   3. everything else - moons/mobius/roses, shuffled together
+//   4. "major arcana" - shuffled, at the BOTTOM so it is drawn last
+//
+// Major Arcana is deliberately the closer. Playtest 2026-08-06: it was the first thing a player
+// saw, and it is by design the most open-ended card in the deck - which is the worst possible
+// opener. Asking it last means the fiction is already established and players have learned the
+// deck's "meter", so that open-endedness is affordable by the time they hit it.
+//
+// Suit match is case-insensitive since suit is free text on the card, not an enum.
 function shuffleGroup(group) {
   return group
     .map((c) => [foundry.dice.MersenneTwister.random(), c])
@@ -8979,7 +9481,7 @@ async function resetDeck(deck) {
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: "Reset Deck?", icon: "fas fa-rotate-left" },
     content: `
-      <p>This will recall every dealt card in "${esc(deck.name)}" back into the deck (including anything in hands or piles) and re-sort it: theme cards on top in order, then major arcana and skulls shuffled, then everything else shuffled.</p>
+      <p>This will recall every dealt card in "${esc(deck.name)}" back into the deck (including anything in hands or piles) and re-sort it: theme cards on top in order, then skulls shuffled, then everything else shuffled, with the major arcana shuffled at the bottom so they are drawn last.</p>
       <p style="color: var(--color-text-dark-warning); font-size: 0.9em; margin-top: 5px;">
         <b>Warning:</b> This will also completely clear the chat log for all players${activeSummary ? " and end the active Session Zero game on this deck" : ""}.
       </p>
@@ -9000,11 +9502,12 @@ async function resetDeck(deck) {
   const theme = cards
     .filter((c) => c.suit?.toLowerCase() === "theme")
     .sort((a, b) => (a.value ?? 0) - (b.value ?? 0));
-  const majorArcana = shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "major arcana"));
   const skulls = shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "skulls"));
   const rest = shuffleGroup(cards.filter((c) => !["theme", "major arcana", "skulls"].includes(c.suit?.toLowerCase())));
+  const majorArcana = shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "major arcana"));
 
-  const updates = [...theme, ...majorArcana, ...skulls, ...rest].map((c, index) => ({ _id: c.id, sort: index }));
+  // Major Arcana last - see the tier comment above shuffleGroup.
+  const updates = [...theme, ...skulls, ...rest, ...majorArcana].map((c, index) => ({ _id: c.id, sort: index }));
   await deck.updateEmbeddedDocuments("Card", updates);
   await ChatMessage.deleteDocuments([], { deleteAll: true });
   ui.notifications.info(`"${deck.name}" has been reset and the chat log cleared.${activeSummary ? ` The Session Zero game has ended; "${activeSummary.name}" is preserved for reading back.` : ""}`);
@@ -9015,14 +9518,25 @@ async function resetDeck(deck) {
 // effects. CardHud is a normal ApplicationV2/HandlebarsApplicationMixin app, so Foundry fires a
 // "renderCardHud" hook automatically; nothing here touches CCM's own code.
 function onRenderCardHud(hud, html) {
-  if (!game.user.isGM) return;
   const root = html instanceof HTMLElement ? html : html?.[0];
   const middle = root?.querySelector(".col.middle");
   if (!middle) return;
 
   const card = hud.card;
+  const isGM = game.user.isGM;
+
+  // Players reach this HUD at OBSERVER (see patchCardObjectHudPermission), which is below what
+  // every one of CCM's own controls needs - elevation, sort, rotate, visibility, lock, shuffle and
+  // flip are all writes. None of them are permission-gated in CCM's template, so left alone a
+  // player would see a full HUD where every button fails with a permission error. Strip the two
+  // side columns and leave them the middle one, which is ours.
+  if (!card.canUserModify(game.user, "update")) {
+    root.querySelector(".col.left")?.remove();
+    root.querySelector(".col.right")?.remove();
+  }
 
   if (card instanceof Cards && card.type === "deck") {
+    if (!isGM) return; // Deck-level controls are all destructive or GM-facing.
     // Independent of Session Zero entirely - a general deck utility, not gated behind that
     // setting the way Start/End/Reset below are.
     const discardSuitButton = document.createElement("button");
@@ -9052,7 +9566,7 @@ function onRenderCardHud(hud, html) {
       const resetButton = document.createElement("button");
       resetButton.type = "button";
       resetButton.className = "control-icon";
-      resetButton.dataset.tooltip = "Reset Deck (recall all cards, then theme on top, major arcana/skulls shuffled next, rest shuffled)";
+      resetButton.dataset.tooltip = "Reset Deck (recall all cards, then theme on top, skulls shuffled, rest shuffled, major arcana last)";
       resetButton.innerHTML = `<i class="fa-solid fa-rotate-left"></i>`;
       resetButton.addEventListener("click", () => resetDeck(card));
       middle.appendChild(resetButton);
@@ -9075,13 +9589,29 @@ function onRenderCardHud(hud, html) {
     const summary = findActiveSessionZeroForDeck(findOriginDeckForCard(card));
     if (!summary) return; // No active Session Zero game on this card's deck - no further buttons.
 
-    const recordButton = document.createElement("button");
-    recordButton.type = "button";
-    recordButton.className = "control-icon";
-    recordButton.dataset.tooltip = "Record Answer";
-    recordButton.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
-    recordButton.addEventListener("click", () => SessionZeroAnswerApp.open(card, summary));
-    middle.appendChild(recordButton);
+    // Recording the headline answer for a card stays with the GM: it's the one write that sets a
+    // card's suit against a tier limit and can trip the discard/end-of-session prompts. Players
+    // contribute through threaded notes on the summary sheet instead, which is unlimited and
+    // doesn't move any counter.
+    if (isGM) {
+      const recordButton = document.createElement("button");
+      recordButton.type = "button";
+      recordButton.className = "control-icon";
+      recordButton.dataset.tooltip = "Record Answer";
+      recordButton.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
+      recordButton.addEventListener("click", () => SessionZeroAnswerApp.open(card, summary));
+      middle.appendChild(recordButton);
+    }
+
+    // Opens the shared summary so a player can read the record and add their own note to any
+    // answer - the player-side counterpart to the GM's Record button.
+    const notesButton = document.createElement("button");
+    notesButton.type = "button";
+    notesButton.className = "control-icon";
+    notesButton.dataset.tooltip = "Open Session Notes";
+    notesButton.innerHTML = `<i class="fa-solid fa-comments"></i>`;
+    notesButton.addEventListener("click", () => summary.sheet.render(true));
+    middle.appendChild(notesButton);
 
     const rollButton = document.createElement("button");
     rollButton.type = "button";

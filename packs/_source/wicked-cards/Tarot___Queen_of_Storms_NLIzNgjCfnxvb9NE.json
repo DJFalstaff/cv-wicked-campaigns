@@ -3178,7 +3178,7 @@
       "faces": [
         {
           "name": "",
-          "img": "modules/cv-wicked-campaigns/images/qos/75qosleftbehind.webp",
+          "img": "modules/cv-wicked-campaigns/images/qos/75-keeping-your-distance.webp",
           "text": ""
         }
       ],
@@ -3305,8 +3305,7 @@
   "displayCount": false,
   "folder": "8nVQnsehUNkCrvf9",
   "ownership": {
-    "default": 0,
-    "fMn2Y9q9aMPbOfJL": 3
+    "default": 2
   },
   "flags": {
     "complete-card-management": {

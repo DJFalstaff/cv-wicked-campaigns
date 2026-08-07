@@ -5,12 +5,22 @@
             {{#if playerImg}}<img src="{{playerImg}}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">{{/if}}
             <span>{{playerName}}</span>
         </div>
+        {{#if isNote}}
+        <div style="margin-top: 0.4rem; font-size: 0.72rem; color: #888;">
+            Answering: <b style="color: #a89a82;">{{answeredBy}}</b>
+        </div>
+        {{/if}}
     </div>
     <div style="flex: 1; display: flex; flex-direction: column; gap: 0.6rem; min-width: 0;">
+        {{#if isNote}}
+        {{!-- A note has no title and tags nobody: it hangs off an answer that already carries both. --}}
+        <h4 style="margin: 0; font-family: 'Cinzel', Georgia, serif; color: #c9a054; font-size: 1rem;">{{cardName}}</h4>
+        {{else}}
         <div class="form-group">
             <label>Title</label>
             <input type="text" name="title" value="{{cardName}}" autofocus>
         </div>
+        {{/if}}
         {{#if hasOtherPlayers}}
         <div class="form-group">
             <label>Involves</label>
@@ -26,7 +36,7 @@
         </div>
         {{/if}}
         <div style="display: flex; align-items: center; justify-content: space-between;">
-            <label>Answer</label>
+            <label>{{#if isNote}}Your note{{else}}Answer{{/if}}</label>
             {{#if speechSupported}}
             <button type="button" data-action="mic" class="qbw-mic" data-tooltip="Dictate (voice to text)" aria-label="Dictate (voice to text)">
                 <i class="fa-solid fa-microphone"></i>
@@ -37,7 +47,7 @@
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" data-action="cancel" class="qbw-btn">Cancel</button>
             <button type="button" data-action="submit" class="qbw-btn qbw-primary">
-                <i class="fa-solid fa-check"></i> Record
+                {{#if isNote}}<i class="fa-solid fa-comment-medical"></i> Add Note{{else}}<i class="fa-solid fa-check"></i> Record{{/if}}
             </button>
         </div>
     </div>

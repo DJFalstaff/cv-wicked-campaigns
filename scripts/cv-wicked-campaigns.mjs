@@ -3091,6 +3091,7 @@ class SessionZeroSheet extends sessionZeroSheetBase {
       "add-note": SessionZeroSheet.#onAddNote,
       "delete-note": SessionZeroSheet.#onDeleteNote,
       share: SessionZeroSheet.#onShare,
+      "delete-entry": SessionZeroSheet.#onDeleteEntry,
     },
   };
 
@@ -3162,8 +3163,12 @@ class SessionZeroSheet extends sessionZeroSheetBase {
    */
   _toggleDisabled(disabled) {
     super._toggleDisabled(disabled);
-    const selector = '[data-action="add-note"], [data-action="delete-note"], [data-action="export-pdf"], [data-action="view-card-image"]';
+    const selector = '[data-action="add-note"], [data-action="delete-note"], [data-action="delete-entry"], [data-action="export-pdf"], [data-action="view-card-image"]';
     for (const element of this.element.querySelectorAll(selector)) element.disabled = false;
+  }
+
+  static async #onDeleteEntry(event, target) {
+    await deleteSessionZeroEntry(this.document, target.dataset.entryId);
   }
 
   static async #onAddNote(event, target) {
@@ -3410,6 +3415,73 @@ async function addSessionZeroNote(summary, entryId, raw) {
     });
   }
   return requestSessionZeroWrite({ type: "sessionZeroAddNote", summaryUuid: summary.uuid, entryId, raw });
+}
+
+// Remove a recorded answer outright. Recording is GM-only, so removing is too - no relay needed.
+//
+// The awkward part is the tier bookkeeping. Each tier fires its "discard the rest?" prompt exactly
+// once, tracked in sessionZeroDiscardPrompted, and the check that fires it counts entries. Delete
+// an entry that pushed a tier over its limit and the count drops back under, but the flag still
+// says "already asked" - so that tier's auto-thinning is permanently dead for the rest of the
+// game, and (because sessionComplete is derived from all the tier flags) the end-of-session nudge
+// can fire early too. So any tier that is no longer at its limit gets its flag cleared, and
+// sessionComplete is always cleared, letting checkSessionZeroThresholds re-derive from scratch.
+async function deleteSessionZeroEntry(summary, entryId) {
+  if (!game.user.isGM) return false;
+
+  const entries = readSessionZeroEntries(summary);
+  const target = entries.find((e) => e.id === entryId);
+  if (!target) return false;
+
+  const noteCount = (target.notes || []).length;
+  const authors = [...new Set((target.notes || []).map((n) => n.authorName).filter(Boolean))];
+
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: "Remove Recorded Answer", icon: "fa-solid fa-trash" },
+    content: `
+      <p>Remove <b>${esc(target.title)}</b> from this summary?</p>
+      ${noteCount ? `
+        <p style="color: var(--color-text-dark-warning);">
+          This also deletes <b>${noteCount}</b> note${noteCount === 1 ? "" : "s"} attached to it${authors.length ? `, from ${esc(authors.join(", "))}` : ""}.
+          ${authors.length ? "Those are other people's contributions and cannot be recovered." : ""}
+        </p>` : ""}
+      <p style="font-size: 0.85rem; color: #b5b5b5;">
+        The card itself is not affected - use Return to Deck on the table if you also want the card back.
+      </p>`,
+    rejectClose: false,
+  }).catch(() => false);
+  if (!confirmed) return false;
+
+  const remaining = entries.filter((e) => e.id !== entryId);
+  await applySessionZeroMutation(summary, () => remaining);
+
+  const limits = summary.getFlag("cv-wicked-campaigns", "sessionZeroLimits") || {};
+  const prompted = foundry.utils.deepClone(summary.getFlag("cv-wicked-campaigns", "sessionZeroDiscardPrompted") || {});
+  const countSuit = (suit) => remaining.filter((e) => e.suit?.toLowerCase() === suit).length;
+
+  for (const tier of SESSION_ZERO_DECK_WIDE_TIERS) {
+    const max = limits[`${tier.key}Max`];
+    if (max && prompted[tier.key] && countSuit(tier.suit) < max) prompted[tier.key] = false;
+  }
+  // Per-player tiers are "maxed" only when every PC is individually at the cap, so re-derive the
+  // same way checkSessionZeroThresholds does rather than comparing a single total.
+  const pcCombatants = (game.combat?.combatants ?? []).filter((c) => c.actor?.type === "character");
+  for (const tier of [
+    { key: "majorArcana", suit: "major arcana", max: limits.arcanaPerPlayerMax },
+    { key: "roses", suit: "roses", max: limits.rosesPerPlayerMax },
+  ]) {
+    if (!tier.max || !prompted[tier.key] || !pcCombatants.length) continue;
+    const allMaxed = pcCombatants.every((c) => {
+      const name = c.actor?.name ?? c.name;
+      return remaining.filter((e) => e.suit?.toLowerCase() === tier.suit && e.playerName === name).length >= tier.max;
+    });
+    if (!allMaxed) prompted[tier.key] = false;
+  }
+  prompted.sessionComplete = false;
+
+  await summary.setFlag("cv-wicked-campaigns", "sessionZeroDiscardPrompted", prompted);
+  ui.notifications.info(`Removed "${target.title}"${noteCount ? ` and ${noteCount} note${noteCount === 1 ? "" : "s"}` : ""}.`);
+  return true;
 }
 
 // A note can be removed by whoever wrote it, or by any GM. Same relay path as writing one - and

@@ -39,6 +39,13 @@
                     <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: #b5b5b5; white-space: nowrap;">
                         {{#if this.playerImg}}<img src="{{this.playerImg}}" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover;">{{/if}}
                         <span>{{this.playerName}}</span>
+                        {{#if @root.isGM}}
+                        <button type="button" class="qbw-btn" data-action="delete-entry" data-entry-id="{{this.id}}"
+                                data-tooltip="Remove this recorded answer"
+                                style="padding: 0 5px; font-size: 0.72rem; background: none; border: none; color: #8a6a6a;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                        {{/if}}
                     </div>
                 </div>
                 {{#if this.linkedPlayers.length}}

@@ -2,6 +2,12 @@
 
 All notable changes to Wicked Campaigns are documented here, newest first.
 
+## v14.2.1 — 2026-08-07
+
+- A GM can now **remove a recorded answer** from a Session Zero summary. Recording against the wrong card or the wrong player used to be permanent, and the stray entry still counted toward its tier limit. If removing it drops a tier back below its limit, that tier's "discard the rest?" prompt is re-armed. The confirmation names how many player notes will be deleted along with it.
+- **Upgrading from before v14.2.0?** That release replaced the deck art, and worlds keep the copy they imported — so an existing deck can end up pointing at art that no longer ships, most visibly as a missing card back. Right-click the deck and choose **Refresh from Compendium** to bring it up to date; your placement, folder, ownership and keystone markings are all preserved.
+- Internal: the character-sheet and Session Zero PDF exporters now live in separate files rather than sharing one. No behaviour change.
+
 ## v14.2.0 — 2026-08-07
 
 Everything in this release comes out of the 2026-08-06 Session Zero playtest.

@@ -133,8 +133,15 @@ grants both, or set it by hand on the Cards documents.
 the deck marked "drawn" and puts a copy in the destination. The deck's card count never changes;
 its *available* count does. Return to Deck or Reset undoes this.
 
-**The deck has old art or old card names after an update.** A world keeps the copy it imported.
-Use **Refresh from Compendium** on the deck.
+**The deck has old art or old card names after an update, or the card back is a broken image.** A
+world keeps the copy it imported, so it can end up pointing at art that no longer ships. Right-click
+the deck and use **Refresh from Compendium**; placement, folder, ownership and keystone markings all
+survive. This is the expected step after upgrading from before v14.2.0, which replaced the deck art.
+
+**A recorded answer was entered against the wrong card or player.** Open the Session Zero summary
+and use the trash button on that entry. It also removes any player notes threaded under it, and the
+confirmation says how many. Removing an entry can re-arm a tier's "discard the rest?" prompt if the
+count drops back below the limit.
 
 **A card was dealt by mistake.** Right-click it → Return to Deck. To clear everything, use Return
 All Cards to Deck on the deck itself.

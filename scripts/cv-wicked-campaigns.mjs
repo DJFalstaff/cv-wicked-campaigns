@@ -9471,6 +9471,44 @@ function shuffleGroup(group) {
     .map(([, c]) => c);
 }
 
+// ---- Keystone cards -------------------------------------------------------
+// Playtest 2026-08-06, Aaron: "You have to establish the meter and the rhyme." Players could not
+// tell what a card type wanted from them because the first example they saw of that type might be
+// the vaguest one in the deck. A keystone is the opposite: the clearest, most idiot-proof card of
+// its type, guaranteed to be the FIRST of that type the table sees.
+//
+// Jeff's objection was that a fixed opener gets boring for a GM running this repeatedly. Mike's
+// rebuttal, which is what this implements: mark SEVERAL candidates per suit and pick one at random
+// each reset. With 3-4 candidates across a few suits that is dozens of distinct openings, and
+// player clarity outranks GM novelty anyway.
+const KEYSTONE_FLAG = "keystone";
+
+function isKeystoneCard(card) {
+  return card.getFlag("cv-wicked-campaigns", KEYSTONE_FLAG) === true;
+}
+
+// Within an already-ordered block, move one randomly-chosen keystone per suit into that suit's
+// earliest position. Deliberately a swap rather than a re-sort: the rest of the block keeps the
+// shuffled interleaving it arrived with, so only "which card of this suit comes first" is fixed,
+// not the order of everything after it. A suit with no flagged candidates is left alone entirely.
+function promoteKeystonesInBlock(block) {
+  const out = [...block];
+  const suits = new Set(out.map((c) => c.suit?.toLowerCase()).filter(Boolean));
+
+  for (const suit of suits) {
+    const candidates = out.filter((c) => c.suit?.toLowerCase() === suit && isKeystoneCard(c));
+    if (!candidates.length) continue;
+
+    const chosen = candidates[Math.floor(foundry.dice.MersenneTwister.random() * candidates.length)];
+    const firstIndex = out.findIndex((c) => c.suit?.toLowerCase() === suit);
+    const chosenIndex = out.indexOf(chosen);
+    if (firstIndex === -1 || chosenIndex === -1 || firstIndex === chosenIndex) continue;
+
+    [out[firstIndex], out[chosenIndex]] = [out[chosenIndex], out[firstIndex]];
+  }
+  return out;
+}
+
 // Recalls every dealt-out card (discard piles, hands, etc.) back into the deck, then applies the
 // custom tier sort - confirmed with the GM first since forcibly pulling cards out of hands/piles
 // mid-game is disruptive enough to warrant a prompt, unlike a plain re-sort.
@@ -9502,15 +9540,166 @@ async function resetDeck(deck) {
   const theme = cards
     .filter((c) => c.suit?.toLowerCase() === "theme")
     .sort((a, b) => (a.value ?? 0) - (b.value ?? 0));
-  const skulls = shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "skulls"));
-  const rest = shuffleGroup(cards.filter((c) => !["theme", "major arcana", "skulls"].includes(c.suit?.toLowerCase())));
-  const majorArcana = shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "major arcana"));
+  // Keystones are promoted per block, after the shuffle. "rest" holds moons/mobius/roses
+  // interleaved, so promoting there fixes the first card of EACH of those suits independently
+  // while leaving the interleaving random - the table still can't predict which type comes next,
+  // only that whichever type it is, it leads with its clearest example. Theme is exempt: it's
+  // deliberately ordered by value and is already the fixed opener.
+  const skulls = promoteKeystonesInBlock(shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "skulls")));
+  const rest = promoteKeystonesInBlock(shuffleGroup(cards.filter((c) => !["theme", "major arcana", "skulls"].includes(c.suit?.toLowerCase()))));
+  const majorArcana = promoteKeystonesInBlock(shuffleGroup(cards.filter((c) => c.suit?.toLowerCase() === "major arcana")));
 
   // Major Arcana last - see the tier comment above shuffleGroup.
   const updates = [...theme, ...skulls, ...rest, ...majorArcana].map((c, index) => ({ _id: c.id, sort: index }));
   await deck.updateEmbeddedDocuments("Card", updates);
   await ChatMessage.deleteDocuments([], { deleteAll: true });
   ui.notifications.info(`"${deck.name}" has been reset and the chat log cleared.${activeSummary ? ` The Session Zero game has ended; "${activeSummary.name}" is preserved for reading back.` : ""}`);
+}
+
+// Bulk editor for keystone flags. A per-card toggle on the card HUD would be the obvious place,
+// but a card only has a HUD once it's on the canvas - marking a dozen candidates that way would
+// mean dealing every card out first. This lists the whole deck grouped by suit instead, which is
+// also the only view where "have I actually covered every type?" is answerable at a glance.
+async function promptKeystoneDialog(deck) {
+  const bySuit = new Map();
+  for (const card of deck.cards.contents) {
+    const suit = card.suit || "(no suit)";
+    if (!bySuit.has(suit)) bySuit.set(suit, []);
+    bySuit.get(suit).push(card);
+  }
+  // Theme is the fixed opener already and is ordered by value, so a keystone there is meaningless.
+  bySuit.delete("theme");
+
+  if (!bySuit.size) {
+    ui.notifications.warn(`"${deck.name}" has no suited cards to mark.`);
+    return;
+  }
+
+  const sections = [...bySuit.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([suit, cards]) => {
+      const marked = cards.filter(isKeystoneCard).length;
+      const rows = cards
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((c) => `
+          <label style="display: flex; align-items: center; gap: 0.4rem; padding: 1px 0; font-size: 0.85rem;">
+            <input type="checkbox" name="keystone" value="${esc(c.id)}"${isKeystoneCard(c) ? " checked" : ""}>
+            <span>${esc(c.name)}</span>
+          </label>`)
+        .join("");
+      return `
+        <fieldset style="border: 1px solid rgba(201,160,84,0.25); border-radius: 4px; padding: 0.4rem 0.6rem; margin-bottom: 0.5rem;">
+          <legend style="padding: 0 0.35rem; color: #c9a054; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;">
+            ${esc(suit)} <span style="color:#888; text-transform:none;">(${marked} marked of ${cards.length})</span>
+          </legend>
+          ${rows}
+        </fieldset>`;
+    })
+    .join("");
+
+  const content = `
+    <p style="font-size: 0.85rem; color: #b5b5b5; margin-top: 0;">
+      A keystone is the clearest example of its card type. One marked card per suit - chosen at
+      random from whatever you mark here - is dealt first for that suit after a Reset, so the table
+      always learns a type from its best example. Mark several per suit to keep openings varied.
+    </p>
+    <div style="max-height: 420px; overflow-y: auto; padding-right: 0.3rem;">${sections}</div>`;
+
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: `Keystone Cards: ${deck.name}`, icon: "fa-solid fa-star" },
+    position: { width: 520 },
+    content,
+    buttons: [
+      {
+        action: "save",
+        label: "Save",
+        icon: "fas fa-check",
+        callback: (event, button) => Array.from(button.form.querySelectorAll('input[name="keystone"]:checked')).map((el) => el.value),
+      },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => null },
+    ],
+    rejectClose: false,
+  }).catch(() => null);
+  if (result === null) return;
+
+  const chosen = new Set(result);
+  // Only write cards whose flag actually changes - a 77-card deck would otherwise emit 77 updates
+  // on every save, each one a document write other clients have to process.
+  const updates = deck.cards.contents
+    .filter((c) => isKeystoneCard(c) !== chosen.has(c.id))
+    .map((c) => ({ _id: c.id, [`flags.cv-wicked-campaigns.${KEYSTONE_FLAG}`]: chosen.has(c.id) }));
+
+  if (!updates.length) {
+    ui.notifications.info("No keystone changes to save.");
+    return;
+  }
+  await deck.updateEmbeddedDocuments("Card", updates);
+  ui.notifications.info(`Updated ${updates.length} keystone marking${updates.length === 1 ? "" : "s"} on "${deck.name}". Reset the deck to apply.`);
+}
+
+// The Arcana closer, as a deliberate GM beat rather than a consequence of deck arithmetic.
+//
+// Playtest 2026-08-06 moved the Arcana to the end of the deck (they are the most open-ended cards
+// and made a terrible opener). But "last in the deck" only becomes "last in the session" while the
+// auto-thinning runs: simulated on the real deck, a 2-player game reaches the first Arcana at draw
+// 17 of 18 when the discard prompts are accepted, and at draw 57 when they are declined. This
+// button removes that dependency - it pulls an Arcana wherever it currently sits.
+async function drawArcanaCard(deck) {
+  if (!game.user.isGM) return;
+  if (!canvas.scene) {
+    ui.notifications.warn("There is no active scene to place a card on.");
+    return;
+  }
+
+  const summary = findActiveSessionZeroForDeck(deck);
+  // Cards already dealt onto this scene are still "available" as far as Foundry is concerned -
+  // placing a card doesn't move it out of its stack - so they have to be excluded by hand or the
+  // same Arcana gets drawn every time.
+  const placed = new Set(canvas.scene.getFlag("complete-card-management", "cardCollection") || []);
+  const available = deck.availableCards
+    .filter((c) => c.suit?.toLowerCase() === "major arcana" && !placed.has(c.uuid))
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+
+  if (!available.length) {
+    ui.notifications.warn(`No Major Arcana left to draw from "${deck.name}".`);
+    return;
+  }
+
+  // Warn rather than block: the limit is the GM's own setting, and a GM who wants to hand someone
+  // a second Arcana should not have to go and edit the session's limits to do it.
+  if (summary) {
+    const limits = summary.getFlag("cv-wicked-campaigns", "sessionZeroLimits") || {};
+    const max = limits.arcanaPerPlayerMax;
+    const combatant = game.combat?.combatant;
+    const who = combatant?.actor?.name ?? combatant?.name;
+    if (max && who) {
+      const entries = readSessionZeroEntries(summary);
+      const count = entries.filter((e) => e.suit?.toLowerCase() === "major arcana" && e.playerName === who).length;
+      if (count >= max) {
+        const go = await foundry.applications.api.DialogV2.confirm({
+          window: { title: "Arcana Limit Reached", icon: "fa-solid fa-triangle-exclamation" },
+          content: `<p>${esc(who)} already has ${count} Major Arcana recorded (limit ${max}).</p><p>Draw another anyway?</p>`,
+          rejectClose: false,
+        }).catch(() => false);
+        if (!go) return;
+      }
+    }
+  }
+
+  const card = available[0];
+
+  // Lay it beside the deck rather than at a fixed point, so it lands wherever the GM has actually
+  // put the deck on this scene. CCM stores the deck's placement per-scene as a top-left corner;
+  // placeCard takes a centre, hence the half-width/height back-and-forth.
+  const deckPos = deck.getFlag("complete-card-management", canvas.scene.id);
+  const cardW = (card.width ?? deck.width ?? 2) * canvas.grid.sizeX;
+  const cardH = (card.height ?? deck.height ?? 3) * canvas.grid.sizeY;
+  const target = deckPos
+    ? { x: deckPos.x + cardW * 1.7, y: deckPos.y + cardH / 2 }
+    : { x: canvas.dimensions.width / 2, y: canvas.dimensions.height / 2 };
+
+  await ccm.api.placeCard(card, target);
+  ui.notifications.info(`Drew "${card.name}" - ${available.length - 1} Major Arcana remaining.`);
 }
 
 // The CardHud's own template (card-hud.hbs) has an empty `.col.middle` div, deliberately unused
@@ -9547,8 +9736,28 @@ function onRenderCardHud(hud, html) {
     discardSuitButton.addEventListener("click", () => promptDiscardBySuitDialog(card));
     middle.appendChild(discardSuitButton);
 
+    // Deck prep, like Discard by Suit - useful before a game starts, so not gated on one running.
+    const keystoneButton = document.createElement("button");
+    keystoneButton.type = "button";
+    keystoneButton.className = "control-icon";
+    keystoneButton.dataset.tooltip = "Keystone Cards (mark the clearest example of each type)";
+    keystoneButton.innerHTML = `<i class="fa-solid fa-star"></i>`;
+    keystoneButton.addEventListener("click", () => promptKeystoneDialog(card));
+    middle.appendChild(keystoneButton);
+
     if (game.settings.get("cv-wicked-campaigns", "sessionZeroEnabled")) {
       const active = findActiveSessionZeroForDeck(card);
+
+      // Only while a game is running: this is a move in the session, not deck prep.
+      if (active) {
+        const arcanaButton = document.createElement("button");
+        arcanaButton.type = "button";
+        arcanaButton.className = "control-icon";
+        arcanaButton.dataset.tooltip = "Draw Arcana (the closing card, wherever it sits in the deck)";
+        arcanaButton.innerHTML = `<i class="fa-solid fa-wand-sparkles"></i>`;
+        arcanaButton.addEventListener("click", () => drawArcanaCard(card));
+        middle.appendChild(arcanaButton);
+      }
       const button = document.createElement("button");
       button.type = "button";
       button.className = "control-icon";

@@ -2,6 +2,10 @@
 
 All notable changes to Wicked Campaigns are documented here, newest first.
 
+## v14.2.2 — 2026-08-07
+
+- No functional change. Tracks a documentation file that had been left out of the repository, so the released version and the source tree match exactly.
+
 ## v14.2.1 — 2026-08-07
 
 - A GM can now **remove a recorded answer** from a Session Zero summary. Recording against the wrong card or the wrong player used to be permanent, and the stray entry still counted toward its tier limit. If removing it drops a tier back below its limit, that tier's "discard the rest?" prompt is re-armed. The confirmation names how many player notes will be deleted along with it.

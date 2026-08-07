@@ -1,7 +1,7 @@
 {
   "name": "cv-wicked-campaigns",
   "private": true,
-  "version": "14.2.1",
+  "version": "14.2.2",
   "description": "Build tooling for the Wicked Campaigns Foundry VTT module",
   "scripts": {
     "unpack": "npm run unpack:adventures && npm run unpack:rolltables && npm run unpack:macros && npm run unpack:lore && npm run unpack:characters && npm run unpack:actors && npm run unpack:scenes && npm run unpack:playlists && npm run unpack:items",

@@ -9556,6 +9556,155 @@ async function resetDeck(deck) {
   ui.notifications.info(`"${deck.name}" has been reset and the chat log cleared.${activeSummary ? ` The Session Zero game has ended; "${activeSummary.name}" is preserved for reading back.` : ""}`);
 }
 
+// ---- Refresh a world deck from its compendium source -----------------------
+// Importing an adventure COPIES its documents into the world; later edits to the compendium never
+// propagate. So a world that imported the deck before the art/name changes keeps the old cards
+// forever, and re-importing the adventure creates a second deck rather than updating the first -
+// which also strands the scene's cardCollection, since that points at the original id.
+//
+// This replaces a world deck's cards in place from a compendium copy of the same deck, preserving
+// everything that is local to the world: the deck's own id, its position and lock on the canvas,
+// its folder, and any keystone markings the GM has made.
+
+// Deliberately returns every candidate rather than the first hit. The same deck id currently lives
+// in two of our own packs with different contents, so picking blind would happily "refresh" a deck
+// back to an older version of itself.
+async function findCompendiumSourcesForDeck(deck) {
+  const sources = [];
+  for (const pack of game.packs) {
+    if (pack.metadata.packageName !== "cv-wicked-campaigns") continue;
+    try {
+      if (pack.documentName === "Cards") {
+        if (!pack.index.get(deck.id)) continue;
+        const doc = await pack.getDocument(deck.id);
+        if (doc?.type === "deck") sources.push({ pack, doc, label: `${pack.metadata.label} - ${doc.name}` });
+      } else if (pack.documentName === "Adventure") {
+        for (const entry of pack.index) {
+          const adventure = await pack.getDocument(entry._id);
+          const match = [...adventure.cards].find((c) => c.id === deck.id && c.type === "deck");
+          if (match) sources.push({ pack, doc: match, label: `${pack.metadata.label} - ${adventure.name} - ${match.name}` });
+        }
+      }
+    } catch (err) {
+      console.warn(`Wicked Campaigns | Could not search pack "${pack.collection}" for a deck source.`, err);
+    }
+  }
+  return sources;
+}
+
+function describeDeckSource(doc) {
+  const cards = doc.cards.contents;
+  const folders = new Set(cards.map((c) => (c.faces?.[0]?.img || c.img || "").split("/").slice(-2)[0]).filter(Boolean));
+  return { count: cards.length, art: [...folders].join(", ") || "(none)" };
+}
+
+async function refreshDeckFromCompendium(deck) {
+  if (!game.user.isGM) return;
+
+  const sources = await findCompendiumSourcesForDeck(deck);
+  if (!sources.length) {
+    ui.notifications.warn(`No compendium copy of "${deck.name}" was found to refresh from.`);
+    return;
+  }
+
+  const here = describeDeckSource(deck);
+  const options = sources.map((s, i) => {
+    const d = describeDeckSource(s.doc);
+    return `<option value="${i}">${esc(s.label)} - ${d.count} cards, art: ${esc(d.art)}</option>`;
+  }).join("");
+
+  const choice = await foundry.applications.api.DialogV2.wait({
+    window: { title: `Refresh "${deck.name}" from Compendium`, icon: "fa-solid fa-cloud-arrow-down" },
+    position: { width: 560 },
+    content: `
+      <p style="font-size: 0.85rem; color: #b5b5b5; margin-top: 0;">
+        Replaces every card in this deck with the compendium's version - art, names and values -
+        while keeping the deck itself where it is. Its position and lock on the scene, its folder,
+        its ownership and any keystone markings are preserved.
+      </p>
+      <p style="font-size: 0.85rem;">This world currently has <b>${here.count}</b> cards, art: <b>${esc(here.art)}</b>.</p>
+      <div class="form-group">
+        <label>Refresh from</label>
+        <select name="source">${options}</select>
+      </div>
+      <p style="color: var(--color-text-dark-warning); font-size: 0.85rem;">
+        <b>Note:</b> every dealt card is recalled into the deck first, and any of this deck's cards
+        currently sitting on a scene are taken off the table.
+      </p>`,
+    buttons: [
+      { action: "refresh", label: "Refresh", icon: "fas fa-cloud-arrow-down", callback: (event, button) => button.form.elements.source.value },
+      { action: "cancel", label: "Cancel", icon: "fas fa-times", callback: () => null },
+    ],
+    rejectClose: false,
+  }).catch(() => null);
+  if (choice === null) return;
+
+  const source = sources[Number(choice)];
+  const sourceCards = source.doc.cards.contents.map((c) => c.toObject());
+
+  // Keystones are a GM's local curation, not content - carry them across by card id so a refresh
+  // doesn't quietly undo an afternoon of marking.
+  const keystoneIds = new Set(deck.cards.contents.filter(isKeystoneCard).map((c) => c.id));
+
+  // Bring everything home first. Cards dealt into a hand or the discard pile belong to THOSE
+  // stacks, so they'd survive a deck-only replace and stay stale.
+  await deck.recall({ chatNotification: false });
+
+  // Take every card of this deck off every scene, then prune the scenes' collections.
+  //
+  // Two separate hazards, both of which leave dead entries behind:
+  //  - the cards are about to be deleted and recreated, so any placement keyed to them dies;
+  //  - a card's UUID embeds its PARENT stack, so the recall above just changed the UUID of
+  //    everything that was sitting in the discard pile. A scene still holding the old
+  //    "Cards.<pile>.Card.<id>" string can't be matched against the deck's current UUIDs at all.
+  // So clear flags by document, and prune by "does this still resolve" rather than by UUID
+  // equality - which also sweeps up orphans left by earlier deals.
+  for (const card of deck.cards.contents) {
+    for (const scene of game.scenes) {
+      if (card.getFlag("complete-card-management", scene.id)) {
+        await card.unsetFlag("complete-card-management", scene.id);
+      }
+    }
+  }
+  const ownCardIds = new Set(deck.cards.contents.map((c) => c.id));
+  for (const scene of game.scenes) {
+    const collection = scene.getFlag("complete-card-management", "cardCollection") || [];
+    if (!collection.length) continue;
+    const kept = collection.filter((uuid) => {
+      const cardId = uuid.includes(".Card.") ? uuid.split(".Card.")[1] : null;
+      if (cardId && ownCardIds.has(cardId)) return false;   // ours, wherever it currently lives
+      return !!fromUuidSync(uuid);                          // drop anything already dangling
+    });
+    if (kept.length !== collection.length) {
+      await scene.setFlag("complete-card-management", "cardCollection", kept);
+    }
+  }
+
+  await deck.deleteEmbeddedDocuments("Card", deck.cards.contents.map((c) => c.id));
+  await deck.createEmbeddedDocuments("Card", sourceCards, { keepId: true });
+
+  const restore = deck.cards.contents
+    .filter((c) => keystoneIds.has(c.id))
+    .map((c) => ({ _id: c.id, [`flags.cv-wicked-campaigns.${KEYSTONE_FLAG}`]: true }));
+  if (restore.length) await deck.updateEmbeddedDocuments("Card", restore);
+
+  // Deck-level fields worth taking from the source, but NOT folder/flags/ownership: those are
+  // where the world's own placement, organisation and player access live. Ownership is only ever
+  // raised, never lowered, on the same reasoning as grantSessionZeroDeckAccess.
+  const deckUpdate = { name: source.doc.name, img: source.doc.img, description: source.doc.description };
+  const sourceDefault = source.doc.ownership?.default ?? CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+  if (sourceDefault > (deck.ownership?.default ?? CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE)) {
+    deckUpdate["ownership.default"] = sourceDefault;
+  }
+  await deck.update(deckUpdate);
+
+  ui.notifications.info(
+    `Refreshed "${deck.name}" from ${source.label} - ${sourceCards.length} cards replaced.` +
+    (restore.length ? ` ${restore.length} keystone marking${restore.length === 1 ? "" : "s"} preserved.` : "") +
+    ` Reset the deck to re-apply the draw order.`,
+  );
+}
+
 // Bulk editor for keystone flags. A per-card toggle on the card HUD would be the obvious place,
 // but a card only has a HUD once it's on the canvas - marking a dozen candidates that way would
 // mean dealing every card out first. This lists the whole deck grouped by suit instead, which is
@@ -9744,6 +9893,16 @@ function onRenderCardHud(hud, html) {
     keystoneButton.innerHTML = `<i class="fa-solid fa-star"></i>`;
     keystoneButton.addEventListener("click", () => promptKeystoneDialog(card));
     middle.appendChild(keystoneButton);
+
+    // Also deck prep, and also useful outside a game: a world that imported this deck before a
+    // content update keeps the old cards until someone asks for the new ones.
+    const refreshButton = document.createElement("button");
+    refreshButton.type = "button";
+    refreshButton.className = "control-icon";
+    refreshButton.dataset.tooltip = "Refresh from Compendium (update this deck's cards to the shipped version)";
+    refreshButton.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i>`;
+    refreshButton.addEventListener("click", () => refreshDeckFromCompendium(card));
+    middle.appendChild(refreshButton);
 
     if (game.settings.get("cv-wicked-campaigns", "sessionZeroEnabled")) {
       const active = findActiveSessionZeroForDeck(card);
